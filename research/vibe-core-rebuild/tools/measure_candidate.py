@@ -21,7 +21,7 @@ parser.add_argument('candidate',type=Path)
 parser.add_argument('output',type=Path)
 parser.add_argument('--diagnostic',type=Path)
 args=parser.parse_args()
-tools=Path('/Users/hiimdrdey/autotune/artifacts/crossing24-bounded-preview-20261017-113218/source/tools')
+tools=Path(__file__).resolve().parents[2]/'benchmarks/hook2/tools'
 sys.path.insert(0,str(tools))
 from compare_pitch_correction_bounces import pitch_track,read_mono
 from measure_artist_vibe_latency_aligned import envelope_delay

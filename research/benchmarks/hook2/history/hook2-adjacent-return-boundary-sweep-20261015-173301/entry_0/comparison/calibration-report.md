@@ -1,0 +1,5 @@
+# StudioForge Artist-vs-Vibe calibration
+
+| Case | Artist latency | Vibe latency | F0 median Δ | Artist transitions | Vibe transitions |
+|---|---:|---:|---:|---:|---:|
+| 0 | 2689 samples | 1526 samples | 6.64 cents | 29 | 31 |

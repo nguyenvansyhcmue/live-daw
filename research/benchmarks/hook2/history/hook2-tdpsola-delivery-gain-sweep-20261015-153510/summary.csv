@@ -1,0 +1,4 @@
+gain,slope,median_abs_error,p90_abs_error,vibe_transitions,f0_median_delta,latency_samples
+1.10,0.8597,6.79,30.57,33,6.80,1510
+1.20,0.9432,7.74,34.35,38,7.73,1540
+1.30,0.9961,9.68,37.72,39,9.70,1517

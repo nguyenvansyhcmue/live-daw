@@ -1,0 +1,3 @@
+case,alto_frame,alto_hop,midpoint_lag_ms,detector_median_abs_cents,detector_p90_abs_cents,artist_transitions,vibe_transitions,trajectory_median_abs_cents,trajectory_p90_abs_cents,at_3679_artist_target,at_3679_vibe_target,at_3679_delta_cents
+baseline_2048_256,2048,256,28.67,16.69,42.09,29,26,13.707567,64.882608,59,57,-187.671657
+candidate_1024_128,1024,128,15.33,10.77,39.16,29,29,11.678861,62.496222,59,57,-182.198057

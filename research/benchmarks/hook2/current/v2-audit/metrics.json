@@ -1,0 +1,83 @@
+{
+  "alignment_method": "RMS envelope estimate; no gap interpolation",
+  "artist_lag_samples": 83,
+  "candidate_lag_samples": 1835,
+  "whole": {
+    "frames": 6818,
+    "median_abs_cents": 1.112773733341717,
+    "p90_abs_cents": 7.530446862706592,
+    "note_match": 0.9774127310061602,
+    "coverage_of_artist_voiced": 0.9878296146044625
+  },
+  "regions": {
+    "0-2": {
+      "frames": 1152,
+      "median_abs_cents": 0.8821915495410795,
+      "p90_abs_cents": 5.0835821137489905,
+      "note_match": 0.9774305555555556,
+      "coverage_of_artist_voiced": 0.9965397923875432
+    },
+    "4-4.6": {
+      "frames": 338,
+      "median_abs_cents": 2.916092126419937,
+      "p90_abs_cents": 17.438321815083096,
+      "note_match": 0.9644970414201184,
+      "coverage_of_artist_voiced": 0.9912023460410557
+    },
+    "4.7-5.1": {
+      "frames": 300,
+      "median_abs_cents": 1.6145389056225632,
+      "p90_abs_cents": 26.460361943702576,
+      "note_match": 0.9366666666666666,
+      "coverage_of_artist_voiced": 1.0
+    },
+    "7-8": {
+      "frames": 498,
+      "median_abs_cents": 1.7508503719792001,
+      "p90_abs_cents": 12.805040020517561,
+      "note_match": 0.9497991967871486,
+      "coverage_of_artist_voiced": 0.9595375722543352
+    },
+    "8.25-8.5": {
+      "frames": 188,
+      "median_abs_cents": 2.8847153788833557,
+      "p90_abs_cents": 10.997474939119591,
+      "note_match": 0.9946808510638298,
+      "coverage_of_artist_voiced": 1.0
+    }
+  },
+  "transition_landmarks_count": 29,
+  "level": {
+    "candidate_minus_artist_rms_db": -3.042268026767448,
+    "peak_candidate": 0.26994550240689213,
+    "sample_step_p999_artist": 0.07456224250007576,
+    "sample_step_p999_candidate_level_matched": 0.07493756042951058
+  },
+  "bands_level_matched_db": {
+    "100-500": 0.01931075238270724,
+    "500-2000": -0.05016992738873176,
+    "2000-6000": -0.13572436998113027,
+    "6000-10000": -0.11749526135124666
+  },
+  "spectral_envelope_proxy_median_abs_db": 1.080971836245061,
+  "host_vs_diagnostic": {
+    "gain": 0.7071067679728202,
+    "max_abs_difference_after_gain": 1.1893127556394933e-07,
+    "rms_difference_after_gain": 5.084583983421879e-08
+  },
+  "provenance": {
+    "raw": {
+      "path": "/Users/hiimdrdey/Music/Music/Media.localized/Music/Unknown Artist/Unknown Album/hook2_raw_segment.wav",
+      "sha256": "c241b07c23528541960b45ca4889a1ae105200ab9ba1a4a239c81683f98bac28"
+    },
+    "artist": {
+      "path": "/Users/hiimdrdey/autotune/artifacts/crossing24-bounded-preview-20261017-113218/source/renders/target-autotune-artist.wav",
+      "sha256": "fe8fcafac41f18fe7c5b823e52bf94b988fcf1a0270e93722bfe4db5a21caadb"
+    },
+    "candidate": {
+      "path": "results/v2-host/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "8de6266ec336e2c3b57395b54c438f1112732ebed1ee52036b181d918898d723"
+    }
+  },
+  "listening_verdict": "NOT VERIFIED"
+}

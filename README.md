@@ -38,10 +38,16 @@ has not been built from a fresh clone on another machine.
 
 Included source, current UI assets (including Blender source), test code,
 vendored DSP source/licenses, build/packaging scripts. Excluded generated builds,
-apps/binaries, caches/venvs, raw/bounced audio, datasets, user song lists/device
+apps/binaries, caches/venvs, bulk datasets, user song lists/device
 settings, proprietary Artist binaries and memory dumps, backup archives.
 No source from the original workspace was removed. No old Git history is
 included in this source-only snapshot. See `SOURCE_EXPORT_MANIFEST.json`.
+
+At the user's request, `research/benchmarks/hook2` now includes Hook 2 raw,
+the archived Artist target, candidate bounces, current trace/measurements and
+historical summary tables. See its README and SHA-256 manifest before reusing
+results. This is an explicit audio-data exception; GTSinger audio, proprietary
+plug-in binaries and debugger memory dumps remain excluded.
 
 Publish to the requested destination without force-pushing or overwriting an
 unknown main branch:

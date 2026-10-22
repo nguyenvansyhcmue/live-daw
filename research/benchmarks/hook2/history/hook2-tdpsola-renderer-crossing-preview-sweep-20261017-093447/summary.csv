@@ -1,0 +1,2 @@
+crossing_ms,slope,median_abs_error,p90_abs_error,vibe_transitions,f0_median_delta,latency_samples
+0,0.8259,4.45,24.86,28,4.47,1488\n8,0.8376,4.31,25.29,33,4.32,1477\n16,0.8115,4.43,24.19,33,4.45,1402\n24,0.8408,4.32,22.63,28,4.33,1464\n

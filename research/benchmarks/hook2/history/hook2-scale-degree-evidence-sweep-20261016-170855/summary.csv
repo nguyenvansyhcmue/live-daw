@@ -1,0 +1,4 @@
+evidence_frames,f0_median_delta_cents,artist_transitions,vibe_transitions,trajectory_median_abs_cents,trajectory_p90_abs_cents,at_3679_artist_target,at_3679_vibe_target,at_3679_delta_cents,worst_transition_score
+8,6.68622801574453,29,26,13.707567,64.882608,59,57,-187.671657,84.61
+6,6.68622801574453,29,26,13.707567,64.882608,59,57,-187.671657,84.61
+5,6.6807725086276255,29,33,13.707567,65.252638,59,57,-187.671657,93.94

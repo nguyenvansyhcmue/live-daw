@@ -1,0 +1,62 @@
+[
+  {
+    "name": "EN-Alto-2-Breathy-A_Thousand_Years-0000-Breathy_Group",
+    "voice": "Alto",
+    "key": "C",
+    "scale": "Natural Minor",
+    "reference_status": "archived; not re-rendered in this session",
+    "frames": 2945,
+    "median_abs_cents": 4.223512189941288,
+    "p90_abs_cents": 16.71104760446533,
+    "note_match": 0.969439728353141,
+    "coverage_of_artist_voiced": 0.9595959595959596
+  },
+  {
+    "name": "EN-Alto-2-Glissando-A_Thousand_Years-0000-Glissando_Group",
+    "voice": "Alto",
+    "key": "C",
+    "scale": "Natural Minor",
+    "reference_status": "archived; not re-rendered in this session",
+    "frames": 4901,
+    "median_abs_cents": 1.4506710360997932,
+    "p90_abs_cents": 6.176639511657555,
+    "note_match": 0.9883697204652112,
+    "coverage_of_artist_voiced": 0.9803960792158432
+  },
+  {
+    "name": "EN-Tenor-1-Breathy-All_I_Ask-0000-Breathy_Group",
+    "voice": "Tenor",
+    "key": "C",
+    "scale": "Major",
+    "reference_status": "archived; not re-rendered in this session",
+    "frames": 5080,
+    "median_abs_cents": 1.7726675388830038,
+    "p90_abs_cents": 6.947058625142974,
+    "note_match": 0.9816929133858268,
+    "coverage_of_artist_voiced": 0.9889040295892544
+  },
+  {
+    "name": "EN-Tenor-1-Glissando-All_I_Ask-0000-Glissando_Group",
+    "voice": "Tenor",
+    "key": "F",
+    "scale": "Natural Minor",
+    "reference_status": "archived; not re-rendered in this session",
+    "frames": 4669,
+    "median_abs_cents": 1.449406756226492,
+    "p90_abs_cents": 8.915986140582968,
+    "note_match": 0.9749411008781323,
+    "coverage_of_artist_voiced": 0.9773916684111367
+  },
+  {
+    "name": "EN-Tenor-1-Vibrato-All_I_Ask-0000-Vibrato_Group",
+    "voice": "Tenor",
+    "key": "C",
+    "scale": "Major",
+    "reference_status": "archived; not re-rendered in this session",
+    "frames": 5065,
+    "median_abs_cents": 2.5256578314985316,
+    "p90_abs_cents": 23.83241657306941,
+    "note_match": 0.9275419545903257,
+    "coverage_of_artist_voiced": 0.9717958557175749
+  }
+]

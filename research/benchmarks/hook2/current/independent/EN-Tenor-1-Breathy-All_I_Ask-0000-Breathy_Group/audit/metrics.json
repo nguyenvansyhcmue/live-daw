@@ -1,0 +1,78 @@
+{
+  "alignment_method": "RMS envelope estimate; no gap interpolation",
+  "artist_lag_samples": 2670,
+  "candidate_lag_samples": 1837,
+  "whole": {
+    "frames": 5080,
+    "median_abs_cents": 1.7726675388830038,
+    "p90_abs_cents": 6.947058625142974,
+    "note_match": 0.9816929133858268,
+    "coverage_of_artist_voiced": 0.9889040295892544
+  },
+  "regions": {
+    "0-2": {
+      "frames": 1199,
+      "median_abs_cents": 1.805229954115571,
+      "p90_abs_cents": 5.9992044631579455,
+      "note_match": 0.9866555462885738,
+      "coverage_of_artist_voiced": 0.9983347210657785
+    },
+    "4-4.6": {
+      "frames": 450,
+      "median_abs_cents": 1.5274676499213138,
+      "p90_abs_cents": 4.948499275046063,
+      "note_match": 0.9888888888888889,
+      "coverage_of_artist_voiced": 1.0
+    },
+    "4.7-5.1": {
+      "frames": 262,
+      "median_abs_cents": 2.551877678229203,
+      "p90_abs_cents": 9.75751382656162,
+      "note_match": 0.9809160305343512,
+      "coverage_of_artist_voiced": 0.9961977186311787
+    },
+    "7-8": {
+      "frames": 365,
+      "median_abs_cents": 1.47345189727841,
+      "p90_abs_cents": 6.014752189208684,
+      "note_match": 0.9808219178082191,
+      "coverage_of_artist_voiced": 0.9838274932614556
+    },
+    "8.25-8.5": {
+      "frames": 187,
+      "median_abs_cents": 2.385964214000167,
+      "p90_abs_cents": 12.573688881468879,
+      "note_match": 0.9679144385026738,
+      "coverage_of_artist_voiced": 1.0
+    }
+  },
+  "transition_landmarks_count": 8,
+  "level": {
+    "candidate_minus_artist_rms_db": -0.021418922452153773,
+    "peak_candidate": 0.390917778197172,
+    "sample_step_p999_artist": 0.03970463659228055,
+    "sample_step_p999_candidate_level_matched": 0.040438328565883766
+  },
+  "bands_level_matched_db": {
+    "100-500": 0.0028713182737852756,
+    "500-2000": -0.08380818740772407,
+    "2000-6000": -0.7123254112609377,
+    "6000-10000": -0.29169799375403405
+  },
+  "spectral_envelope_proxy_median_abs_db": 0.782883762312271,
+  "provenance": {
+    "raw": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/English/EN-Tenor-1/Breathy/All I Ask/Breathy_Group/0000.wav",
+      "sha256": "e5d31687b17baa4604652caee022de7c5e2a94457bb8e3b3800275e764beac6a"
+    },
+    "artist": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/runs/artist-vibe-ab-20261018-123937/EN-Tenor-1-Breathy-All_I_Ask-0000-Breathy_Group/artist/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "aa2ec56a410155ca5e2ddd416ac4064302587044451cbb6a997f2df22e2263ef"
+    },
+    "candidate": {
+      "path": "/Users/hiimdrdey/autotune/vibe-core-rebuild/results/independent/EN-Tenor-1-Breathy-All_I_Ask-0000-Breathy_Group/vibe/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "be687d9a6b6cc3c7f7a481e4b9239d83277c3c58d4353456bb421ab1cba7bec3"
+    }
+  },
+  "listening_verdict": "NOT VERIFIED"
+}

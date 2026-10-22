@@ -1,0 +1,4 @@
+gain,hard_tune_slope,hard_tune_median_error,hard_tune_p90_error,artist_transitions,vibe_transitions,f0_median_delta
+1.14,0.9396,5.46,25.98,29,34,5.49
+1.18,0.9907,6.03,27.71,29,33,6.06
+1.20,0.9988,6.64,26.07,29,36,6.63

@@ -1,0 +1,78 @@
+{
+  "alignment_method": "RMS envelope estimate; no gap interpolation",
+  "artist_lag_samples": 2656,
+  "candidate_lag_samples": 1847,
+  "whole": {
+    "frames": 5065,
+    "median_abs_cents": 2.5256578314985316,
+    "p90_abs_cents": 23.83241657306941,
+    "note_match": 0.9275419545903257,
+    "coverage_of_artist_voiced": 0.9717958557175749
+  },
+  "regions": {
+    "0-2": {
+      "frames": 1176,
+      "median_abs_cents": 2.7338975463168755,
+      "p90_abs_cents": 17.395444887357378,
+      "note_match": 0.9489795918367347,
+      "coverage_of_artist_voiced": 0.9775561097256857
+    },
+    "4-4.6": {
+      "frames": 393,
+      "median_abs_cents": 3.9131737969898315,
+      "p90_abs_cents": 53.19744990260873,
+      "note_match": 0.8880407124681934,
+      "coverage_of_artist_voiced": 0.9401913875598086
+    },
+    "4.7-5.1": {
+      "frames": 300,
+      "median_abs_cents": 2.2229629324449,
+      "p90_abs_cents": 10.575491690928246,
+      "note_match": 0.9533333333333334,
+      "coverage_of_artist_voiced": 1.0
+    },
+    "7-8": {
+      "frames": 666,
+      "median_abs_cents": 2.1973709160891763,
+      "p90_abs_cents": 38.687671334307986,
+      "note_match": 0.9054054054054054,
+      "coverage_of_artist_voiced": 1.0
+    },
+    "8.25-8.5": {
+      "frames": 188,
+      "median_abs_cents": 2.4068797153984907,
+      "p90_abs_cents": 29.74168192056545,
+      "note_match": 0.9202127659574468,
+      "coverage_of_artist_voiced": 1.0
+    }
+  },
+  "transition_landmarks_count": 68,
+  "level": {
+    "candidate_minus_artist_rms_db": -0.05744458881212641,
+    "peak_candidate": 0.39505076426782215,
+    "sample_step_p999_artist": 0.07046735766831252,
+    "sample_step_p999_candidate_level_matched": 0.06979397409700441
+  },
+  "bands_level_matched_db": {
+    "100-500": 0.04467751683457705,
+    "500-2000": -0.08668379912761964,
+    "2000-6000": -0.4256908242023134,
+    "6000-10000": -0.06775842564499117
+  },
+  "spectral_envelope_proxy_median_abs_db": 1.0295715978233804,
+  "provenance": {
+    "raw": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/English/EN-Tenor-1/Vibrato/All I Ask/Vibrato_Group/0000.wav",
+      "sha256": "bc96d0da05ea068093ff4bbe22f8a6c52b66060c743446a47b15c00781929e59"
+    },
+    "artist": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/runs/artist-vibe-ab-20261018-123937/EN-Tenor-1-Vibrato-All_I_Ask-0000-Vibrato_Group/artist/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "8eb6d0272592799f149e8a09e6afbc31b97be3c1ce84bb59c90a484b117b7287"
+    },
+    "candidate": {
+      "path": "/Users/hiimdrdey/autotune/vibe-core-rebuild/results/independent/EN-Tenor-1-Vibrato-All_I_Ask-0000-Vibrato_Group/vibe/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "4e05391bbca071a6d9834f9dc5e63be6335232a363232cee6f325cb28337655a"
+    }
+  },
+  "listening_verdict": "NOT VERIFIED"
+}

@@ -1,0 +1,78 @@
+{
+  "alignment_method": "RMS envelope estimate; no gap interpolation",
+  "artist_lag_samples": 2714,
+  "candidate_lag_samples": 1803,
+  "whole": {
+    "frames": 4901,
+    "median_abs_cents": 1.4506710360997932,
+    "p90_abs_cents": 6.176639511657555,
+    "note_match": 0.9883697204652112,
+    "coverage_of_artist_voiced": 0.9803960792158432
+  },
+  "regions": {
+    "0-2": {
+      "frames": 223,
+      "median_abs_cents": 1.3607603772514363,
+      "p90_abs_cents": 3.536014818465585,
+      "note_match": 0.9730941704035875,
+      "coverage_of_artist_voiced": 0.8779527559055118
+    },
+    "4-4.6": {
+      "frames": 296,
+      "median_abs_cents": 0.6671691483147721,
+      "p90_abs_cents": 1.953774668399105,
+      "note_match": 0.9966216216216216,
+      "coverage_of_artist_voiced": 0.961038961038961
+    },
+    "4.7-5.1": {
+      "frames": 2,
+      "median_abs_cents": 2.9242580557442412,
+      "p90_abs_cents": 4.524615408442086,
+      "note_match": 1.0,
+      "coverage_of_artist_voiced": 0.5
+    },
+    "7-8": {
+      "frames": 750,
+      "median_abs_cents": 1.0252733584636942,
+      "p90_abs_cents": 2.4154642955007293,
+      "note_match": 1.0,
+      "coverage_of_artist_voiced": 1.0
+    },
+    "8.25-8.5": {
+      "frames": 188,
+      "median_abs_cents": 0.8362282023378693,
+      "p90_abs_cents": 2.0187005521046064,
+      "note_match": 1.0,
+      "coverage_of_artist_voiced": 1.0
+    }
+  },
+  "transition_landmarks_count": 12,
+  "level": {
+    "candidate_minus_artist_rms_db": -0.022588048172263966,
+    "peak_candidate": 0.11815440660256632,
+    "sample_step_p999_artist": 0.02883387137802024,
+    "sample_step_p999_candidate_level_matched": 0.029446337828915443
+  },
+  "bands_level_matched_db": {
+    "100-500": 0.008091332021015623,
+    "500-2000": -0.016831736614323353,
+    "2000-6000": -0.26877368614361874,
+    "6000-10000": -0.032120560880842634
+  },
+  "spectral_envelope_proxy_median_abs_db": 0.7914966481414476,
+  "provenance": {
+    "raw": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/English/EN-Alto-2/Glissando/A Thousand Years/Glissando_Group/0000.wav",
+      "sha256": "c94726e64129d3dfd1b0159d5302bb29ba98ba8376363d07f6973d5e6527bda9"
+    },
+    "artist": {
+      "path": "/Users/hiimdrdey/Library/Application Support/StudioForge/Research/GTSinger/runs/artist-vibe-ab-20261018-123937/EN-Alto-2-Glissando-A_Thousand_Years-0000-Glissando_Group/artist/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "8847c27f909f46b95ab3d1ebabdd12bba774efe93a9b7b683e6dcddd9fdccb00"
+    },
+    "candidate": {
+      "path": "/Users/hiimdrdey/autotune/vibe-core-rebuild/results/independent/EN-Alto-2-Glissando-A_Thousand_Years-0000-Glissando_Group/vibe/case_0_retune0.0_flex0.0_humanize0.0_vibrato0.0.wav",
+      "sha256": "d6e9807e5ab7a8827618ea5122dde0b57342f25af36c579eb2ca01e91c48f65f"
+    }
+  },
+  "listening_verdict": "NOT VERIFIED"
+}

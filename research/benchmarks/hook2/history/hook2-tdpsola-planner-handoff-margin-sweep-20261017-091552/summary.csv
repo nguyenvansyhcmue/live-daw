@@ -1,0 +1,2 @@
+margin_samples,slope,median_abs_error,p90_abs_error,vibe_transitions,f0_median_delta,latency_samples
+0,0.8260,4.44,24.78,29,4.47,1486\n32,0.8259,4.45,24.86,28,4.47,1488\n64,0.8259,4.45,24.86,28,4.47,1488\n

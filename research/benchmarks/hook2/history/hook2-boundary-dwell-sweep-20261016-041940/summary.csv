@@ -1,0 +1,4 @@
+boundary_dwell_frames,f0_median_delta_cents,artist_transitions,vibe_transitions,pitch_median_abs_cents,pitch_p90_abs_cents,median_outlier_score,worst_outlier_score,event_4631_score,event_4447_score
+2,6.68622801574453,29,26,6.817233,32.629082,10.39,84.61,84.6,29.0
+1,6.635803750009972,29,31,6.779831,32.331890,13.77,84.84,84.8,28.9
+3,6.6548065853690455,29,29,6.783720,33.014736,10.93,85.43,85.4,28.8
