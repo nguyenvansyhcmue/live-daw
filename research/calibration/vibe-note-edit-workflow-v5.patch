@@ -1,0 +1,132 @@
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include "PluginProcessor.h"
++#include <functional>
+ #include <utility>
+ #include "AnalogRotaryControl.h"
+ #include "AnalogHardwareButton.h"
+@@ -19,6 +20,17 @@
+     bool keyPressed (const juce::KeyPress& key) override;
+ 
+ private:
++    class NoteRuleHitTarget final : public juce::Component
++    {
++    public:
++        std::function<void (const juce::ModifierKeys&)> onGesture;
++        void mouseDown (const juce::MouseEvent& event) override
++        {
++            if (onGesture != nullptr)
++                onGesture (event.mods);
++        }
++    };
++
+     // Retune has a musical, non-linear faceplate: the useful fast range gets
+     // more angular resolution while the parameter/automation remains exactly
+     // 0–400 ms.  Landmarks: 50 ms at 12 o'clock and 125 ms near 10 o'clock.
+@@ -64,6 +76,7 @@
+     bool isNoteInSelectedVoiceRange (int midiNote) const noexcept;
+     void applyNoteRule (int midiNote, NoteRule rule);
+     void showNoteRuleMenu (int midiNote, juce::Rectangle<int> targetBounds);
++    void handleNoteRuleGesture (int midiNote, const juce::ModifierKeys& modifiers);
+ 
+     VibeAutotuneProcessor& processor;
+     VibeAutotuneProcessor::PitchMonitorData monitor;
+@@ -102,6 +115,7 @@
+     // supported input profile without turning the keyboard into a scroll view.
+     std::array<juce::Rectangle<int>, 60> pianoKeyBounds;
+     std::array<juce::Rectangle<int>, 60> noteStatusBounds;
++    std::array<NoteRuleHitTarget, 60> noteRuleHitTargets;
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -370,7 +370,28 @@
+     settingsButton.onClick = [this] { showTargetOverlay = ! showTargetOverlay; repaint(); };
+     setWantsKeyboardFocus (true);
+    #endif
+-    editNotesButton.setClickingTogglesState (true); editNotesButton.setLookAndFeel (&hardware); editNotesButton.setColour (juce::TextButton::buttonColourId, graphite); editNotesButton.setColour (juce::TextButton::buttonOnColourId, raised); editNotesButton.setColour (juce::TextButton::textColourOffId, champagne); editNotesButton.setColour (juce::TextButton::textColourOnId, brass); editNotesButton.onClick = [this] { editNotesEnabled = editNotesButton.getToggleState(); repaint (pianoBounds); }; editNotesButton.setTooltip ("Edit scale note rules"); addAndMakeVisible (editNotesButton);
++    editNotesButton.setClickingTogglesState (true); editNotesButton.setLookAndFeel (&hardware); editNotesButton.setColour (juce::TextButton::buttonColourId, graphite); editNotesButton.setColour (juce::TextButton::buttonOnColourId, raised); editNotesButton.setColour (juce::TextButton::textColourOffId, champagne); editNotesButton.setColour (juce::TextButton::textColourOnId, brass);
++    editNotesButton.onClick = [this]
++    {
++        editNotesEnabled = editNotesButton.getToggleState();
++        for (auto& target : noteRuleHitTargets)
++            target.setVisible (editNotesEnabled);
++        repaint (pianoBounds);
++    };
++    editNotesButton.setTooltip ("Show or hide per-note correction rules"); addAndMakeVisible (editNotesButton);
++    for (int index = 0; index < (int) noteRuleHitTargets.size(); ++index)
++    {
++        auto& target = noteRuleHitTargets[(size_t) index];
++        const auto midiNote = firstKey + index;
++        target.setMouseCursor (juce::MouseCursor::PointingHandCursor);
++        target.setTitle ("Edit MIDI note " + juce::String (midiNote));
++        target.onGesture = [this, midiNote] (const juce::ModifierKeys& modifiers)
++        {
++            handleNoteRuleGesture (midiNote, modifiers);
++        };
++        addAndMakeVisible (target);
++        target.setVisible (false);
++    }
+     groupOctavesButton.setLookAndFeel (&hardware); groupOctavesButton.setToggleState (processor.getGroupOctaves(), juce::dontSendNotification); groupOctavesButton.setColour (juce::ToggleButton::textColourId, champagne); groupOctavesButton.setColour (juce::ToggleButton::tickColourId, brass); groupOctavesButton.onClick = [this] { processor.setGroupOctaves (groupOctavesButton.getToggleState()); repaint (pianoBounds); }; addAndMakeVisible (groupOctavesButton);
+     bypassAttachment = std::make_unique<ButtonAttachment> (processor.parameters, "bypass", bypassButton);
+     inputTypeAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "inputType", inputTypeSelector); keyAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "key", keySelector); scaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", scaleSelector);
+@@ -773,9 +794,11 @@
+         g.setColour (pressed ? juce::Colour (0xffffb5fa) : champagne.withAlpha (inRange ? .22f : .07f)); g.drawRoundedRectangle (b, 2.0f, pressed ? 1.6f : .7f);
+         if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (1.6f), 1.0f, 1.2f); }
+     }
+-    // Always show the scale ruler. Pencil mode only enables editing.
+-    for (int note = firstKey; note <= lastKey; ++note)
+-        drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
++    // The ruler is an editing surface, not permanent decoration.  Keeping it
++    // hidden until the pencil is engaged makes the interaction contract clear.
++    if (editNotesEnabled)
++        for (int note = firstKey; note <= lastKey; ++note)
++            drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
+ }
+ 
+ void VibeAutotuneEditor::resized()
+@@ -878,6 +901,7 @@
+         const auto key = pianoKeyBounds[(size_t) (note - firstKey)];
+         const auto markerWidth = juce::jmax (9, juce::jmin (17, key.getWidth() - 2));
+         noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY(), markerWidth, statusStrip.getHeight() };
++        noteRuleHitTargets[(size_t) (note - firstKey)].setBounds (noteStatusBounds[(size_t) (note - firstKey)].expanded (2, 1));
+     }
+ 
+    #if JUCE_DEBUG
+@@ -1043,19 +1067,26 @@
+     const auto midiNote = pianoNoteAt (event.getPosition());
+     if (midiNote < 0)
+         return;
+-    if (event.mods.isPopupMenu())
++    handleNoteRuleGesture (midiNote, event.mods);
++}
++
++void VibeAutotuneEditor::handleNoteRuleGesture (int midiNote, const juce::ModifierKeys& modifiers)
++{
++    if (! editNotesEnabled || midiNote < firstKey || midiNote > lastKey)
++        return;
++
++    if (modifiers.isPopupMenu())
+     {
+-        showNoteRuleMenu (midiNote, pianoKeyBounds[(size_t) (midiNote - firstKey)]);
++        const auto localTarget = noteStatusBounds[(size_t) (midiNote - firstKey)].expanded (3, 2);
++        showNoteRuleMenu (midiNote, localAreaToGlobal (localTarget));
+         return;
+     }
+ 
+     const auto current = processor.getGroupOctaves()
+                        ? processor.getNoteRuleForPitchClass (midiNote % 12)
+                        : processor.getNoteRuleForMidiNote (midiNote);
+-    // One repeated click walks the complete realtime rule set:
+-    // legal -> nearest legal -> force up -> force down -> bypass -> legal.
+-    // A secondary click still opens the explicit named menu.
+-    const auto direction = event.mods.isShiftDown() ? 4 : 1;
++    // Click advances through all five rules; Shift-click walks backwards.
++    const auto direction = modifiers.isShiftDown() ? 4 : 1;
+     applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + direction) % 5));
+ }
+ void VibeAutotuneEditor::timerCallback()

@@ -1,0 +1,29 @@
+diff --git a/VibeAutotune/SignalsmithPitchRenderer.h b/VibeAutotune/SignalsmithPitchRenderer.h
+--- a/VibeAutotune/SignalsmithPitchRenderer.h
++++ b/VibeAutotune/SignalsmithPitchRenderer.h
+@@ -8,6 +8,15 @@
+ #include <numbers>
+ #include <vector>
+ 
++// Candidate hook only. The production limits below preserve the qualified
++// renderer behaviour; offline A/B builds may widen them without editing DSP.
++#ifndef VIBE_SPECTRAL_MIN_RATIO
++ #define VIBE_SPECTRAL_MIN_RATIO 0.90
++#endif
++#ifndef VIBE_SPECTRAL_MAX_RATIO
++ #define VIBE_SPECTRAL_MAX_RATIO 1.10
++#endif
++
+ // Fixed-latency spectral pitch renderer used for voiced correction.  It owns
+ // no note selection: the existing trajectory remains the sole control source.
+ class SignalsmithPitchRenderer
+@@ -61,7 +70,8 @@
+     {
+         if (source == nullptr || destination == nullptr || samples <= 0 || dryDelay.empty()
+             || sibilanceTargetDelay.size() != dryDelay.size()) return;
+-        const auto safeRatio = static_cast<float> (std::clamp (ratio, 0.90, 1.10));
++        const auto safeRatio = static_cast<float> (std::clamp (ratio, static_cast<double> (VIBE_SPECTRAL_MIN_RATIO),
++                                                               static_cast<double> (VIBE_SPECTRAL_MAX_RATIO)));
+         stretch.setTransposeFactor (safeRatio);
+         struct Input { const float* p; const float* operator[] (int) const { return p; } } input { source };
+         struct Output { float* p; float* operator[] (int) const { return p; } } output { destination };

@@ -1,0 +1,26 @@
+diff --git a/VibeAutotune/CausalTDPSOLARenderer.h b/VibeAutotune/CausalTDPSOLARenderer.h
+--- a/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -20,6 +20,10 @@
+  #define VIBE_TDPSOLA_SIBILANCE_WET_GATE_THRESHOLD 2.0
+ #endif
+ 
++#ifndef VIBE_TDPSOLA_SIBILANCE_WET_GATE_LOOKAHEAD_SAMPLES
++ #define VIBE_TDPSOLA_SIBILANCE_WET_GATE_LOOKAHEAD_SAMPLES 0
++#endif
++
+ // Live-only TD-PSOLA research renderer.  It never reads future input.  The
+ // reported latency leaves enough history for a *centred* analysis grain to be
+ // complete before that grain is written to the future output FIFO.
+@@ -1252,8 +1256,10 @@ public:
+             // A transient may remain formally voiced for a few milliseconds.
+             // Do not let its PSOLA grain become audible as a false bright
+             // consonant: leave through the existing equal-power dry handoff.
++            const auto sibilanceEvidenceSample = static_cast<int64_t> (outputReadSample) - latency
++                                               + VIBE_TDPSOLA_SIBILANCE_WET_GATE_LOOKAHEAD_SAMPLES;
+             const auto alignedSibilanceEvidence = readSourceHighFrequencyEvidence (
+-                static_cast<int64_t> (outputReadSample) - latency);
++                sibilanceEvidenceSample);
+             diagnosticState.highFrequencyEvidence = alignedSibilanceEvidence;
+             const auto sibilanceForcesDry = alignedSibilanceEvidence
+                                          >= static_cast<double> (VIBE_TDPSOLA_SIBILANCE_WET_GATE_THRESHOLD);

@@ -1,0 +1,16 @@
+diff --git a/Source/UI/InspectorComponents.cpp b/Source/UI/InspectorComponents.cpp
+index e50e91b..51ab395 100644
+--- a/Source/UI/InspectorComponents.cpp
++++ b/Source/UI/InspectorComponents.cpp
+@@ -666,6 +666,11 @@ void ChannelStripComponent::refreshAudioFx()
+                     activeColour = juce::Colour(0xff23806f);
+                     activeTooltip = "TRACKING — tuned renderer is healthy";
+                     break;
++                case LiveProcessorState::holding:
++                    label << "  ·  HOLD";
++                    activeColour = juce::Colour(0xff3d7b85);
++                    activeTooltip = "HOLD — retaining corrected continuity through a brief pitch dropout";
++                    break;
+                 case LiveProcessorState::protectedDry:
+                     label << "  ·  PROTECTED";
+                     activeColour = juce::Colour(0xff765147);

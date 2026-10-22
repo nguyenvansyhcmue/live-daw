@@ -1,0 +1,50 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -57,5 +57,20 @@
+ // per 128-sample control tick still de-zips the vocoder but avoids turning a
+ // one-semitone 0 ms landing into a 20+ ms pitch ramp.
+ constexpr double rendererMaximumHardTuneStepCents = 120.0;
++
++double rendererDeliveryRailCents (double retuneSpeedMs, double flexTunePercent,
++                                  double humanizePercent, double naturalVibratoPercent) noexcept
++{
++    constexpr auto zeroTolerance = 0.05;
++    const auto hardTune = retuneSpeedMs <= zeroTolerance
++                       && flexTunePercent <= zeroTolerance
++                       && humanizePercent <= zeroTolerance
++                       && std::abs (naturalVibratoPercent) <= zeroTolerance;
++    const auto hasNaturalVibrato = std::abs (naturalVibratoPercent) > zeroTolerance;
++    return retuneSpeedMs <= VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
++        && ! hardTune && ! hasNaturalVibrato
++        ? VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
++        : 120.0;
++}
+ 
+ constexpr std::array<std::array<bool, 12>, 14> scaleIntervals {{
+@@ -928,9 +943,10 @@
+         // held correction overshoot by roughly six cents.
+         const auto rendererDeliveryCompensation = usePhaseContinuousRenderer.load (std::memory_order_relaxed)
+                                               ? rendererDeliveryGain : 1.0;
+-        constexpr double maximumDeliveredCorrectionCents = 120.0;
+-        const auto compensatedCents = juce::jlimit (-maximumDeliveredCorrectionCents,
+-                                                     maximumDeliveredCorrectionCents,
++        const auto deliveryRailCents = rendererDeliveryRailCents (retuneSpeedMs, flexTunePercent,
++                                                                   humanizePercent, naturalVibratoPercent);
++        const auto compensatedCents = juce::jlimit (-deliveryRailCents,
++                                                     deliveryRailCents,
+                                                      smoothedCorrectionCents * rendererDeliveryCompensation);
+         smoothedPitchRatio = std::exp2 (compensatedCents / 1200.0);
+         if (hadValidTrajectoryCorrection)
+@@ -978,8 +994,10 @@
+                                                                                   analysisSampleRate);
+         const auto rendererDeliveryCompensation = usePhaseContinuousRenderer.load (std::memory_order_relaxed)
+                                               ? rendererDeliveryGain : 1.0;
++        const auto deliveryRailCents = rendererDeliveryRailCents (retuneSpeedMs, flexTunePercent,
++                                                                   humanizePercent, naturalVibratoPercent);
+         const auto scheduledCorrectionCents = scheduled.hasValidCorrection
+-                                            ? juce::jlimit (-120.0, 120.0,
++                                            ? juce::jlimit (-deliveryRailCents, deliveryRailCents,
+                                                             1200.0 * std::log2 (scheduled.pitchRatio)
+                                                                 * rendererDeliveryCompensation)
+                                             : 0.0;

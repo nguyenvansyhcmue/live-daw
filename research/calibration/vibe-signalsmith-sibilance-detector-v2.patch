@@ -1,0 +1,75 @@
+--- a/VibeAutotune/SignalsmithPitchRenderer.h
++++ b/VibeAutotune/SignalsmithPitchRenderer.h
+@@ -25,10 +25,12 @@
+         wetGate = 0.0f;
+         sibilanceResidualMix = 0.0f;
+         maximumSibilanceResidualMix = 0.0f;
+-        wetLowState = dryLowState = previousSourceSample = 0.0f;
+-        sourceEnergy = differenceEnergy = delayedEnergy = 1.0e-12;
++        wetLowState = dryLowState = sourceLowState = 0.0f;
++        sourceEnergy = highEnergy = delayedEnergy = 1.0e-12;
+         correlation = 0.0;
+         sourceEvidenceAlpha = 1.0 - std::exp (-1.0 / (sourceEvidenceSeconds * sampleRate));
++        sourceCrossoverAlpha = 1.0 - std::exp (-2.0 * std::numbers::pi_v<double>
++                                               * sourceAnalysisCrossoverHz / sampleRate);
+         // This is a lifecycle gate, not a musical envelope or a noise gate.
+         // It only prevents an instantaneous spectral-wet -> delayed-dry
+         // splice when voicing certification changes at a control boundary.
+@@ -44,8 +46,8 @@
+         wetGate = 0.0f;
+         sibilanceResidualMix = 0.0f;
+         maximumSibilanceResidualMix = 0.0f;
+-        wetLowState = dryLowState = previousSourceSample = 0.0f;
+-        sourceEnergy = differenceEnergy = delayedEnergy = 1.0e-12;
++        wetLowState = dryLowState = sourceLowState = 0.0f;
++        sourceEnergy = highEnergy = delayedEnergy = 1.0e-12;
+         correlation = 0.0;
+     }
+     int latencySamples() const noexcept { return stretch.inputLatency() + stretch.outputLatency(); }
+@@ -74,8 +76,6 @@
+             // voice. Its control cue is delayed by exactly the renderer
+             // latency, preventing a dry/wet time mismatch or broad blend.
+             const auto x = static_cast<double> (source[n]);
+-            const auto difference = x - static_cast<double> (previousSourceSample);
+-            previousSourceSample = source[n];
+             const auto period = std::isfinite (sourceF0Hz) && sourceF0Hz >= 80.0
+                               ? std::clamp (static_cast<int> (std::lround (sampleRate / sourceF0Hz)), 16,
+                                             static_cast<int> (dryDelay.size() - 1))
+@@ -84,12 +84,17 @@
+                                ? static_cast<double> (dryDelay[(dryWrite + dryDelay.size()
+                                                           - static_cast<size_t> (period)) % dryDelay.size()])
+                                : 0.0;
++            // A true high-band estimate catches sustained /s/ and /sh/
++            // energy which a one-sample derivative can miss at 48 kHz.
++            // This remains a short causal one-pole calculation, not an FFT.
++            sourceLowState += (source[n] - sourceLowState) * sourceCrossoverAlpha;
++            const auto sourceHigh = x - static_cast<double> (sourceLowState);
+             sourceEnergy += (x * x - sourceEnergy) * sourceEvidenceAlpha;
+-            differenceEnergy += (difference * difference - differenceEnergy) * sourceEvidenceAlpha;
++            highEnergy += (sourceHigh * sourceHigh - highEnergy) * sourceEvidenceAlpha;
+             correlation += (x * delayed - correlation) * sourceEvidenceAlpha;
+             delayedEnergy += (delayed * delayed - delayedEnergy) * sourceEvidenceAlpha;
+             const auto highFrequencyEvidence = std::clamp (
+-                (differenceEnergy / std::max (sourceEnergy, 1.0e-12) - 0.38) / 0.70, 0.0, 1.0);
++                (highEnergy / std::max (sourceEnergy, 1.0e-12) - 0.10) / 0.25, 0.0, 1.0);
+             const auto periodicCoherence = period > 0
+                 ? std::abs (correlation) / std::sqrt (std::max (sourceEnergy * delayedEnergy, 1.0e-18)) : 0.0;
+             const auto nonPeriodic = std::clamp ((0.74 - periodicCoherence) / 0.30, 0.0, 1.0);
+@@ -137,13 +142,15 @@
+     float wetGateRelease = 1.0f;
+     float sibilanceResidualMix = 0.0f;
+     float maximumSibilanceResidualMix = 0.0f;
+-    float wetLowState = 0.0f, dryLowState = 0.0f, previousSourceSample = 0.0f;
+-    double sourceEnergy = 1.0e-12, differenceEnergy = 1.0e-12;
++    float wetLowState = 0.0f, dryLowState = 0.0f, sourceLowState = 0.0f;
++    double sourceEnergy = 1.0e-12, highEnergy = 1.0e-12;
+     double correlation = 0.0, delayedEnergy = 1.0e-12;
+ 
+     static constexpr double crossoverHz = 2800.0;
+     static constexpr double sibilanceAttackSeconds = 0.0005;
+     static constexpr double sibilanceReleaseSeconds = 0.004;
+     static constexpr double sourceEvidenceSeconds = 128.0 / 48000.0;
++    static constexpr double sourceAnalysisCrossoverHz = 3500.0;
+     double sourceEvidenceAlpha = 1.0;
++    double sourceCrossoverAlpha = 1.0;
+ };

@@ -1,0 +1,61 @@
+--- a/tests/RealtimeSchedulerBenchmark.cpp
++++ b/tests/RealtimeSchedulerBenchmark.cpp
+@@ -20,7 +20,16 @@
+ constexpr int retimeHeavyStart = 275000;
+ constexpr int retimeHeavyEnd = 278500;
+ 
+-struct Configuration { const char* name; int quantum; bool retiming; bool useProductionDefaults = false; };
++struct Configuration
++{
++    const char* name;
++    int quantum;
++    bool retiming;
++    bool useProductionDefaults = false;
++    // Diagnostic only: select causal TD-PSOLA after prepareToPlay(), which
++    // otherwise restores the shipped spectral renderer.
++    bool useCausalTdpsolaCandidate = false;
++};
+ struct Summary
+ {
+     double meanUs = 0.0, medianUs = 0.0, p95Us = 0.0, p99Us = 0.0, maximumUs = 0.0, stddevUs = 0.0;
+@@ -113,6 +122,13 @@
+             processor.setRendererDiagnosticAblation (ablation);
+         }
+         processor.prepareToPlay (sampleRate, hostBlock);
++        if (configuration.useCausalTdpsolaCandidate)
++        {
++            CausalTDPSOLARenderer::DiagnosticAblation candidate;
++            candidate.phaseContinuousRenderer = false;
++            candidate.retimableEpochs = configuration.retiming;
++            processor.setRendererDiagnosticAblation (candidate);
++        }
+         configureFixtureParameters (processor);
+         // This timer mode is deliberately separate from the callback timing
+         // benchmark. It records component attribution without changing DSP
+@@ -204,14 +220,15 @@
+     std::cout.setf (std::ios::unitbuf);
+     if (argc != 2 && argc != 4)
+     {
+-        std::cerr << "usage: VibeAutotuneRealtimeSchedulerBenchmark <48k-vocal-fixture.wav> [config-index(0..3) host-block]\n";
++        std::cerr << "usage: VibeAutotuneRealtimeSchedulerBenchmark <48k-vocal-fixture.wav> [config-index(0..4) host-block]\n";
+         return 2;
+     }
+     try
+     {
+         const auto input = loadMono (juce::File (argv[1]));
+         const Configuration configurations[] { { "A_64_off", 64, false }, { "B_32_off", 32, false },
+-                                               { "C_32_on", 32, true }, { "D_production_default", 0, false, true } };
++                                               { "C_32_on", 32, true }, { "D_production_default", 0, false, true },
++                                               { "E_causal_tdpsola_candidate", 0, false, true, true } };
+         const int hostBlocks[] { 32, 64, 128, 256, 100 };
+         std::cout << "realtime_benchmark sample_rate=48000 samples=" << benchmarkSamples
+                   << " warmup_runs=" << warmupRuns << " measured_runs=" << measuredRuns
+@@ -220,7 +237,7 @@
+         {
+             const auto index = std::atoi (argv[2]);
+             const auto hostBlock = std::atoi (argv[3]);
+-            if (index < 0 || index >= 4 || hostBlock <= 0 || benchmarkSamples % hostBlock != 0)
++            if (index < 0 || index >= 5 || hostBlock <= 0 || benchmarkSamples % hostBlock != 0)
+                 throw std::runtime_error ("configuration index or host block is invalid");
+             print (configurations[index], hostBlock, run (configurations[index], hostBlock, input));
+         }

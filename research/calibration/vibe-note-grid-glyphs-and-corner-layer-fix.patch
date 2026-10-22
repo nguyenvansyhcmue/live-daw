@@ -1,0 +1,107 @@
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -102,9 +102,6 @@
+     // supported input profile without turning the keyboard into a scroll view.
+     std::array<juce::Rectangle<int>, 60> pianoKeyBounds;
+     std::array<juce::Rectangle<int>, 60> noteStatusBounds;
+-    // UI-only visibility state: an edit marker appears only after the user
+-    // changes that note, rather than filling the keyboard with default rules.
+-    std::array<bool, 60> noteRuleIndicatorVisible {};
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -455,8 +455,6 @@
+     for (int y = juce::roundToInt (workSurface.getY()); y < juce::roundToInt (workSurface.getBottom()); y += 4) { g.setColour ((y % 19 == 0 ? juce::Colours::white : juce::Colours::black).withAlpha (0.008f)); g.drawHorizontalLine (y, workSurface.getX(), workSurface.getRight()); }
+     g.restoreState();
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+-    screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
+-    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+     // Narrow side cheeks sit inside the same work-surface clip as every
+     // other layer. They frame the contents instead of obscuring their edges.
+     auto leftRail = D (15, 51, 19, 936), rightRail = D (1414, 51, 19, 936);
+@@ -466,6 +464,10 @@
+     g.setGradientFill (railFill); g.fillRoundedRectangle (leftRail, 2.0f); g.fillRoundedRectangle (rightRail, 2.0f);
+     g.setColour (juce::Colour (0xff171713)); g.drawRoundedRectangle (leftRail, 2.0f, 1.0f); g.drawRoundedRectangle (rightRail, 2.0f, 1.0f);
+     g.restoreState();
++    // Fasteners are above the side cheeks, so corners remain clean instead
++    // of being partially covered by the rail paint pass.
++    screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
++    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+     // Header is a separate recessed faceplate, not a black shadow bleeding
+     // into the champagne surface below it.
+     auto header = headerBounds.toFloat();
+@@ -668,15 +670,31 @@
+                       : rule == NoteRule::IllegalUp      ? ice
+                       : rule == NoteRule::IllegalDown    ? juce::Colour (0xffb68ae3)
+                                                            : muted;
+-    const auto glyph = rule == NoteRule::Legal ? juce::String ("•")
+-                                                : juce::String (noteRuleGlyph (rule));
+     g.setColour (juce::Colours::black.withAlpha (.52f));
+     g.fillRoundedRectangle (b, 2.5f);
+     g.setColour (colour.withAlpha (.76f));
+     g.drawRoundedRectangle (b, 2.5f, .8f);
+     g.setColour (colour);
+-    g.setFont (juce::FontOptions (juce::jmax (10.0f, b.getHeight() * .80f), juce::Font::bold));
+-    g.drawText (glyph, b.toNearestInt(), juce::Justification::centred);
++    const auto centre = b.getCentre();
++    if (rule == NoteRule::Legal)
++        g.fillEllipse (centre.x - 2.5f, centre.y - 2.5f, 5.0f, 5.0f);
++    else if (rule == NoteRule::IllegalNearest)
++        g.fillRect (b.getCentreX() - b.getWidth() * .24f, centre.y - 1.0f, b.getWidth() * .48f, 2.0f);
++    else if (rule == NoteRule::BypassLegal)
++    {
++        g.drawLine (b.getX() + b.getWidth() * .30f, b.getY() + b.getHeight() * .30f, b.getRight() - b.getWidth() * .30f, b.getBottom() - b.getHeight() * .30f, 1.4f);
++        g.drawLine (b.getRight() - b.getWidth() * .30f, b.getY() + b.getHeight() * .30f, b.getX() + b.getWidth() * .30f, b.getBottom() - b.getHeight() * .30f, 1.4f);
++    }
++    else
++    {
++        const auto up = rule == NoteRule::IllegalUp;
++        juce::Path arrow;
++        const auto tip = up ? b.getY() + b.getHeight() * .28f : b.getBottom() - b.getHeight() * .28f;
++        arrow.startNewSubPath (centre.x, tip);
++        arrow.lineTo (centre.x - b.getWidth() * .20f, up ? tip + b.getHeight() * .28f : tip - b.getHeight() * .28f);
++        arrow.lineTo (centre.x + b.getWidth() * .20f, up ? tip + b.getHeight() * .28f : tip - b.getHeight() * .28f);
++        arrow.closeSubPath(); g.fillPath (arrow);
++    }
+ }
+ void VibeAutotuneEditor::drawPianoKeyboard (juce::Graphics& g) const
+ {
+@@ -914,14 +932,10 @@
+     if (processor.getGroupOctaves())
+     {
+         processor.setNoteRuleForPitchClass (midiNote % 12, rule);
+-        for (int note = firstKey; note <= lastKey; ++note)
+-            if (note % 12 == midiNote % 12)
+-                noteRuleIndicatorVisible[(size_t) (note - firstKey)] = true;
+     }
+     else
+     {
+         processor.setNoteRuleForMidiNote (midiNote, rule);
+-        noteRuleIndicatorVisible[(size_t) (midiNote - firstKey)] = true;
+     }
+     repaint (pianoBounds);
+ }
+@@ -959,21 +974,16 @@
+                                 if (editor->processor.getGroupOctaves())
+                                 {
+                                     editor->processor.resetNoteRuleForPitchClass (midiNote % 12);
+-                                    for (int note = firstKey; note <= lastKey; ++note)
+-                                        if (note % 12 == midiNote % 12)
+-                                            editor->noteRuleIndicatorVisible[(size_t) (note - firstKey)] = false;
+                                 }
+                                 else
+                                 {
+                                     editor->processor.resetNoteRuleForMidiNote (midiNote);
+-                                    editor->noteRuleIndicatorVisible[(size_t) (midiNote - firstKey)] = false;
+                                 }
+                                 editor->repaint (editor->pianoBounds);
+                             }
+                             else if (result == 7)
+                             {
+                                 editor->processor.resetNotePolicyToCurrentScale();
+-                                editor->noteRuleIndicatorVisible.fill (false);
+                                 editor->repaint (editor->pianoBounds);
+                             }
+                         });

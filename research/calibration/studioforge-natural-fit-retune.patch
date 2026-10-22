@@ -1,0 +1,32 @@
+--- a/Tools/StudioForgeCalibrationRunner.cpp
++++ b/Tools/StudioForgeCalibrationRunner.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include <juce_gui_basics/juce_gui_basics.h>
+ 
++#include <cstdlib>
+ #include <iostream>
+ 
+ int main(int argc, char* argv[])
+@@ -20,6 +21,12 @@ int main(int argc, char* argv[])
+     // baseline; every other case varies exactly one Artist/Vibe control.
+     // naturalVibrato is the native -12..+12 control, not a UI percent.
+     // Values such as 25/50/75/100 clamp, yielding duplicate bounces.
++    // The optional Natural-fit retune is diagnostic-only. Natural residual
++    // phase is deliberately inactive at hard-tune 0 ms, so a voiced exercise
++    // must use a nonzero Retune setting to identify that surface.
++    auto naturalFitRetuneMs = 0.0f;
++    if (const auto* text = std::getenv ("STUDIOFORGE_NATURAL_FIT_RETUNE_MS"))
++        naturalFitRetuneMs = juce::jlimit (0.0f, 50.0f, std::strtof (text, nullptr));
+     request.cases = { { 0.0f, 0.0f, 0.0f, 0.0f } };
+     for (const auto value : { 10.0f, 25.0f, 50.0f, 100.0f })
+         request.cases.push_back ({ value, 0.0f, 0.0f, 0.0f });
+@@ -28,7 +35,7 @@ int main(int argc, char* argv[])
+     for (const auto value : { 25.0f, 50.0f, 75.0f, 100.0f })
+         request.cases.push_back ({ 0.0f, 0.0f, value, 0.0f });
+     for (const auto value : { -12.0f, -9.0f, -6.0f, 3.0f, 6.0f, 9.0f, 12.0f })
+-        request.cases.push_back ({ 0.0f, 0.0f, 0.0f, value });
++        request.cases.push_back ({ naturalFitRetuneMs, 0.0f, 0.0f, value });
+ 
+     // Corrected legacy mixed controls: Natural Vibrato remains native.
+     request.cases.push_back ({ 10.0f, 25.0f, 25.0f, 0.0f });

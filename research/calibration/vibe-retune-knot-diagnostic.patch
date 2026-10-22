@@ -1,0 +1,93 @@
+--- a/autotune/VibeAutotune/CorrectionTrajectory.h
++++ b/autotune/VibeAutotune/CorrectionTrajectory.h
+@@ -276,25 +276,39 @@
+     {
+         diagnosticNegativeNaturalPhaseScale = clamp (scale, 0.0, 2.5);
+     }
++    // Offline calibration only. Values are T90 in milliseconds; a negative
++    // value restores the production knot. This setter is called at
++    // prepareToPlay, never from processBlock.
++    void setDiagnosticRetuneT90Overrides (double retune10T90Ms,
++                                           double retune25T90Ms) noexcept
++    {
++        constexpr double ln10 = 2.302585092994046;
++        diagnosticRetune10TimeConstantMs = retune10T90Ms > 0.0
++            ? clamp (retune10T90Ms, 20.0, 80.0) / ln10
++            : artistRetune10MsTimeConstantMs;
++        diagnosticRetune25TimeConstantMs = retune25T90Ms > 0.0
++            ? clamp (retune25T90Ms, 40.0, 140.0) / ln10
++            : artistRetune25MsTimeConstantMs;
++    }
+     // The verified Artist response through 50 ms is preserved below. Above
+     // it, displayed Retune means correction time: at 300/400 ms correction
+     // covers 90% of its initial error in 300/400 ms. Target choice remains
+     // independent of this law.
+-    static double getEffectiveRetuneTimeMs (double displayedRetuneMs) noexcept
++    double getEffectiveRetuneTimeMs (double displayedRetuneMs) const noexcept
+     {
+         const auto displayed = clamp (displayedRetuneMs, 0.0, 400.0);
+         if (displayed <= 0.0)
+             return 0.0;
+         if (displayed <= 10.0)
+             return minimumContinuousRetuneMs
+-                 + (artistRetune10MsTimeConstantMs - minimumContinuousRetuneMs) * displayed / 10.0;
++                 + (diagnosticRetune10TimeConstantMs - minimumContinuousRetuneMs) * displayed / 10.0;
+         if (displayed <= 25.0)
+-            return artistRetune10MsTimeConstantMs
+-                 + (artistRetune25MsTimeConstantMs - artistRetune10MsTimeConstantMs)
++            return diagnosticRetune10TimeConstantMs
++                 + (diagnosticRetune25TimeConstantMs - diagnosticRetune10TimeConstantMs)
+                        * (displayed - 10.0) / 15.0;
+         if (displayed <= 50.0)
+-            return artistRetune25MsTimeConstantMs
+-                 + (artistRetune50MsTimeConstantMs - artistRetune25MsTimeConstantMs)
++            return diagnosticRetune25TimeConstantMs
++                 + (artistRetune50MsTimeConstantMs - diagnosticRetune25TimeConstantMs)
+                        * (displayed - 25.0) / 25.0;
+ 
+         // Preserve the measured 50-ms knot (176-ms T90), then converge to
+@@ -2812,6 +2826,8 @@
+     int diagnosticHardTuneWideTransitionShape = 0;
+     static constexpr double calibratedSlowRetuneInputReferenceAmount = 0.75;
+     double diagnosticSlowRetuneInputReferenceAmountOverride = -1.0;
++    double diagnosticRetune10TimeConstantMs = artistRetune10MsTimeConstantMs;
++    double diagnosticRetune25TimeConstantMs = artistRetune25MsTimeConstantMs;
+     int rapidReturnLastDirection = 0;
+     int rapidReturnAdjacentReversalCount = 0;
+     int selectorCurrentTargetBefore = -1;
+--- a/autotune/VibeAutotune/PluginProcessor.cpp
++++ b/autotune/VibeAutotune/PluginProcessor.cpp
+@@ -2,6 +2,7 @@
+ #include "PluginEditor.h"
+ 
+ #include <algorithm>
++#include <cstdlib>
+ #include <cmath>
+ 
+ namespace
+@@ -152,6 +153,16 @@
+     activeSourceSchedulerQuantumSamples = diagnosticQuantum != nullptr && std::atoi (diagnosticQuantum) == 64 ? 64 : 32;
+     const auto* retimingOverride = std::getenv ("VIBE_RETIMABLE_EPOCHS");
+     const auto productionRetimingEnabled = retimingOverride == nullptr || std::atoi (retimingOverride) != 0;
++    // Diagnostic-only Retune knot overrides are read once during prepare;
++    // no environment lookup occurs in the realtime path.
++    const auto diagnosticDouble = [] (const char* name)
++    {
++        const auto* text = std::getenv (name);
++        return text != nullptr ? std::strtod (text, nullptr) : -1.0;
++    };
++    correctionTrajectory.setDiagnosticRetuneT90Overrides (
++        diagnosticDouble ("VIBE_DIAG_RETUNE10_T90_MS"),
++        diagnosticDouble ("VIBE_DIAG_RETUNE25_T90_MS"));
+     const auto maximumLag = maximumPitchAnalysisFrameSize / 2 + 2;
+     yinDifference.resize (static_cast<size_t> (maximumLag + 1), 0.0);
+     yinCumulativeMean.resize (static_cast<size_t> (maximumLag + 1), 0.0);
+@@ -1638,7 +1649,7 @@
+         // Only the explicit 0 ms setting is hard tune.  Small non-zero
+         // values remain a continuous glide, matching the control's label.
+         const auto hardTune = currentRetuneMs == 0.0f;
+-        const auto effectiveRetuneMs = CorrectionTrajectory::getEffectiveRetuneTimeMs (currentRetuneMs);
++        const auto effectiveRetuneMs = correctionTrajectory.getEffectiveRetuneTimeMs (currentRetuneMs);
+         // The renderer receives a delayed control stream, so its dezipper
+         // follows the calibrated response rather than the raw knob label.
+         const auto retuneNormalised = effectiveRetuneMs / (effectiveRetuneMs + 100.0);

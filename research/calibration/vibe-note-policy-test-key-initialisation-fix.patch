@@ -1,0 +1,18 @@
+--- a/tests/NotePolicyTest.cpp
++++ b/tests/NotePolicyTest.cpp
+@@ -73,6 +73,8 @@
+     VibeAutotuneProcessor processor;
+     processor.prepareToPlay (48000.0, 64);
+     auto* scaleParameter = processor.parameters.getParameter ("scale");
++    auto* keyParameter = processor.parameters.getParameter ("key");
++    keyParameter->setValueNotifyingHost (keyParameter->convertTo0to1 (0.0f)); // C
+     scaleParameter->setValueNotifyingHost (scaleParameter->convertTo0to1 (1.0f)); // Major
+     juce::AudioBuffer<float> syncBuffer (2, 64);
+     juce::MidiBuffer midi;
+@@ -84,7 +86,6 @@
+     // The live processor must apply every Key/Scale selection to the policy
+     // used by CorrectionTrajectory. The raw detected note is intentionally
+     // not asserted here: it is independent from musical quantisation.
+-    auto* keyParameter = processor.parameters.getParameter ("key");
+     for (int key = 0; key < 12; ++key)
+         for (int scale = 0; scale < static_cast<int> (scaleIntervals.size()); ++scale)

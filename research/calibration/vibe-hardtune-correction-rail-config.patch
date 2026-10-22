@@ -1,0 +1,57 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -89,8 +89,14 @@
+ #ifndef VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+  #define VIBE_MAXIMUM_LIVE_CORRECTION_CENTS 120.0
+ #endif
+ 
++// Candidate-only hard-lock amplitude rail. Kept independent from the
++// musical rail so this A/B cannot alter Flex/Humanize behaviour.
++#ifndef VIBE_HARD_LOCK_MAXIMUM_LIVE_CORRECTION_CENTS
++ #define VIBE_HARD_LOCK_MAXIMUM_LIVE_CORRECTION_CENTS VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
++#endif
++
+ // Offline A/B hook. Hard Tune and Natural Vibrato retain the qualified rail.
+ #ifndef VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
+  #define VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+ #endif
+@@ -2074,16 +2081,21 @@
+     static constexpr int largeTargetJumpSemitones = 7;
+     static constexpr double maximumLiveCorrectionCents = VIBE_MAXIMUM_LIVE_CORRECTION_CENTS;
+     static constexpr double musicalMaximumLiveCorrectionCents = VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS;
++    static constexpr double hardLockMaximumLiveCorrectionCents
++        = VIBE_HARD_LOCK_MAXIMUM_LIVE_CORRECTION_CENTS;
+     static constexpr double hardLockZeroTolerance = 0.05;
+ 
+     static constexpr double correctionRailForControls (double retuneSpeedMs,
+                                                         bool hardLockPreset,
+                                                         double naturalVibratoPercent) noexcept
+     {
++        if (hardLockPreset)
++            return hardLockMaximumLiveCorrectionCents;
++
+         const auto usesNaturalVibrato = naturalVibratoPercent > hardLockZeroTolerance
+                                       || naturalVibratoPercent < -hardLockZeroTolerance;
+         return retuneSpeedMs <= VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
+-            && ! hardLockPreset && ! usesNaturalVibrato
++            && ! usesNaturalVibrato
+              ? musicalMaximumLiveCorrectionCents
+              : maximumLiveCorrectionCents;
+     }
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -66,8 +66,11 @@ double rendererDeliveryRailCents (double retuneSpeedMs, double flexTunePercent,
+                        && humanizePercent <= zeroTolerance
+                        && std::abs (naturalVibratoPercent) <= zeroTolerance;
+     const auto hasNaturalVibrato = std::abs (naturalVibratoPercent) > zeroTolerance;
++    if (hardTune)
++        return VIBE_HARD_LOCK_MAXIMUM_LIVE_CORRECTION_CENTS;
++
+     return retuneSpeedMs <= VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
+-        && ! hardTune && ! hasNaturalVibrato
++        && ! hasNaturalVibrato
+         ? VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
+         : 120.0;
+ }

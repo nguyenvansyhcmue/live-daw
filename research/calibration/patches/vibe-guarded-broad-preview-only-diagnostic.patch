@@ -1,0 +1,15 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -735,6 +735,10 @@
+         const auto previewIsNextLegalTarget = currentTargetNote >= 0 && trajectoryPreviewNote >= 0
+                                            && trajectoryPreviewNote != currentTargetNote
+                                            && ! previewSkipsLegalTarget;
+-        const auto canUseHardTunePreview = enableHardTuneTrajectoryPreview && previewIsNextLegalTarget;
++        const auto stableBroadLandingPreview = hardLockPreset && previewIsNextLegalTarget
++                                            && framesSinceTargetCommit >= 80
++                                            && std::abs (trajectoryPreviewNote - currentTargetNote) >= 2;
++        const auto canUseHardTunePreview = (enableHardTuneTrajectoryPreview && previewIsNextLegalTarget)
++                                        || stableBroadLandingPreview;
+         const auto hardTuneCandidate = canUseHardTunePreview ? trajectoryPreviewNote
+                                                               : rawCandidate;

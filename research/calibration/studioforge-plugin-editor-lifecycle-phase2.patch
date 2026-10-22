@@ -1,0 +1,107 @@
+diff --git a/Source/Plugins/PluginHostService.cpp b/Source/Plugins/PluginHostService.cpp
+--- a/Source/Plugins/PluginHostService.cpp
++++ b/Source/Plugins/PluginHostService.cpp
+@@ -225,24 +225,21 @@
+ 
+     bool hasEditor() const override
+     {
+-        return instance != nullptr && isEditorSafeToEmbed() && instance->hasEditor();
++        return instance != nullptr && instance->hasEditor();
+     }
+ 
+     std::unique_ptr<juce::Component> createEditor() override
+     {
+-        if (! hasEditor())
++        // Never create or re-parent an AppKit plug-in view from the audio or
++        // a worker thread. The caller receives no editor until the UI loop
++        // owns this transition.
++        auto* messageManager = juce::MessageManager::getInstanceWithoutCreating();
++        if (! hasEditor() || messageManager == nullptr || ! messageManager->isThisTheMessageThread())
+             return {};
+         return std::unique_ptr<juce::Component>(instance->createEditorIfNeeded());
+     }
+ 
+ private:
+-    bool isEditorSafeToEmbed() const noexcept
+-    {
+-        // The bundled Vibe VST3 is built against the same JUCE revision as
+-        // this host. Other scanned plug-ins retain their native editor path.
+-        return instance != nullptr;
+-    }
+-
+     juce::AudioProcessorParameter* findParameter(const juce::String& identifier) const
+     {
+         for (auto* parameter : instance->getParameters())
+diff --git a/Source/UI/InspectorComponents.cpp b/Source/UI/InspectorComponents.cpp
+--- a/Source/UI/InspectorComponents.cpp
++++ b/Source/UI/InspectorComponents.cpp
+@@ -55,16 +55,18 @@
+             editor->setBounds(getLocalBounds());
+     }
++    void childBoundsChanged(juce::Component* child) override
++    {
++        if (child == editor.get() && (child->getWidth() != getWidth() || child->getHeight() != getHeight()))
++            setSize(juce::jmax(1, child->getWidth()), juce::jmax(1, child->getHeight()));
++    }
+ 
+ private:
+     std::shared_ptr<AudioEffectProcessor> owner;
+     std::unique_ptr<juce::Component> editor;
+ };
+ 
+-bool isVibeAutotune(const std::shared_ptr<AudioEffectProcessor>& processor)
+-{
+-    return processor != nullptr && processor->getName().equalsIgnoreCase("VibeAutotune");
+-}
+-
+ // Plug-in editors need to float above the DAW, not enter JUCE's modal state.
+ // The latter blocks every click in the main window and macOS signals this with
+ // the system alert sound.
+@@ -149,6 +149,18 @@
+     {
+         closeButton.setBounds (10, 6, 28, 28);
+         bypassButton.setBounds (getWidth() - 86, 9, 58, 30);
+         editorComponent->setBounds (0, hostBarHeight, getWidth(), getHeight() - hostBarHeight - footerHeight);
+     }
++    void childBoundsChanged (juce::Component* child) override
++    {
++        if (child != editorComponent)
++            return;
++        const auto width = juce::jmax (1, child->getWidth());
++        const auto height = juce::jmax (1, child->getHeight()) + hostBarHeight + footerHeight;
++        if (width == getWidth() && height == getHeight())
++            return;
++        setSize (width, height);
++        if (auto* window = dynamic_cast<juce::DocumentWindow*> (getTopLevelComponent()); window != nullptr)
++            window->setSize (width, height);
++    }
+ 
+     void mouseDown (const juce::MouseEvent& event) override
+@@ -428,11 +440,6 @@
+             if (processor == nullptr)
+             {
+                 showPluginBrowser(slot);
+-                return;
+-            }
+-            if (isVibeAutotune(processor))
+-            {
+-                showPluginEditor(slot);
+                 return;
+             }
+             if (isSelectedTrackStrip())
+@@ -1128,12 +1135,10 @@
+ 
+     const auto editorBounds = editor->getBounds();
+     auto* host = new PluginEditorHost(processor, std::move(editor));
+-    // Start Live Tune at a compact, readable production size instead of
+-    // forcing the full design artboard across most of the screen.
+-    const auto editorWidth = isVibeAutotune(processor) ? 1024 : juce::jmax(320, editorBounds.getWidth());
+-    const auto editorHeight = isVibeAutotune(processor) ? 713 : juce::jmax(220, editorBounds.getHeight());
+-    // The editor uses the host's native title bar; do not reserve the old
+-    // custom chrome height or a black gap appears above the plugin surface.
++    // Geometry is supplied by the editor itself, never a product-name branch.
++    const auto editorWidth = juce::jmax(320, editorBounds.getWidth());
++    const auto editorHeight = juce::jmax(220, editorBounds.getHeight());
+     host->setSize(editorWidth, editorHeight);
+     auto* shell = new PluginHostChrome (processor->getName(), host, {});
+     shell->setSize (editorWidth, editorHeight + PluginHostChrome::hostBarHeight

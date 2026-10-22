@@ -1,0 +1,203 @@
+diff --git a/Source/AudioEngine/AudioEngine.h b/Source/AudioEngine/AudioEngine.h
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -223,6 +223,9 @@
+     void publishMasterFxRack(std::unique_ptr<const TrackDataModel::FxRackSnapshot> snapshot);
+     void prepareRack(const TrackDataModel::FxRackSnapshot* rack, double sampleRate, int blockSize);
+     int rackLatencySamples(const TrackDataModel::FxRackSnapshot* rack) const noexcept;
++    int maximumTrackRackLatency(const TrackDataModel::RenderStructureSnapshot& structure) const noexcept;
++    void applyTrackLatencyCompensation(size_t trackIndex, juce::AudioBuffer<float>& buffer,
++                                       int delaySamples, int numSamples) noexcept;
+     int protectedPluginCount(const TrackDataModel::FxRackSnapshot* rack) const noexcept;
+     bool shouldProcessForLive(const AudioEffectProcessor& processor) const noexcept;
+     void recordCallbackTiming(int numSamples, std::chrono::steady_clock::time_point started) noexcept;
+@@ -344,6 +347,9 @@
+     std::atomic<const TrackDataModel::FxRackSnapshot*> publishedMasterFxRack { nullptr };
+     std::vector<std::unique_ptr<const TrackDataModel::FxRackSnapshot>> retiredMasterFxRacks;
+     std::array<juce::AudioBuffer<float>, TrackDataModel::maxTracks> trackBuffers;
++    static constexpr int trackLatencyCompensationCapacity = 32768;
++    std::array<juce::AudioBuffer<float>, TrackDataModel::maxTracks> trackLatencyDelayBuffers;
++    std::array<int, TrackDataModel::maxTracks> trackLatencyDelayWrite {};
+     std::array<juce::AudioBuffer<float>, TrackDataModel::maxBuses> busBuffers;
+     std::array<std::array<float, TrackDataModel::maxSendsPerTrack>, TrackDataModel::maxTracks> smoothedSendGains {};
+     std::array<juce::MidiBuffer, TrackDataModel::maxTracks> trackMidiBuffers;
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1000,6 +1000,12 @@
+     processingBuffer.setSize(2, options.blockSize, false, true, true);
+     liveKeyReferenceBuffer.setSize(2, options.blockSize, false, true, true);
+     for (auto& buffer : trackBuffers) buffer.setSize(2, options.blockSize, false, true, true);
++    for (size_t index = 0; index < trackLatencyDelayBuffers.size(); ++index)
++    {
++        trackLatencyDelayBuffers[index].setSize(2, trackLatencyCompensationCapacity, false, true, true);
++        trackLatencyDelayBuffers[index].clear();
++        trackLatencyDelayWrite[index] = 0;
++    }
+     for (auto& buffer : busBuffers) buffer.setSize(2, options.blockSize, false, true, true);
+     for (auto& midi : trackMidiBuffers) midi.ensureSize(MidiEventBuffer::capacity * 4);
+     juce::AudioBuffer<float> renderBuffer(2, options.blockSize);
+@@ -1308,8 +1314,47 @@
+             && shouldProcessForLive(*processor))
+             latency += processor->getLatencySamples();
+     return latency;
++}
++
++int AudioEngine::maximumTrackRackLatency(const TrackDataModel::RenderStructureSnapshot& structure) const noexcept
++{
++    auto result = 0;
++    for (size_t trackIndex = 0; trackIndex < structure.trackCount; ++trackIndex)
++        result = juce::jmax(result, rackLatencySamples(structure.tracks[trackIndex].fxRack));
++    return result;
+ }
+ 
++void AudioEngine::applyTrackLatencyCompensation(size_t trackIndex, juce::AudioBuffer<float>& buffer,
++                                                int delaySamples, int numSamples) noexcept
++{
++    if (trackIndex >= trackLatencyDelayBuffers.size() || numSamples <= 0)
++        return;
++    auto& history = trackLatencyDelayBuffers[trackIndex];
++    const auto capacity = history.getNumSamples();
++    const auto channels = juce::jmin(buffer.getNumChannels(), history.getNumChannels());
++    if (capacity <= 0 || channels <= 0)
++        return;
++
++    const auto delay = juce::jlimit(0, capacity - 1, delaySamples);
++    const auto count = juce::jmin(numSamples, buffer.getNumSamples());
++    const auto writeStart = trackLatencyDelayWrite[trackIndex];
++    for (int channel = 0; channel < channels; ++channel)
++    {
++        auto* destination = buffer.getWritePointer(channel);
++        auto* delayed = history.getWritePointer(channel);
++        auto write = writeStart;
++        for (int sample = 0; sample < count; ++sample)
++        {
++            const auto input = destination[sample];
++            const auto read = (write + capacity - delay) % capacity;
++            destination[sample] = delay == 0 ? input : delayed[read];
++            delayed[write] = input;
++            write = (write + 1) % capacity;
++        }
++    }
++    trackLatencyDelayWrite[trackIndex] = (writeStart + count) % capacity;
++}
++
+ int AudioEngine::protectedPluginCount(const TrackDataModel::FxRackSnapshot* rack) const noexcept
+ {
+     if (rack == nullptr)
+@@ -1390,6 +1435,12 @@
+     cueMonitorBuffer.setSize(2, bufferCapacity, false, true, true);
+     for (auto& buffer : trackBuffers)
+         buffer.setSize(2, processingBuffer.getNumSamples(), false, true, true);
++    for (size_t index = 0; index < trackLatencyDelayBuffers.size(); ++index)
++    {
++        trackLatencyDelayBuffers[index].setSize(2, trackLatencyCompensationCapacity, false, true, true);
++        trackLatencyDelayBuffers[index].clear();
++        trackLatencyDelayWrite[index] = 0;
++    }
+     for (auto& buffer : busBuffers)
+         buffer.setSize(2, processingBuffer.getNumSamples(), false, true, true);
+     for (auto& midi : trackMidiBuffers)
+@@ -1804,6 +1855,7 @@
+                                     double automationSample, bool anyTrackSoloed, int numSamples) noexcept
+ {
+     if (structure == nullptr) return;
++    const auto longestTrackLatency = maximumTrackRackLatency(*structure);
+     for (size_t trackIndex = 0; trackIndex < structure->trackCount; ++trackIndex)
+     {
+         auto& trackBuffer = trackBuffers[trackIndex];
+@@ -1814,6 +1866,11 @@
+                     && ! track.fxRack->bypass[slot] && ! processor->isMidiEffect()
+                     && shouldProcessForLive(*processor))
+                     processEffectBlock(*processor, trackBuffer, trackMidiBuffers[trackIndex], numSamples);
++
++        // Align every insert chain before sends, faders and summing. A vocal
++        // through Vibe therefore stays time-aligned with raw backing tracks.
++        applyTrackLatencyCompensation(trackIndex, trackBuffer,
++                                      longestTrackLatency - rackLatencySamples(track.fxRack), numSamples);
+ 
+         // Reference audio is captured after the selected track's insert chain
+         // but before fader, buses, master FX, vocal monitoring and streaming.
+diff --git a/Tests/CorePlaybackMixerTests.cpp b/Tests/CorePlaybackMixerTests.cpp
+--- a/Tests/CorePlaybackMixerTests.cpp
++++ b/Tests/CorePlaybackMixerTests.cpp
+@@ -1373,7 +1373,71 @@
+     std::atomic<int> lastBlockSamples { 0 };
+     std::atomic<int> calls { 0 };
+ };
+ 
++class FixedLatencyImpulseEffect final : public AudioEffectProcessor
++{
++public:
++    void prepareToPlay(double, int, int) override
++    {
++        history = {};
++        writePosition = 0;
++    }
++
++    void processBlock(juce::AudioBuffer<float>& buffer) override
++    {
++        const auto channels = juce::jmin(2, buffer.getNumChannels());
++        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
++        {
++            for (int channel = 0; channel < channels; ++channel)
++            {
++                const auto input = buffer.getSample(channel, sample);
++                buffer.setSample(channel, sample, history[static_cast<size_t>(channel)][static_cast<size_t>(writePosition)]);
++                history[static_cast<size_t>(channel)][static_cast<size_t>(writePosition)] = input;
++            }
++            writePosition = (writePosition + 1) % latencySamples;
++        }
++    }
++
++    void releaseResources() override {}
++    juce::String getName() const override { return "Fixed latency impulse"; }
++    int getLatencySamples() const noexcept override { return latencySamples; }
++
++private:
++    static constexpr int latencySamples = 2;
++    std::array<std::array<float, latencySamples>, 2> history {};
++    int writePosition = 0;
++};
++
++bool testTrackPluginDelayCompensation()
++{
++    TrackDataModel model;
++    model.addTrack(TrackType::audio);
++    model.addTrack(TrackType::audio);
++    model.setFxProcessor(1, 0, std::make_shared<FixedLatencyImpulseEffect>());
++
++    auto impulse = std::make_shared<juce::AudioBuffer<float>>(2, 4);
++    impulse->clear();
++    impulse->setSample(0, 0, 0.25f);
++    impulse->setSample(1, 0, 0.25f);
++    model.addClipToTrack(0, {}, 0.0, impulse);
++    model.addClipToTrack(1, {}, 0.0, impulse);
++
++    OfflineAudioDevice device(4);
++    AudioEngine engine(&model);
++    engine.audioDeviceAboutToStart(&device);
++    model.setPlaying(true);
++    float left[4] {}, right[4] {};
++    float* outputs[] { left, right };
++    engine.audioDeviceIOCallbackWithContext(nullptr, 0, outputs, 2, 4, {});
++    engine.audioDeviceStopped();
++
++    constexpr auto centredStereoSum = 2.0f * 0.25f * 0.70710678f;
++    return expect(approximatelyEqual(left[0], 0.0f) && approximatelyEqual(right[0], 0.0f)
++                      && approximatelyEqual(left[2], centredStereoSum)
++                      && approximatelyEqual(right[2], centredStereoSum),
++                  "track plugin latency compensation aligns a delayed insert with dry tracks");
++}
++
+ bool testPluginReceivesExactDeviceCallbackSpan()
+ {
+     TrackDataModel model;
+@@ -2405,6 +2469,7 @@
+         && testMultiTrackRecording()
+         && testPunchRecordingCapture()
+         && testMarqueeRangeDeletion()
++        && testTrackPluginDelayCompensation()
+         && testPluginReceivesExactDeviceCallbackSpan()
+         && testInputMonitoring()
+         && testLiveInputRunsThroughTrackFx()

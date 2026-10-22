@@ -1,0 +1,19 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -379,8 +379,8 @@ VibeAutotuneEditor::VibeAutotuneEditor (VibeAutotuneProcessor& p) : AudioProce
+         slider->updateText();
+-    setResizable (true, true); setResizeLimits (900, 675, 1448, 1086);
++    setResizable (true, true); setResizeLimits (840, 630, 1448, 1086);
+     if (auto* constrainer = getConstrainer()) constrainer->setFixedAspectRatio (LiveTuneLayoutMetrics::designWidth / LiveTuneLayoutMetrics::designHeight);
+-    setSize (1086, 815); startTimerHz (30);
++    setSize (1024, 768); startTimerHz (30);
+ }
+@@ -446,9 +446,10 @@ void VibeAutotuneEditor::paint (juce::Graphics& g)
+-    auto subtitleFont = juce::Font (juce::FontOptions (14.0f * layout.scale, juce::Font::plain)).withExtraKerningFactor (.72f);
+-    g.setFont (subtitleFont); g.setColour (champagne.withAlpha (.88f)); g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 54, 445, 60), juce::Justification::centredLeft);
++    // Tight, semi-bold engraving: readable at the compact default size and
++    // refined rather than the former oversized, highly-spaced treatment.
++    auto subtitleFont = juce::Font (juce::FontOptions (12.5f * layout.scale, juce::Font::bold)).withExtraKerningFactor (.26f);
++    g.setFont (subtitleFont); g.setColour (champagne.withAlpha (.76f));
++    g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 54, 445, 60), juce::Justification::centredLeft);

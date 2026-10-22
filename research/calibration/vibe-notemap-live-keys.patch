@@ -1,0 +1,89 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -620,39 +620,58 @@
+-void VibeAutotuneEditor::drawPianoKeyboard (juce::Graphics& g) const
+-{
+-    const auto mark = [&] (int note, juce::Rectangle<float> b)
+-    {
+-        if (note == activePianoNote) { g.setColour (ice); g.fillEllipse (b.getCentreX()-2,b.getY()+5,4,4); }
+-        if (note == targetPianoNote) { g.setColour (brass); g.fillRoundedRectangle (b.getCentreX()-4,b.getY()+4,8,3,1.5f); }
+-    };
+-    for (int note = firstKey; note <= lastKey; ++note)
+-    {
+-        if (blackKey (note)) continue;
+-        auto b = pianoKeyBounds[(size_t) (note-firstKey)].toFloat().reduced (.55f);
+-        auto key = juce::ColourGradient (juce::Colour (0xfff5eee1), b.getX(), b.getY(), juce::Colour (0xffc1b7a4), b.getX(), b.getBottom(), false);
+-        g.setGradientFill (key); g.fillRoundedRectangle (b, 1.6f);
+-        g.setColour (juce::Colours::white.withAlpha (.62f)); g.drawLine (b.getX()+1,b.getY()+1,b.getRight()-1,b.getY()+1,.8f);
+-        g.setColour (juce::Colour (0xff373832)); g.drawRoundedRectangle (b, 1.6f, .85f);
+-        mark (note, b);
+-        if (note % 12 == 0)
+-        {
+-            g.setColour (champagne); g.setFont (juce::FontOptions (9, juce::Font::bold));
+-            auto band = juce::Rectangle<float> (b.getX(), (float) pianoBounds.getBottom()-38.0f, b.getWidth(), 22.0f);
+-            g.drawText ("C"+juce::String(note/12-1), band.toNearestInt(), juce::Justification::centred);
+-        }
+-    }
+-    for (int note = firstKey; note <= lastKey; ++note)
+-    {
+-        if (! blackKey (note)) continue;
+-        auto b = pianoKeyBounds[(size_t) (note-firstKey)].toFloat();
+-        g.setColour (juce::Colours::black.withAlpha (.62f)); g.fillRoundedRectangle (b.translated (0, 3), 2.0f);
+-        auto key = juce::ColourGradient (juce::Colour (0xff292a28), b.getX(), b.getY(), juce::Colour (0xff050606), b.getX(), b.getBottom(), false);
+-        g.setGradientFill (key); g.fillRoundedRectangle (b, 2.0f);
+-        g.setColour (juce::Colours::white.withAlpha (.14f)); g.drawLine (b.getX()+2,b.getY()+1,b.getRight()-2,b.getY()+1,.8f);
+-        g.setColour (champagne.withAlpha (.22f)); g.drawRoundedRectangle (b, 2.0f, .7f);
+-        mark (note, b);
+-    }
+-    if (editNotesEnabled)
+-        for (int note = firstKey; note <= lastKey; ++note)
+-            drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
+-}
++void VibeAutotuneEditor::drawPianoKeyboard (juce::Graphics& g) const
++{
++    // The keyboard reads like hardware: visible range is selected by VOICE,
++    // and the live detected note visibly depresses instead of drawing a dot.
++    const auto isActive = [&] (int note) { return note == activePianoNote; };
++    const auto isTargetOnly = [&] (int note) { return note == targetPianoNote && note != activePianoNote; };
++    for (int note = firstKey; note <= lastKey; ++note)
++    {
++        if (blackKey (note)) continue;
++        auto b = pianoKeyBounds[(size_t) (note-firstKey)].toFloat().reduced (.55f);
++        const auto inRange = isNoteInSelectedVoiceRange (note);
++        const auto pressed = isActive (note);
++        if (pressed) b = b.translated (0.0f, 4.0f);
++        auto key = juce::ColourGradient (juce::Colour (0xfff5eee1), b.getX(), b.getY(), juce::Colour (0xffc1b7a4), b.getX(), b.getBottom(), false);
++        if (! inRange) key = juce::ColourGradient (juce::Colour (0xff706b60), b.getX(), b.getY(), juce::Colour (0xff393a35), b.getX(), b.getBottom(), false);
++        if (pressed) key = juce::ColourGradient (juce::Colour (0xffffd682), b.getX(), b.getY(), juce::Colour (0xffa96b18), b.getX(), b.getBottom(), false);
++        g.setGradientFill (key); g.fillRoundedRectangle (b, 1.6f);
++        g.setColour (juce::Colours::white.withAlpha (inRange ? .62f : .14f)); g.drawLine (b.getX()+1,b.getY()+1,b.getRight()-1,b.getY()+1,.8f);
++        g.setColour (pressed ? brass : juce::Colour (0xff373832)); g.drawRoundedRectangle (b, 1.6f, pressed ? 1.8f : .85f);
++        if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (2.5f), 1.0f, 1.4f); }
++        if (note % 12 == 0)
++        {
++            g.setColour (inRange ? champagne : champagne.withAlpha (.28f)); g.setFont (juce::FontOptions (9, juce::Font::bold));
++            auto band = juce::Rectangle<float> (b.getX(), (float) pianoBounds.getBottom()-38.0f, b.getWidth(), 22.0f);
++            g.drawText ("C"+juce::String(note/12-1), band.toNearestInt(), juce::Justification::centred);
++        }
++    }
++    for (int note = firstKey; note <= lastKey; ++note)
++    {
++        if (! blackKey (note)) continue;
++        auto b = pianoKeyBounds[(size_t) (note-firstKey)].toFloat();
++        const auto inRange = isNoteInSelectedVoiceRange (note);
++        const auto pressed = isActive (note);
++        if (pressed) b = b.translated (0.0f, 4.0f);
++        g.setColour (juce::Colours::black.withAlpha (inRange ? .62f : .28f)); g.fillRoundedRectangle (b.translated (0, 3), 2.0f);
++        auto key = juce::ColourGradient (juce::Colour (0xff292a28), b.getX(), b.getY(), juce::Colour (0xff050606), b.getX(), b.getBottom(), false);
++        if (! inRange) key = juce::ColourGradient (juce::Colour (0xff242522), b.getX(), b.getY(), juce::Colour (0xff121311), b.getX(), b.getBottom(), false);
++        if (pressed) key = juce::ColourGradient (juce::Colour (0xffd28c21), b.getX(), b.getY(), juce::Colour (0xff51310a), b.getX(), b.getBottom(), false);
++        g.setGradientFill (key); g.fillRoundedRectangle (b, 2.0f);
++        g.setColour (juce::Colours::white.withAlpha (inRange ? .14f : .04f)); g.drawLine (b.getX()+2,b.getY()+1,b.getRight()-2,b.getY()+1,.8f);
++        g.setColour (pressed ? brass : champagne.withAlpha (inRange ? .22f : .07f)); g.drawRoundedRectangle (b, 2.0f, pressed ? 1.6f : .7f);
++        if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (1.6f), 1.0f, 1.2f); }
++    }
++    if (editNotesEnabled)
++        for (int note = firstKey; note <= lastKey; ++note)
++            drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
++}

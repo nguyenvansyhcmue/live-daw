@@ -1,0 +1,61 @@
+#pragma once
+
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <atomic>
+#include <array>
+#include <vector>
+
+class LiveKeyDetector final : private juce::Thread
+{
+public:
+    static constexpr size_t displayWaveformPoints = 96;
+    static constexpr size_t displaySpectrumPoints = 72;
+    struct DisplaySnapshot
+    {
+        float rms = 0.0f;
+        std::array<float, displayWaveformPoints> waveform {};
+        std::array<float, displaySpectrumPoints> spectrum {};
+        uint64_t revision = 0;
+    };
+    struct Result
+    {
+        int root = 0;
+        bool minor = false;
+        float confidence = 0.0f;
+        uint64_t revision = 0;
+    };
+
+    LiveKeyDetector();
+    ~LiveKeyDetector() override;
+
+    // Realtime-safe: only copies a mono mix to a fixed-size FIFO.
+    void push(const juce::AudioBuffer<float>& source, int numSamples, double sampleRate) noexcept;
+    // Realtime-safe display tap. The worker performs all decimation/FFT work.
+    void pushDisplay(const juce::AudioBuffer<float>& source, int numSamples, double sampleRate) noexcept;
+    Result getLatestResult() const noexcept;
+    DisplaySnapshot getLatestDisplay() const;
+    // Starts a fresh display stream after the user changes the monitored
+    // source. The worker drains old PCM and publishes silence before accepting
+    // the new source, so a previous bus can never masquerade as the Master.
+    void resetDisplay() noexcept;
+    // Starts a fresh rehearsal pass. The worker owns its history; callers only
+    // publish a generation change and never touch analysis memory.
+    void reset() noexcept;
+
+private:
+    void run() override;
+    static Result analyse(const std::vector<float>& audio, double sampleRate, uint64_t revision) noexcept;
+
+    static constexpr int fifoCapacity = 48000 * 8;
+    juce::AbstractFifo fifo { fifoCapacity };
+    std::array<float, fifoCapacity> fifoSamples {};
+    std::atomic<double> sourceSampleRate { 0.0 };
+    std::atomic<uint64_t> packedResult { 0 };
+    std::atomic<uint64_t> resetGeneration { 0 };
+    juce::AbstractFifo displayFifo { fifoCapacity };
+    std::array<float, fifoCapacity> displayFifoSamples {};
+    std::atomic<double> displaySampleRate { 0.0 };
+    std::atomic<uint64_t> displayResetGeneration { 0 };
+    mutable juce::CriticalSection displayLock;
+    DisplaySnapshot displaySnapshot;
+};

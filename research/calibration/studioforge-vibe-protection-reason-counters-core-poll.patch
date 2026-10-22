@@ -1,0 +1,13 @@
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -88,7 +88,7 @@ void AudioDiagnosticTracer::run()
+         if (now >= nextCoreAudioPoll)
+         {
+             const auto input = coreAudioInput.read();
+-            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,"
++            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+                               + juce::String(input.gain) + "," + juce::String(input.muted) + "\n",
+                               false, false, "UTF-8");
+             nextCoreAudioPoll = now + 250;
+

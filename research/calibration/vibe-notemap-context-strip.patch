@@ -1,0 +1,68 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.h b/autotune/VibeAutotune/PluginEditor.h
+--- a/autotune/VibeAutotune/PluginEditor.h
++++ b/autotune/VibeAutotune/PluginEditor.h
+@@ -2,3 +2,4 @@
+ 
+ #include "PluginProcessor.h"
++#include <utility>
+ #include "AnalogRotaryControl.h"
+@@ -60,6 +60,7 @@ private:
+     void drawPitchMonitor (juce::Graphics& g) const;
+     void drawRuleMarker (juce::Graphics& g, juce::Rectangle<float> bounds, NoteRule rule) const;
+     int pianoNoteAt (juce::Point<int> position) const noexcept;
++    bool isNoteInSelectedVoiceRange (int midiNote) const noexcept;
+     void applyNoteRule (int midiNote, NoteRule rule);
+     void showNoteRuleMenu (int midiNote, juce::Rectangle<int> targetBounds);
+ 
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -337,10 +337,2 @@ VibeAutotuneEditor::VibeAutotuneEditor (VibeAutotuneProcessor& p) : AudioProce
+     configureSelector (scaleSelector, scaleLabel, "SCALE", { "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" });
+-    noteMapScaleSelector.addItemList ({ "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" }, 1);
+-    noteMapScaleSelector.setLookAndFeel (&hardware);
+-    noteMapScaleSelector.setColour (juce::ComboBox::backgroundColourId, graphite);
+-    noteMapScaleSelector.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f));
+-    noteMapScaleSelector.setColour (juce::ComboBox::textColourId, ivory);
+-    noteMapScaleSelector.setColour (juce::ComboBox::arrowColourId, brass);
+-    noteMapScaleSelector.setTooltip ("Sets the correction scale.");
+-    addAndMakeVisible (noteMapScaleSelector);
+     configureKnob (retuneSpeedSlider, retuneSpeedLabel, "RETUNE", " ms", 100); configureKnob (pitchFlexibleSlider, pitchFlexibleLabel, "FLEX TUNE", " %", 0);
+@@ -363,4 +355,3 @@ VibeAutotuneEditor::VibeAutotuneEditor (VibeAutotuneProcessor& p) : AudioProce
+     groupOctavesButton.setLookAndFeel (&hardware); groupOctavesButton.setToggleState (processor.getGroupOctaves(), juce::dontSendNotification); groupOctavesButton.setColour (juce::ToggleButton::textColourId, champagne); groupOctavesButton.setColour (juce::ToggleButton::tickColourId, brass); groupOctavesButton.onClick = [this] { processor.setGroupOctaves (groupOctavesButton.getToggleState()); repaint (pianoBounds); }; addAndMakeVisible (groupOctavesButton);
+     bypassAttachment = std::make_unique<ButtonAttachment> (processor.parameters, "bypass", bypassButton);
+     inputTypeAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "inputType", inputTypeSelector); keyAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "key", keySelector); scaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", scaleSelector);
+-    noteMapScaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", noteMapScaleSelector);
+     retuneSpeedAttachment = std::make_unique<SliderAttachment> (processor.parameters, "retuneSpeed", retuneSpeedSlider); flexTuneAttachment = std::make_unique<SliderAttachment> (processor.parameters, "flexTune", pitchFlexibleSlider); humanizeAttachment = std::make_unique<SliderAttachment> (processor.parameters, "humanize", humanizeSlider); naturalVibratoAttachment = std::make_unique<SliderAttachment> (processor.parameters, "naturalVibrato", naturalVibratoSlider);
+@@ -697,10 +688,15 @@ void VibeAutotuneEditor::resized()
+-    inputTypeLabel.setBounds (D (177, 728, 44, 18)); inputTypeSelector.setBounds (D (220, 723, 125, 42));
+-    keyLabel.setBounds (D (357, 728, 32, 18)); keySelector.setBounds (D (390, 723, 75, 42));
+-    scaleLabel.setBounds (D (478, 728, 45, 18)); scaleSelector.setBounds (D (523, 723, 155, 42));
+-    noteMapScaleSelector.setBounds (D (225, 723, 140, 42));
++    // One contiguous musical-context strip; these are the real APVTS controls.
++    inputTypeLabel.setBounds (D (182, 722, 106, 14));
++    inputTypeSelector.setBounds (D (182, 739, 116, 34));
++    keyLabel.setBounds (D (311, 722, 68, 14));
++    keySelector.setBounds (D (311, 739, 74, 34));
++    scaleLabel.setBounds (D (398, 722, 118, 14));
++    scaleSelector.setBounds (D (398, 739, 154, 34));
+@@ -809,6 +805,22 @@ int VibeAutotuneEditor::pianoNoteAt (juce::Point<int> position) const noexcept
+     return -1;
+ }
+ 
++bool VibeAutotuneEditor::isNoteInSelectedVoiceRange (int midiNote) const noexcept
++{
++    // Display range only; audio tracking limits remain wholly DSP-owned.
++    static constexpr std::array<std::pair<int, int>, 4> ranges {{
++        { 52, 84 }, // Soprano: E3–C6
++        { 55, 77 }, // Alto:    G3–F5
++        { 48, 72 }, // Tenor:   C3–C5
++        { 40, 64 }  // Low:     E2–E4
++    }};
++    const auto* parameter = processor.parameters.getRawParameterValue ("inputType");
++    const auto voice = parameter != nullptr ? juce::jlimit (0, 3, juce::roundToInt (parameter->load (std::memory_order_relaxed))) : 1;
++    const auto [lowest, highest] = ranges[(size_t) voice];
++    return midiNote >= lowest && midiNote <= highest;
++}
++
+ void VibeAutotuneEditor::applyNoteRule (int midiNote, NoteRule rule)

@@ -1,0 +1,29 @@
+--- a/tests/RealtimeSchedulerBenchmark.cpp
++++ b/tests/RealtimeSchedulerBenchmark.cpp
+@@ -34,6 +34,7 @@
+ {
+     double meanUs = 0.0, medianUs = 0.0, p95Us = 0.0, p99Us = 0.0, maximumUs = 0.0, stddevUs = 0.0;
+     double normalMaximumUs = 0.0, heavyMaximumUs = 0.0;
++    uint64_t measuredCallbacks = 0, deadlineOverrunCallbacks = 0;
+     int latency = 0, plannerPeak = 0, pendingPeak = 0;
+     uint64_t sourceQuantums = 0;
+     uint64_t epochRetimes = 0, retimedSamples = 0, maxRetime = 0;
+@@ -151,6 +152,10 @@
+             if (repetition >= warmupRuns)
+             {
+                 callbackUs.push_back (elapsed);
++                ++result.measuredCallbacks;
++                const auto callbackDeadlineUs = 1000000.0 * static_cast<double> (hostBlock) / sampleRate;
++                if (elapsed > callbackDeadlineUs)
++                    ++result.deadlineOverrunCallbacks;
+                 if (heavy) heavyMax = std::max (heavyMax, elapsed);
+                 else normalMax = std::max (normalMax, elapsed);
+             }
+@@ -207,6 +212,7 @@
+               << " deadline_us=" << deadlineUs << " mean_pct=" << 100.0 * s.meanUs / deadlineUs
+               << " p95_pct=" << 100.0 * s.p95Us / deadlineUs << " p99_pct=" << 100.0 * s.p99Us / deadlineUs << " max_pct=" << 100.0 * s.maximumUs / deadlineUs
+               << " max_headroom_us=" << deadlineUs - s.maximumUs
++              << " deadline_overruns=" << s.deadlineOverrunCallbacks << '/' << s.measuredCallbacks
+               << " normal_max_us=" << s.normalMaximumUs << " retime_heavy_max_us=" << s.heavyMaximumUs
+               << " latency=" << s.latency << " planner_peak=" << s.plannerPeak << " pending_peak=" << s.pendingPeak
+               << " source_quantums=" << s.sourceQuantums

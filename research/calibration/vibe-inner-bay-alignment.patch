@@ -1,0 +1,22 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -676,15 +676,16 @@ void VibeAutotuneEditor::resized()
+-    headerBounds = D (38, 43, 1373, 80);
+-    correctionBounds = D (20, 139, 508, 569);
+-    monitorBounds = D (535, 139, 447, 569);
+-    setupBounds = D (989, 139, 435, 569);
+-    pianoBounds = D (17, 722, 1374, 259);
++    // The hardware rails occupy x=7..38 and x=1410..1441. Everything the
++    // user reads as the control surface must sit inside this same inner bay.
++    // Previously the panel grid began at x=20 and visibly overran the rails.
++    headerBounds = D (43, 43, 1362, 80);
++    correctionBounds = D (43, 139, 492, 569);
++    monitorBounds = D (543, 139, 433, 569);
++    setupBounds = D (984, 139, 421, 569);
++    pianoBounds = D (43, 722, 1362, 259);
+@@ -729,8 +730,8 @@ void VibeAutotuneEditor::resized()
+-    auto keyboard = D (39, 782, 1330, 156);
+-    const auto statusStrip = D (39, 762, 1330, 20);
++    auto keyboard = D (57, 782, 1334, 156);
++    const auto statusStrip = D (57, 762, 1334, 20);

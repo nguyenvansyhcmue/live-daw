@@ -1,0 +1,15 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -721,5 +721,10 @@ public:
+         // target until it has a separately validated renderer use.
+         constexpr bool enableHardTuneTrajectoryPreview = VIBE_HARD_TUNE_TRAJECTORY_PREVIEW != 0;
+-        const auto canUseHardTunePreview = enableHardTuneTrajectoryPreview && trajectoryPreviewNote >= 0;
++        // A future target is useful only for a single adjacent legato step.
++        // Never use it to predict a wide leap: that can skip an intended
++        // scale note before its detector evidence has arrived.
++        const auto previewIsAdjacent = currentTargetNote >= 0 && trajectoryPreviewNote >= 0
++                                    && std::abs (trajectoryPreviewNote - currentTargetNote) == 1;
++        const auto canUseHardTunePreview = enableHardTuneTrajectoryPreview && previewIsAdjacent;
+         const auto hardTuneCandidate = canUseHardTunePreview ? trajectoryPreviewNote
+                                                               : rawCandidate;

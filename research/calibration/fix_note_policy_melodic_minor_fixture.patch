@@ -1,0 +1,10 @@
+--- a/tests/NotePolicyTest.cpp
++++ b/tests/NotePolicyTest.cpp
+@@ -30,7 +30,7 @@
+     {{ true, false, true, true, false, true, false, true, true, false, false, true }},
+     {{ true, false, true, true, false, true, false, true, false, true, false, true }},
+-    {{ true, false, true, true, false, true, false, true, true, false, true, false }},
++    {{ true, false, true, true, false, true, false, true, false, true, false, true }}, // Melodic Minor ascending
+     {{ true, false, true, false, true, true, false, true, false, true, true, false }}, // Dorian
+     {{ true, true, false, true, false, true, false, true, true, false, true, false }},
+     {{ true, false, true, false, true, false, true, true, false, true, false, true }},

@@ -1,0 +1,72 @@
+diff --git a/Source/AudioEngine/AudioEffectProcessor.h b/Source/AudioEngine/AudioEffectProcessor.h
+--- a/Source/AudioEngine/AudioEffectProcessor.h
++++ b/Source/AudioEngine/AudioEffectProcessor.h
+@@ -44,0 +45,5 @@ struct LiveProcessorHealth
++    uint64_t rendererCollapseCount = 0;
++    uint64_t rendererExcessiveCount = 0;
++    uint64_t rendererInvalidCount = 0;
++    uint64_t hardDryRescueCount = 0;
++    uint64_t sustainedOverloadProtectionCount = 0;
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.h b/Source/Plugins/NativeVibeAutotuneProcessor.h
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.h
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.h
+@@ -79,0 +80,5 @@ private:
++    std::atomic<uint64_t> rendererCollapseCount { 0 };
++    std::atomic<uint64_t> rendererExcessiveCount { 0 };
++    std::atomic<uint64_t> rendererInvalidCount { 0 };
++    std::atomic<uint64_t> hardDryRescueCount { 0 };
++    std::atomic<uint64_t> sustainedOverloadProtectionCount { 0 };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -64,0 +65,5 @@ void NativeVibeAutotuneProcessor::prepareToPlay(double sampleRate, int samplesPe
++    rendererCollapseCount.store(0, std::memory_order_relaxed);
++    rendererExcessiveCount.store(0, std::memory_order_relaxed);
++    rendererInvalidCount.store(0, std::memory_order_relaxed);
++    hardDryRescueCount.store(0, std::memory_order_relaxed);
++    sustainedOverloadProtectionCount.store(0, std::memory_order_relaxed);
+@@ -197,0 +203,5 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
++    if (wetCollapsed) rendererCollapseCount.fetch_add(1, std::memory_order_relaxed);
++    if (wetExcessive) rendererExcessiveCount.fetch_add(1, std::memory_order_relaxed);
++    if (hasInvalidSample) rendererInvalidCount.fetch_add(1, std::memory_order_relaxed);
++    if (consecutiveOverloads >= 3)
++        sustainedOverloadProtectionCount.fetch_add(1, std::memory_order_relaxed);
+@@ -278,0 +289 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
++        hardDryRescueCount.fetch_add(1, std::memory_order_relaxed);
+@@ -331,0 +343,5 @@ LiveProcessorHealth NativeVibeAutotuneProcessor::getLiveProcessorHealth() const
++    health.rendererCollapseCount = rendererCollapseCount.load(std::memory_order_relaxed);
++    health.rendererExcessiveCount = rendererExcessiveCount.load(std::memory_order_relaxed);
++    health.rendererInvalidCount = rendererInvalidCount.load(std::memory_order_relaxed);
++    health.hardDryRescueCount = hardDryRescueCount.load(std::memory_order_relaxed);
++    health.sustainedOverloadProtectionCount = sustainedOverloadProtectionCount.load(std::memory_order_relaxed);
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.h b/Source/AudioEngine/AudioDiagnosticTracer.h
+--- a/Source/AudioEngine/AudioDiagnosticTracer.h
++++ b/Source/AudioEngine/AudioDiagnosticTracer.h
+@@ -26,0 +27,2 @@ public:
++        uint64_t vibeRendererCollapseCount, vibeRendererExcessiveCount, vibeRendererInvalidCount,
++                 vibeHardDryRescueCount, vibeSustainedOverloadProtectionCount;
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -49 +49 @@ void AudioDiagnosticTracer::run()
+-    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeDetectedMidi,vibeTargetMidi,vibeOutputMidi,vibeInputCents,vibeCorrectionCents,vibeRendererCollapsed,vibeRendererExcessive,vibeRendererInvalid,vibeCallbackOverloaded,vibeHardDryRescue,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
++    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeDetectedMidi,vibeTargetMidi,vibeOutputMidi,vibeInputCents,vibeCorrectionCents,vibeRendererCollapsed,vibeRendererExcessive,vibeRendererInvalid,vibeCallbackOverloaded,vibeHardDryRescue,vibeRendererCollapseCount,vibeRendererExcessiveCount,vibeRendererInvalidCount,vibeHardDryRescueCount,vibeSustainedOverloadProtectionCount,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
+@@ -77,0 +78,5 @@ void AudioDiagnosticTracer::run()
++                              + juce::String(e.vibeRendererCollapseCount) + ","
++                              + juce::String(e.vibeRendererExcessiveCount) + ","
++                              + juce::String(e.vibeRendererInvalidCount) + ","
++                              + juce::String(e.vibeHardDryRescueCount) + ","
++                              + juce::String(e.vibeSustainedOverloadProtectionCount) + ","
+@@ -91 +96 @@ void AudioDiagnosticTracer::run()
+-            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,"
++            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1806,0 +1807,5 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
++        event.vibeRendererCollapseCount = hasNativeVibe ? vibeHealth.rendererCollapseCount : 0;
++        event.vibeRendererExcessiveCount = hasNativeVibe ? vibeHealth.rendererExcessiveCount : 0;
++        event.vibeRendererInvalidCount = hasNativeVibe ? vibeHealth.rendererInvalidCount : 0;
++        event.vibeHardDryRescueCount = hasNativeVibe ? vibeHealth.hardDryRescueCount : 0;
++        event.vibeSustainedOverloadProtectionCount = hasNativeVibe ? vibeHealth.sustainedOverloadProtectionCount : 0;
+

@@ -1,0 +1,52 @@
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -269,6 +269,12 @@
+     void setDiagnosticNaturalVibratoSurface (const NaturalVibratoSurface& surface) noexcept
+     {
+         diagnosticNaturalVibratoSurface = surface;
++    }
++    // Offline-only extension of the measured Natural Vibrato surface to the
++    // hard-tune (0 ms) row. Zero is the production behaviour.
++    void setDiagnosticNaturalSurfaceAtHardTuneWeight (double weight) noexcept
++    {
++        diagnosticNaturalSurfaceAtHardTuneWeight = clamp01 (weight);
+     }
+     // Offline phase-fit injection. Production uses 1.0; the diagnostic
+     // renderer can sweep nearby values without repeatedly editing the law.
+@@ -595,7 +601,8 @@
+             clamp01 (retuneSpeedMs / 10.0));
+         const auto retuneAboveReference = 1.0 - smoothTransitionProgress (
+             clamp01 ((retuneSpeedMs - 10.0) / 40.0));
+-        const auto naturalRetuneWeight = retuneBelowReference * retuneAboveReference;
++        const auto naturalRetuneWeight = clamp01 (retuneBelowReference * retuneAboveReference
++            + (retuneSpeedMs <= 0.05 ? diagnosticNaturalSurfaceAtHardTuneWeight : 0.0));
+         const auto naturalHumanizeWeight = 1.0 - HumanizeProcessor::artistResponse (humanizePercent);
+         const auto measuredNaturalWeight = hasNaturalVibratoControl
+                                          ? naturalRetuneWeight * naturalHumanizeWeight : 0.0;
+@@ -2816,6 +2823,7 @@
+         {{ 0.497, 0.727, 0.543 }}, // +6
+         {{ 1.004, 1.254, 1.228 }}  // +12
+     }};
++    double diagnosticNaturalSurfaceAtHardTuneWeight = 0.0;
+     double diagnosticNegativeNaturalPhaseScale = 1.0;
+     double diagnosticFlexResidualScale = 1.0;
+     double diagnosticHumanizeScale = 1.0;
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -139,6 +139,7 @@
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticFlexResidualScale", 1 }, "Diagnostic Flex Residual", Range (0.5f, 1.5f, 0.01f), 1.0f));
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticHumanizeScale", 1 }, "Diagnostic Humanize Scale", Range (0.5f, 1.5f, 0.01f), 1.0f));
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticNegativeNaturalPhaseScale", 1 }, "Diagnostic Natural Phase", Range (0.0f, 2.5f, 0.01f), 1.0f));
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticNaturalSurfaceHardTuneWeight", 1 }, "Diagnostic Natural Hard Tune Surface", Range (0.0f, 1.0f, 0.01f), 0.0f));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "key", 1 }, "Key", juce::StringArray { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 6));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "scale", 1 }, "Scale", juce::StringArray {
+         "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic",
+@@ -1718,6 +1719,8 @@
+             parameters.getRawParameterValue ("diagnosticFlexResidualScale")->load (std::memory_order_relaxed),
+             parameters.getRawParameterValue ("diagnosticHumanizeScale")->load (std::memory_order_relaxed),
+             parameters.getRawParameterValue ("diagnosticNegativeNaturalPhaseScale")->load (std::memory_order_relaxed));
++        correctionTrajectory.setDiagnosticNaturalSurfaceAtHardTuneWeight (
++            parameters.getRawParameterValue ("diagnosticNaturalSurfaceHardTuneWeight")->load (std::memory_order_relaxed));
+         const auto voicedColourPercent = parameters.getRawParameterValue ("voicedColour")->load (std::memory_order_relaxed);
+         for (auto& renderer : tdpsolaRenderers)
+             renderer.setVoicedColourAmountPercent (voicedColourPercent);

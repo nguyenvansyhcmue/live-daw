@@ -1,0 +1,41 @@
+--- VibeAutotune/SignalsmithPitchRenderer.h
++++ VibeAutotune/SignalsmithPitchRenderer.h
+@@ -25,6 +25,14 @@
+ #ifndef VIBE_SPECTRAL_HOP_SAMPLES
+  #define VIBE_SPECTRAL_HOP_SAMPLES 128
+ #endif
++
++// Offline renderer-isolation only.  0 is production; 1 removes only the
++// high-band dry residual; 2 removes every dry/wet overlap while voiced.
++// Neither non-zero mode is eligible for release without listening and
++// click/transition qualification.
++#ifndef VIBE_RENDERER_WET_PATH_ISOLATION
++ #define VIBE_RENDERER_WET_PATH_ISOLATION 0
++#endif
+ 
+ // Fixed-latency spectral pitch renderer used for voiced correction.  It owns
+ // no note selection: the existing trajectory remains the sole control source.
+@@ -139,8 +147,20 @@
+             const auto crossoverAlpha = static_cast<float> (1.0 - std::exp (
+                 -2.0 * std::numbers::pi_v<double> * crossoverHz / sampleRate));
+             wetLowState += (destination[n] - wetLowState) * crossoverAlpha;
+             dryLowState += (dry - dryLowState) * crossoverAlpha;
+-            const auto hybridWet = destination[n]
+-                + ((dry - dryLowState) - (destination[n] - wetLowState)) * sibilanceResidualMix;
+-            destination[n] = dry + (hybridWet - dry) * wetGate;
++#if VIBE_RENDERER_WET_PATH_ISOLATION == 1
++            // Same renderer lifecycle handoff as production, but no original
++            // high-band residual is added back.  This isolates the residual.
++            destination[n] = dry + (destination[n] - dry) * wetGate;
++#elif VIBE_RENDERER_WET_PATH_ISOLATION == 2
++            // Diagnostic hard separation: exactly renderer output in voiced
++            // material, exactly latency-aligned dry elsewhere.  If the tail
++            // remains here it originates inside spectral resynthesis, not the
++            // dry-residual or wet/dry crossover.
++            destination[n] = voiced ? destination[n] : dry;
++#else
++            const auto hybridWet = destination[n]
++                + ((dry - dryLowState) - (destination[n] - wetLowState)) * sibilanceResidualMix;
++            destination[n] = dry + (hybridWet - dry) * wetGate;
++#endif
+             dryWrite = (dryWrite + 1) % dryDelay.size();

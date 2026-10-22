@@ -1,0 +1,94 @@
+diff --git a/Source/AudioEngine/AudioEngine.h b/Source/AudioEngine/AudioEngine.h
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -282,6 +282,10 @@
+     // reclaim the user's chosen interface as soon as it is plugged in.
+     juce::String preferredInputDeviceName;
+     juce::String preferredOutputDeviceName;
++    // True only after a saved interface genuinely disappeared. It prevents an
++    // explicit Device Settings selection from being overwritten by stale
++    // launch preferences on the next JUCE change notification.
++    bool preferredDeviceWasUnavailable = false;
+     std::atomic<bool> recoveringPreferredAudioDevice { false };
+     juce::String midiOutputDeviceIdentifier;
+     AudioGraph graph;
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -175,6 +175,12 @@ void AudioEngine::initialise()
+         preferredOutputDeviceName = savedState->getStringAttribute("audioOutputDeviceName");
+     }
+     deviceManager.initialise(2, 2, savedState.get(), true);
++    if (savedState != nullptr)
++        if (auto* type = deviceManager.getCurrentDeviceTypeObject(); type != nullptr)
++            preferredDeviceWasUnavailable = (! preferredInputDeviceName.isEmpty()
++                                              && ! type->getDeviceNames(true).contains(preferredInputDeviceName))
++                                          || (! preferredOutputDeviceName.isEmpty()
++                                              && ! type->getDeviceNames(false).contains(preferredOutputDeviceName));
+     if (savedState == nullptr)
+         enableAllAvailableInputChannels();
+     deviceManager.addChangeListener(this);
+@@ -433,13 +439,7 @@ void AudioEngine::recoverPreferredAudioDeviceAfterHotPlug()
+     // not run this from audioDeviceIOCallback: opening a CoreAudio device can
+     // block and causes the driver to stop/start the callback itself.
+     if (recoveringPreferredAudioDevice.exchange(true, std::memory_order_acq_rel))
+-        return;
+-
+-    if (preferredInputDeviceName.isEmpty() && preferredOutputDeviceName.isEmpty())
+-    {
+-        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
+         return;
+-    }
+ 
+     auto* type = deviceManager.getCurrentDeviceTypeObject();
+     if (type == nullptr)
+@@ -455,16 +455,38 @@ void AudioEngine::recoverPreferredAudioDeviceAfterHotPlug()
+     const auto outputReady = preferredOutputDeviceName.isEmpty()
+         || outputNames.contains(preferredOutputDeviceName);
+ 
++    auto setup = deviceManager.getAudioDeviceSetup();
++
+     // Wait until every explicitly selected side of the interface is present.
+     // This avoids opening half of a USB interface while CoreAudio is still
+     // enumerating it, which previously left a vocal route with zero inputs.
+     if (! inputReady || ! outputReady)
+     {
++        preferredDeviceWasUnavailable = true;
+         recoveringPreferredAudioDevice.store(false, std::memory_order_release);
+         return;
+     }
+ 
+-    auto setup = deviceManager.getAudioDeviceSetup();
++    // A selector action also produces a device-manager notification. Until
++    // this distinction existed, choosing a USB interface was immediately
++    // overwritten by the MacBook names loaded at launch. Only reclaim a
++    // preference after we observed that exact saved interface disappear.
++    if (! preferredDeviceWasUnavailable)
++    {
++        const auto inputChanged = setup.inputDeviceName.isNotEmpty()
++                               && setup.inputDeviceName != preferredInputDeviceName;
++        const auto outputChanged = setup.outputDeviceName.isNotEmpty()
++                                && setup.outputDeviceName != preferredOutputDeviceName;
++        if (inputChanged || outputChanged)
++        {
++            preferredInputDeviceName = setup.inputDeviceName;
++            preferredOutputDeviceName = setup.outputDeviceName;
++            saveAudioDeviceState();
++        }
++        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++        return;
++    }
++
+     auto changed = false;
+     if (preferredInputDeviceName.isNotEmpty()
+         && setup.inputDeviceName != preferredInputDeviceName)
+@@ -490,7 +512,9 @@ void AudioEngine::recoverPreferredAudioDeviceAfterHotPlug()
+     // physical maps, prepares effects, and restores the live vocal monitor.
+     setup.useDefaultInputChannels = true;
+     setup.useDefaultOutputChannels = true;
+-    deviceManager.setAudioDeviceSetup(setup, true);
++    const auto error = deviceManager.setAudioDeviceSetup(setup, true);
++    if (error.isEmpty())
++        preferredDeviceWasUnavailable = false;
+     recoveringPreferredAudioDevice.store(false, std::memory_order_release);
+ }

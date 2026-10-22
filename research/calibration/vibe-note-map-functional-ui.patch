@@ -1,0 +1,237 @@
+diff --git a/VibeAutotune/PluginEditor.h b/VibeAutotune/PluginEditor.h
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -59,6 +59,9 @@
+     void drawPianoKeyboard (juce::Graphics& g) const;
+     void drawPitchMonitor (juce::Graphics& g) const;
+     void drawRuleMarker (juce::Graphics& g, juce::Rectangle<float> bounds, NoteRule rule) const;
++    int pianoNoteAt (juce::Point<int> position) const noexcept;
++    void applyNoteRule (int midiNote, NoteRule rule);
++    void showNoteRuleMenu (int midiNote, juce::Rectangle<int> targetBounds);
+ 
+     VibeAutotuneProcessor& processor;
+     VibeAutotuneProcessor::PitchMonitorData monitor;
+@@ -68,6 +71,7 @@
+     AnalogTextButton editNotesButton { "EDIT NOTES" };
+     AnalogToggleButton groupOctavesButton { "GROUP OCTAVES" };
+     juce::ComboBox inputTypeSelector, keySelector, scaleSelector;
++    juce::ComboBox noteMapScaleSelector;
+     juce::Label inputTypeLabel, keyLabel, scaleLabel;
+ 
+     RetuneRotarySlider retuneSpeedSlider;
+@@ -82,6 +86,7 @@
+ 
+     std::unique_ptr<ButtonAttachment> bypassAttachment;
+     std::unique_ptr<ComboBoxAttachment> inputTypeAttachment, keyAttachment, scaleAttachment;
++    std::unique_ptr<ComboBoxAttachment> noteMapScaleAttachment;
+     std::unique_ptr<SliderAttachment> retuneSpeedAttachment, flexTuneAttachment, humanizeAttachment,
+                                       naturalVibratoAttachment;
+     std::unique_ptr<SliderAttachment> transposeAttachment, referencePitchAttachment, trackingAttachment, voicedColourAttachment;
+diff --git a/VibeAutotune/PluginProcessor.h b/VibeAutotune/PluginProcessor.h
+--- a/VibeAutotune/PluginProcessor.h
++++ b/VibeAutotune/PluginProcessor.h
+@@ -451,6 +451,9 @@
+     NoteRule getNoteRuleForMidiNote (int midiNote) const noexcept;
+     void setNoteRuleForPitchClass (int pitchClass, NoteRule rule) noexcept;
+     void setNoteRuleForMidiNote (int midiNote, NoteRule rule) noexcept;
++    void resetNoteRuleForPitchClass (int pitchClass) noexcept;
++    void resetNoteRuleForMidiNote (int midiNote) noexcept;
++    void resetNotePolicyToCurrentScale() noexcept;
+     bool getGroupOctaves() const noexcept;
+     void setGroupOctaves (bool shouldGroup) noexcept;
+     juce::AudioProcessorParameter* getBypassParameter() const override;
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -2673,9 +2673,41 @@
+     }
+     midiNoteOverridePolicy[static_cast<size_t> (midiNote)].store (noteRuleValue (rule), std::memory_order_relaxed);
+     midiNoteHasOverride[static_cast<size_t> (midiNote)].store (true, std::memory_order_relaxed);
++    notePolicyRevision.fetch_add (1, std::memory_order_relaxed);
++}
++
++void VibeAutotuneProcessor::resetNoteRuleForPitchClass (int pitchClass) noexcept
++{
++    const auto safePitchClass = (pitchClass % 12 + 12) % 12;
++    const auto defaultRule = (getBaseScaleMask() & static_cast<uint16_t> (1u << safePitchClass)) != 0
++                           ? NoteRule::Legal : NoteRule::IllegalNearest;
++    setNoteRuleForPitchClass (safePitchClass, defaultRule);
++}
++
++void VibeAutotuneProcessor::resetNoteRuleForMidiNote (int midiNote) noexcept
++{
++    if (midiNote < 0 || midiNote > 127)
++        return;
++
++    if (groupOctaves.load (std::memory_order_relaxed))
++    {
++        resetNoteRuleForPitchClass (midiNote % 12);
++        return;
++    }
++
++    midiNoteHasOverride[static_cast<size_t> (midiNote)].store (false, std::memory_order_relaxed);
+     notePolicyRevision.fetch_add (1, std::memory_order_relaxed);
+ }
+ 
++void VibeAutotuneProcessor::resetNotePolicyToCurrentScale() noexcept
++{
++    const auto key = juce::jlimit (0, 11,
++        static_cast<int> (parameters.getRawParameterValue ("key")->load (std::memory_order_relaxed)));
++    const auto scale = juce::jlimit (0, userScaleIndex,
++        static_cast<int> (parameters.getRawParameterValue ("scale")->load (std::memory_order_relaxed)));
++    resetNotePolicyToScale (key, scale);
++}
++
+ bool VibeAutotuneProcessor::getGroupOctaves() const noexcept
+ {
+     return groupOctaves.load (std::memory_order_relaxed);
+diff --git a/VibeAutotune/PluginEditor.cpp b/VibeAutotune/PluginEditor.cpp
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -327,6 +327,14 @@
+     configureSelector (inputTypeSelector, inputTypeLabel, "VOICE", { "Soprano", "Alto", "Tenor", "Low" });
+     configureSelector (keySelector, keyLabel, "KEY", { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
+     configureSelector (scaleSelector, scaleLabel, "SCALE", { "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" });
++    noteMapScaleSelector.addItemList ({ "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" }, 1);
++    noteMapScaleSelector.setLookAndFeel (&hardware);
++    noteMapScaleSelector.setColour (juce::ComboBox::backgroundColourId, graphite);
++    noteMapScaleSelector.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f));
++    noteMapScaleSelector.setColour (juce::ComboBox::textColourId, ivory);
++    noteMapScaleSelector.setColour (juce::ComboBox::arrowColourId, brass);
++    noteMapScaleSelector.setTooltip ("Sets the correction scale.");
++    addAndMakeVisible (noteMapScaleSelector);
+     configureKnob (retuneSpeedSlider, retuneSpeedLabel, "RETUNE", " ms", 100); configureKnob (pitchFlexibleSlider, pitchFlexibleLabel, "FLEX TUNE", " %", 0);
+     configureKnob (humanizeSlider, humanizeLabel, "HUMANIZE", " %", 0); configureKnob (naturalVibratoSlider, naturalVibratoLabel, "NATURAL VIBRATO", "", 0);
+     configureKnob (transposeSlider, transposeLabel, "TRANSPOSE", " st", 0); configureKnob (referencePitchSlider, referencePitchLabel, "REFERENCE", " Hz", 440);
+@@ -347,6 +355,7 @@
+     groupOctavesButton.setLookAndFeel (&hardware); groupOctavesButton.setToggleState (processor.getGroupOctaves(), juce::dontSendNotification); groupOctavesButton.setColour (juce::ToggleButton::textColourId, champagne); groupOctavesButton.setColour (juce::ToggleButton::tickColourId, brass); groupOctavesButton.onClick = [this] { processor.setGroupOctaves (groupOctavesButton.getToggleState()); repaint (pianoBounds); }; addAndMakeVisible (groupOctavesButton);
+     bypassAttachment = std::make_unique<ButtonAttachment> (processor.parameters, "bypass", bypassButton);
+     inputTypeAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "inputType", inputTypeSelector); keyAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "key", keySelector); scaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", scaleSelector);
++    noteMapScaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", noteMapScaleSelector);
+     retuneSpeedAttachment = std::make_unique<SliderAttachment> (processor.parameters, "retuneSpeed", retuneSpeedSlider); flexTuneAttachment = std::make_unique<SliderAttachment> (processor.parameters, "flexTune", pitchFlexibleSlider); humanizeAttachment = std::make_unique<SliderAttachment> (processor.parameters, "humanize", humanizeSlider); naturalVibratoAttachment = std::make_unique<SliderAttachment> (processor.parameters, "naturalVibrato", naturalVibratoSlider);
+     transposeAttachment = std::make_unique<SliderAttachment> (processor.parameters, "transpose", transposeSlider); referencePitchAttachment = std::make_unique<SliderAttachment> (processor.parameters, "referencePitch", referencePitchSlider); trackingAttachment = std::make_unique<SliderAttachment> (processor.parameters, "tracking", trackingSlider); voicedColourAttachment = std::make_unique<SliderAttachment> (processor.parameters, "voicedColour", voicedColourSlider);
+     // APVTS installs its own display converters when attachments are created.
+@@ -364,7 +373,7 @@
+     if (auto* constrainer = getConstrainer()) constrainer->setFixedAspectRatio (LiveTuneLayoutMetrics::designWidth / LiveTuneLayoutMetrics::designHeight);
+     setSize (1086, 815); startTimerHz (30);
+ }
+-VibeAutotuneEditor::~VibeAutotuneEditor() { stopTimer(); bypassButton.setLookAndFeel (nullptr); settingsButton.setLookAndFeel (nullptr); editNotesButton.setLookAndFeel (nullptr); groupOctavesButton.setLookAndFeel (nullptr); inputTypeSelector.setLookAndFeel (nullptr); keySelector.setLookAndFeel (nullptr); scaleSelector.setLookAndFeel (nullptr); for (auto* s : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) }) s->setLookAndFeel (nullptr); }
++VibeAutotuneEditor::~VibeAutotuneEditor() { stopTimer(); bypassButton.setLookAndFeel (nullptr); settingsButton.setLookAndFeel (nullptr); editNotesButton.setLookAndFeel (nullptr); groupOctavesButton.setLookAndFeel (nullptr); inputTypeSelector.setLookAndFeel (nullptr); keySelector.setLookAndFeel (nullptr); scaleSelector.setLookAndFeel (nullptr); noteMapScaleSelector.setLookAndFeel (nullptr); for (auto* s : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) }) s->setLookAndFeel (nullptr); }
+ void VibeAutotuneEditor::configureSelector (juce::ComboBox& s, juce::Label& l, const juce::String& t, const juce::StringArray& c) { s.addItemList (c, 1); s.setLookAndFeel (&hardware); s.setColour (juce::ComboBox::backgroundColourId, graphite); s.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f)); s.setColour (juce::ComboBox::textColourId, ivory); s.setColour (juce::ComboBox::arrowColourId, brass); addAndMakeVisible (s); l.setText (t, juce::dontSendNotification); l.setFont (juce::FontOptions (10, juce::Font::bold)); l.setColour (juce::Label::textColourId, graphite); addAndMakeVisible (l); }
+ void VibeAutotuneEditor::configureKnob (juce::Slider& s, juce::Label& l, const juce::String& t, const juce::String& suffix, double d) { s.setName (t); s.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag); s.setLookAndFeel (&hardware); s.setRotaryParameters (juce::degreesToRadians (225.f), juce::degreesToRadians (495.f), true); s.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 82, 20); s.setTextValueSuffix (suffix); s.setDoubleClickReturnValue (true, d); s.setColour (juce::Slider::textBoxTextColourId, ivory); s.setColour (juce::Slider::textBoxBackgroundColourId, glass); s.setColour (juce::Slider::textBoxOutlineColourId, champagne.withAlpha (.3f)); addAndMakeVisible (s); l.setText (t, juce::dontSendNotification); l.setFont (juce::FontOptions (10, juce::Font::bold)); l.setColour (juce::Label::textColourId, graphite); l.setJustificationType (juce::Justification::centred); addAndMakeVisible (l); }
+ 
+@@ -447,13 +456,6 @@
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+     g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,728,130,24).toNearestInt(),juce::Justification::centredLeft);
+     g.setColour(champagne.withAlpha(.8f));g.setFont(juce::FontOptions(14.0f*layout.scale,juce::Font::bold));g.drawText(processor.hasCustomNotePolicy()?"SCALE / CUSTOM":"SCALE",N(177,728,55,24).toNearestInt(),juce::Justification::centredLeft);
+-    // The lower Scale selector mirrors the existing APVTS scale parameter;
+-    // it is intentionally a display companion, never a duplicate binding.
+-    auto scaleReadout = N (225, 723, 140, 42);
+-    g.setColour (juce::Colours::black.withAlpha (.45f)); g.fillRoundedRectangle (scaleReadout.translated (0, 1), 4.0f);
+-    g.setColour (juce::Colour (0xff0b0c0a)); g.fillRoundedRectangle (scaleReadout, 4.0f); g.setColour (champagne.withAlpha (.6f)); g.drawRoundedRectangle (scaleReadout, 4.0f, .8f);
+-    g.setColour (ivory); g.setFont (juce::FontOptions (12.5f*layout.scale, juce::Font::bold)); g.drawText (scaleSelector.getText(), scaleReadout.toNearestInt().reduced (8, 0).withTrimmedRight (15), juce::Justification::centredLeft);
+-    juce::Path lowerArrow; lowerArrow.startNewSubPath (scaleReadout.getRight() - 16, scaleReadout.getCentreY() - 2); lowerArrow.lineTo (scaleReadout.getRight() - 11, scaleReadout.getCentreY() + 3); lowerArrow.lineTo (scaleReadout.getRight() - 6, scaleReadout.getCentreY() - 2); g.setColour (brass); g.strokePath (lowerArrow, juce::PathStrokeType (1.4f));
+     g.setColour (champagne.withAlpha (.84f)); g.setFont (juce::FontOptions (14.0f*layout.scale, juce::Font::bold)); g.drawText ("SCALE NOTE RULES", N (412, 728, 135, 24).toNearestInt(), juce::Justification::centredLeft);
+     const std::array<std::pair<juce::String, juce::Colour>, 5> rules {{{ "Legal", mint }, { "Excluded", juce::Colour (0xffc94848) }, { "Up", ice }, { "Down", juce::Colour (0xff9a5fd0) }, { "Bypass", juce::Colour (0xffb5b5ae) }}};
+     const std::array<float, 5> ruleXs {{ 570, 654, 754, 824, 905 }};
+@@ -679,6 +681,7 @@
+     inputTypeLabel.setBounds (D (1008, 163, 148, 18)); inputTypeSelector.setBounds (D (1008, 190, 148, 54));
+     keyLabel.setBounds (D (1170, 163, 82, 18)); keySelector.setBounds (D (1170, 190, 82, 54));
+     scaleLabel.setBounds (D (1268, 163, 136, 18)); scaleSelector.setBounds (D (1268, 190, 136, 54));
++    noteMapScaleSelector.setBounds (D (225, 723, 140, 42));
+ 
+     const auto utility = [&] (int index, float x, float y, juce::Label& label, juce::Slider& slider)
+     {
+@@ -774,7 +777,91 @@
+     return AudioProcessorEditor::keyPressed (key);
+ }
+ 
+-void VibeAutotuneEditor::mouseDown(const juce::MouseEvent&e){if(!editNotesEnabled)return;for(int n=firstKey;n<=lastKey;n++)if(noteStatusBounds[(size_t)(n-firstKey)].contains(e.getPosition())){auto cur=processor.getGroupOctaves()?processor.getNoteRuleForPitchClass(n%12):processor.getNoteRuleForMidiNote(n);auto next=static_cast<NoteRule>((int(cur)+1)%5);if(processor.getGroupOctaves())processor.setNoteRuleForPitchClass(n%12,next);else processor.setNoteRuleForMidiNote(n,next);repaint(pianoBounds);return;}}
++int VibeAutotuneEditor::pianoNoteAt (juce::Point<int> position) const noexcept
++{
++    for (int note = firstKey; note <= lastKey; ++note)
++        if (blackKey (note) && pianoKeyBounds[(size_t) (note - firstKey)].contains (position))
++            return note;
++    for (int note = firstKey; note <= lastKey; ++note)
++        if (! blackKey (note)
++            && (pianoKeyBounds[(size_t) (note - firstKey)].contains (position)
++                || noteStatusBounds[(size_t) (note - firstKey)].contains (position)))
++            return note;
++    return -1;
++}
++
++void VibeAutotuneEditor::applyNoteRule (int midiNote, NoteRule rule)
++{
++    if (processor.getGroupOctaves())
++        processor.setNoteRuleForPitchClass (midiNote % 12, rule);
++    else
++        processor.setNoteRuleForMidiNote (midiNote, rule);
++    repaint (pianoBounds);
++}
++
++void VibeAutotuneEditor::showNoteRuleMenu (int midiNote, juce::Rectangle<int> targetBounds)
++{
++    const auto current = processor.getGroupOctaves()
++                       ? processor.getNoteRuleForPitchClass (midiNote % 12)
++                       : processor.getNoteRuleForMidiNote (midiNote);
++    juce::PopupMenu menu;
++    const auto addRule = [&] (int id, const juce::String& name, NoteRule rule)
++    {
++        menu.addItem (id, name, true, current == rule);
++    };
++    addRule (1, "Legal", NoteRule::Legal);
++    addRule (2, "Excluded / nearest legal", NoteRule::IllegalNearest);
++    addRule (3, "Force up", NoteRule::IllegalUp);
++    addRule (4, "Force down", NoteRule::IllegalDown);
++    addRule (5, "Bypass", NoteRule::BypassLegal);
++    menu.addSeparator();
++    menu.addItem (6, "Reset this note to scale");
++    menu.addItem (7, "Reset all notes to Key / Scale");
++
++    auto safeThis = juce::Component::SafePointer<VibeAutotuneEditor> (this);
++    menu.showMenuAsync (juce::PopupMenu::Options().withTargetScreenArea (targetBounds),
++                        [safeThis, midiNote] (int result)
++                        {
++                            auto* editor = safeThis.getComponent();
++                            if (editor == nullptr || result == 0)
++                                return;
++                            if (result >= 1 && result <= 5)
++                                editor->applyNoteRule (midiNote, static_cast<NoteRule> (result - 1));
++                            else if (result == 6)
++                            {
++                                if (editor->processor.getGroupOctaves())
++                                    editor->processor.resetNoteRuleForPitchClass (midiNote % 12);
++                                else
++                                    editor->processor.resetNoteRuleForMidiNote (midiNote);
++                                editor->repaint (editor->pianoBounds);
++                            }
++                            else if (result == 7)
++                            {
++                                editor->processor.resetNotePolicyToCurrentScale();
++                                editor->repaint (editor->pianoBounds);
++                            }
++                        });
++}
++
++void VibeAutotuneEditor::mouseDown (const juce::MouseEvent& event)
++{
++    if (! editNotesEnabled)
++        return;
++
++    const auto midiNote = pianoNoteAt (event.getPosition());
++    if (midiNote < 0)
++        return;
++    if (event.mods.isPopupMenu())
++    {
++        showNoteRuleMenu (midiNote, pianoKeyBounds[(size_t) (midiNote - firstKey)]);
++        return;
++    }
++
++    const auto current = processor.getGroupOctaves()
++                       ? processor.getNoteRuleForPitchClass (midiNote % 12)
++                       : processor.getNoteRuleForMidiNote (midiNote);
++    applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + 1) % 5));
++}
+ void VibeAutotuneEditor::timerCallback()
+ {
+     monitor = processor.getPitchMonitorData();

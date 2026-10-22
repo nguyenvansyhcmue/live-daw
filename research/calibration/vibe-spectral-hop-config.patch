@@ -1,0 +1,26 @@
+diff --git a/VibeAutotune/SignalsmithPitchRenderer.h b/VibeAutotune/SignalsmithPitchRenderer.h
+--- a/VibeAutotune/SignalsmithPitchRenderer.h
++++ b/VibeAutotune/SignalsmithPitchRenderer.h
+@@ -16,5 +16,14 @@
+ #ifndef VIBE_SPECTRAL_MAX_RATIO
+  #define VIBE_SPECTRAL_MAX_RATIO 1.10
+ #endif
+ 
++// Offline A/B hooks. The production cadence remains 1024/128 unless an
++// explicitly configured candidate build proves a better vocal transition.
++#ifndef VIBE_SPECTRAL_WINDOW_SAMPLES
++ #define VIBE_SPECTRAL_WINDOW_SAMPLES 1024
++#endif
++#ifndef VIBE_SPECTRAL_HOP_SAMPLES
++ #define VIBE_SPECTRAL_HOP_SAMPLES 128
++#endif
++
+ // Fixed-latency spectral pitch renderer used for voiced correction.  It owns
+@@ -25,5 +33,6 @@ public:
+     void prepare (double newSampleRate, int maximumBlock)
+     {
+         sampleRate = newSampleRate;
+-        stretch.configure (1, 1024, 128, true);
++        stretch.configure (1, VIBE_SPECTRAL_WINDOW_SAMPLES,
++                           VIBE_SPECTRAL_HOP_SAMPLES, true);
+         stretch.setFormantBase (static_cast<float> (200.0 / sampleRate));

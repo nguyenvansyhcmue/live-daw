@@ -1,0 +1,15 @@
+diff --git a/tests/SignalChainDiagnostic.cpp b/tests/SignalChainDiagnostic.cpp
+--- a/tests/SignalChainDiagnostic.cpp
++++ b/tests/SignalChainDiagnostic.cpp
+@@ -444,7 +444,10 @@ int main (int argc, char* argv[])
+     const auto waveformAnchoredSourceMarks = argc >= 8 && std::atoi (argv[7]) != 0;
+     const auto voicedColourPercent = argc >= 9 ? std::strtof (argv[8], nullptr) : 0.0f;
+     // Omit this optional argument to exercise the production default. Passing
+     // 0 explicitly selects the retained TD-PSOLA regression path.
+-    const auto phaseContinuousRenderer = argc >= 10 ? std::atoi (argv[9]) != 0 : true;
++    // Match the renderer selected by this build when no ablation is asked
++    // for. A TD-PSOLA candidate must not silently trace the spectral path.
++    const auto phaseContinuousRenderer = argc >= 10 ? std::atoi (argv[9]) != 0
++                                                    : VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE == 0;
+     const auto phaseForceUnityRatio = argc >= 11 && std::atoi (argv[10]) != 0;
+     const auto phaseForceStaticUpRatio = argc >= 12 && std::atoi (argv[11]) != 0;

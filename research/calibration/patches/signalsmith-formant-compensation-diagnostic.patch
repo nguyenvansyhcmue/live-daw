@@ -1,0 +1,11 @@
+--- a/VibeAutotune/SignalsmithPitchRenderer.h
++++ b/VibeAutotune/SignalsmithPitchRenderer.h
+@@ -37,6 +37,10 @@ public:
+         stretch.configure (1, VIBE_SPECTRAL_WINDOW_SAMPLES,
+                            VIBE_SPECTRAL_HOP_SAMPLES, true);
+         stretch.setFormantBase (static_cast<float> (200.0 / sampleRate));
++        // A base-frequency hint alone does not activate formant compensation
++        // in Signalsmith Stretch. Preserve the vocal envelope while the
++        // transpose map changes, without adding a user-facing formant shift.
++        stretch.setFormantFactor (1.0f, true);
+         stretch.reset();

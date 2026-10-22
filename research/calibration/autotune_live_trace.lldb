@@ -1,0 +1,19 @@
+# Auto-Tune Artist AU, arm64. Verified Mach-O SHA-256 on 2026-10-22:
+# 2f2b7a5b4e52e4fd63b7b683ac49277d95c775a00ac98eded83fa0c6b826f33b
+# This is an OFFLINE debugger probe, not a real-time-safe live trace.
+# Every breakpoint hit suspends the process briefly, even with auto-continue.
+# The two process entry points take pointer/integer arguments; d0-d7 are not
+# established as Retune Speed or Humanize parameters.
+
+# Static unslid Mach-O address 0x7acb0:
+# ATLiveDSP::AT_DSPObject::process(float**, float**, long, long)
+breakpoint set --name 'ATLiveDSP::AT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add 1 -o 'script print("--- Hit AT_DSPObject::process ---")' -o 'register read x0 x1 x2 x3 x4 d0 d1 d2 d3 d4 d5 d6 d7' -o 'continue'
+
+# Static unslid Mach-O address 0x7fe10:
+# ATLiveDSP::DT_DSPObject::process(float**, float**, long, long)
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add 2 -o 'script print("--- Hit DT_DSPObject::process ---")' -o 'register read x0 x1 x2 x3 x4 d0 d1 d2 d3 d4 d5 d6 d7' -o 'continue'
+
+# Run only an offline render/test host. Type 'quit' in LLDB to end the session.
+run

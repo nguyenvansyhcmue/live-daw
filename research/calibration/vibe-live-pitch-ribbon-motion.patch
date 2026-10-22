@@ -1,0 +1,71 @@
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -110,6 +110,10 @@
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;
+     float displayedPitchConfidence = 0.0f;
++    // Presentation-only motion state. It is fed from published monitor
++    // snapshots on the message thread and is never read by the audio thread.
++    float ribbonMotionPhase = 0.0f;
++    float displayedRibbonMotion = 0.0f;
+     bool monitorHasValidPitch = false;
+     bool editNotesEnabled = false;
+     NoteRule selectedEditRule = NoteRule::Legal;
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -577,9 +577,16 @@
+                               - .14f * std::sin (p * juce::MathConstants<float>::pi * 3.0f)
+                               + .025f * std::sin ((p - .08f) * juce::MathConstants<float>::twoPi);
+         const auto spread = (strand - 5.0f) * (.015f + arch * .028f);
+-        const auto filament = std::sin (p * juce::MathConstants<float>::twoPi * (1.18f + strand * .014f) + strand * .36f) * (.009f + envelope * .012f);
++        // The family still follows the same two-lobe silhouette, but each
++        // strand now drifts at a related rate. This makes a sustained vocal
++        // feel alive without turning the monitor into a generic sine wave.
++        const auto phase = ribbonMotionPhase * (1.0f + (strand - 5.0f) * .026f);
++        const auto filament = std::sin (p * juce::MathConstants<float>::twoPi * (1.18f + strand * .014f) + strand * .36f + phase)
++                            * (.009f + envelope * .012f);
++        const auto travellingDetail = std::sin (p * juce::MathConstants<float>::twoPi * (2.2f + strand * .07f) - phase * 1.37f)
++                                   * displayedRibbonMotion * (.010f + arch * .018f);
+         return juce::Point<float> (circle.getX() + p * circle.getWidth(),
+-                                   circle.getCentreY() + radius * (silhouette + spread + filament + livePitch * .055f));
++                                   circle.getCentreY() + radius * (silhouette + spread + filament + travellingDetail + livePitch * .055f));
+     };
+     g.saveState(); g.reduceClipRegion (circleClip);
+     if (visualHasPitch)
+@@ -646,6 +653,13 @@
+     g.setColour (ice.withAlpha (.90f)); g.setFont (juce::FontOptions (13.0f * layout.scale));
+     g.drawText ("-50", juce::Rectangle<float> (c.x-radius*.85f,c.y+radius*.45f,42,18).toNearestInt(), juce::Justification::centred);
+     g.drawText ("+50", juce::Rectangle<float> (c.x+radius*.58f,c.y+radius*.45f,42,18).toNearestInt(), juce::Justification::centred);
+-    auto tgt=visualHasPitch?visualTargetNote.retainCharacters("ABCDEFG#b0123456789"):juce::String("--");g.setColour(ivory);g.setFont(juce::FontOptions(radius*.30f,juce::Font::bold));g.drawText(tgt.isEmpty()?"--":tgt,circle.translated(0,radius*.12f).toNearestInt(),juce::Justification::centred);
++    // Keep the target readout optically separate from the live filaments.
++    // The narrow smoked plate prevents digits from visually colliding with
++    // bright strands while leaving the original centre-display hierarchy.
++    auto tgt=visualHasPitch?visualTargetNote.retainCharacters("ABCDEFG#b0123456789"):juce::String("--");
++    auto targetReadout=juce::Rectangle<float>(radius*1.02f,radius*.39f).withCentre({c.x,c.y+radius*.12f});
++    g.setColour(juce::Colour(0xff020504).withAlpha(.78f)); g.fillRoundedRectangle(targetReadout, radius*.10f);
++    g.setColour(juce::Colour(0xffb58a38).withAlpha(.20f)); g.drawRoundedRectangle(targetReadout, radius*.10f, .75f);
++    g.setColour(ivory);g.setFont(juce::FontOptions(radius*.30f,juce::Font::bold));g.drawText(tgt.isEmpty()?"--":tgt,targetReadout.toNearestInt(),juce::Justification::centred);
+     auto correction=visualHasPitch?((visualCorrection>.05?"+":"")+juce::String(visualCorrection,1)+" ct"):"--";auto bottom=d.toNearestInt().withTrimmedTop((int)d.getHeight()-82).reduced(16,0);const auto sep1=bottom.getX()+juce::roundToInt(bottom.getWidth()*.376f);const auto sep2=bottom.getX()+juce::roundToInt(bottom.getWidth()*.722f);std::array<juce::Rectangle<int>,3> cols{{{bottom.getX(),bottom.getY(),sep1-bottom.getX(),bottom.getHeight()},{sep1,bottom.getY(),sep2-sep1,bottom.getHeight()},{sep2,bottom.getY(),bottom.getRight()-sep2,bottom.getHeight()}}};g.setColour(juce::Colour(0xff6f7878).withAlpha(.76f));g.drawVerticalLine(sep1,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.drawVerticalLine(sep2,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.setColour(champagne);g.setFont(juce::FontOptions(13.0f*layout.scale,juce::Font::bold));g.drawText("CORRECTION",cols[0].withHeight(20),juce::Justification::centred);g.drawText("CONFIDENCE",cols[1].withHeight(20),juce::Justification::centred);g.drawText("STATUS",cols[2].withHeight(20),juce::Justification::centred);g.setColour(ivory);g.setFont(juce::FontOptions(21.0f*layout.scale,juce::Font::bold));g.drawText(correction,cols[0].withTrimmedTop(25),juce::Justification::centred);g.setColour(ice);g.drawText(visualHasPitch?juce::String(visualConfidence,2):"--",cols[1].withTrimmedTop(25),juce::Justification::centred);g.setColour(champagne);g.drawText(status,cols[2].withTrimmedTop(25),juce::Justification::centred);
+ }
+@@ -1008,6 +1022,21 @@
+     displayedPitchConfidence += (wantedConfidence - displayedPitchConfidence) * (monitorHasValidPitch ? .40f : .28f);
+     const auto wantedCorrection = monitorHasValidPitch ? juce::jlimit (-100.0f, 100.0f, monitor.correctionCents) : 0.0f;
+     displayedAppliedCorrectionCents += (wantedCorrection - displayedAppliedCorrectionCents) * (monitorHasValidPitch ? .40f : .28f);
++    float scopeEnergy = 0.0f;
++    for (int i = 0; i < monitorScopeFrameCount; ++i)
++    {
++        const auto& frame = monitorScopeFrames[(size_t) i];
++        scopeEnergy += juce::jlimit (0.0f, 1.0f, (frame.maximum - frame.minimum) * 2.8f);
++    }
++    scopeEnergy /= (float) juce::jmax (1, monitorScopeFrameCount);
++    const auto wantedRibbonMotion = monitorHasValidPitch
++                                  ? juce::jlimit (.12f, .95f, .18f + scopeEnergy * .48f
++                                                                  + std::abs (displayedAppliedCorrectionCents) / 250.0f)
++                                  : 0.0f;
++    displayedRibbonMotion += (wantedRibbonMotion - displayedRibbonMotion)
++                           * (monitorHasValidPitch ? .22f : .12f);
++    ribbonMotionPhase = std::fmod (ribbonMotionPhase + .12f + displayedRibbonMotion * .19f,
++                                   juce::MathConstants<float>::twoPi);
+ 
+     const auto previousInputNote = activePianoNote;
+     const auto previousTargetNote = targetPianoNote;

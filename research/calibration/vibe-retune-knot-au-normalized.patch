@@ -1,0 +1,54 @@
+--- a/Source/Services/StudioForgeCalibrationRunner.cpp
++++ b/Source/Services/StudioForgeCalibrationRunner.cpp
+@@ -5,7 +5,9 @@
+ #include "../Models/TrackDataModel.h"
+ #include "../Plugins/PluginHostService.h"
+ 
++#include <cmath>
+ #include <cstdlib>
++#include <iostream>
+ 
+ namespace
+ {
+@@ -63,13 +65,36 @@
+     // at the hosted instance while defaults remain -1 in production.
+     if (effect.getName().containsIgnoreCase("VibeAutotune"))
+     {
+-        const auto setDiagnosticFromEnvironment = [&effect] (const char* environment,
+-                                                               const char* parameter)
++        const auto setDiagnosticFromEnvironment = [&effect] (const char* environment,
++                                                               const char* parameter,
++                                                               float maximum)
+         {
+             const auto* value = std::getenv (environment);
+-            return value == nullptr || effect.setParameterText (parameter, value);
++            if (value == nullptr)
++                return true;
++
++            char* end = nullptr;
++            const auto requested = std::strtof (value, &end);
++            if (end == value || *end != '\0' || ! std::isfinite (requested)
++                || requested < 0.0f || requested > maximum)
++                return false;
++
++            // The diagnostic parameter range is [-1, maximum]. Do not use
++            // getValueForText here: some AU hosts treat bare numeric text as
++            // already-normalised, collapsing different candidates together.
++            const auto normalised = (requested + 1.0f) / (maximum + 1.0f);
++            if (! effect.setParameterValue (parameter, normalised))
++                return false;
++
++            const auto observed = effect.getParameterText (parameter).getFloatValue();
++            if (std::abs (observed - requested) > 0.11f)
++                return false;
++
++            std::cerr << "calibration " << parameter << '=' << requested
++                      << " (observed " << observed << ")\n";
++            return true;
+         };
+-        if (! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE10_T90_MS", "Diagnostic Retune 10 T90")
+-            || ! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE25_T90_MS", "Diagnostic Retune 25 T90"))
++        if (! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE10_T90_MS", "Diagnostic Retune 10 T90", 80.0f)
++            || ! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE25_T90_MS", "Diagnostic Retune 25 T90", 140.0f))
+             return juce::Result::fail("VibeAutotune does not expose Retune-knot diagnostic parameters");
+     }

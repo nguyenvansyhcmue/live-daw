@@ -1,0 +1,68 @@
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1735,22 +1735,52 @@
+         LiveProcessorHealth vibeHealth;
+         auto hasNativeVibe = false;
+         if (structure != nullptr)
++        {
++            // Prefer a live-monitored Vibe track, then any Vibe insert (so a
++            // rendered/raw clip is diagnosable), then a monitored track as a
++            // fallback for device-routing diagnostics.
++            auto selectedIndex = structure->trackCount;
++            auto fallbackMonitoredIndex = structure->trackCount;
+             for (size_t index = 0; index < structure->trackCount; ++index)
+-                if (isInputMonitoringEligible(structure->tracks[index]))
++            {
++                const auto& track = structure->tracks[index];
++                auto containsNativeVibe = false;
++                if (const auto* rack = track.fxRack; rack != nullptr)
++                    for (const auto& processor : rack->processors)
++                        if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune())
++                        {
++                            containsNativeVibe = true;
++                            break;
++                        }
++
++                const auto isMonitored = isInputMonitoringEligible(track);
++                if (containsNativeVibe && (selectedIndex == structure->trackCount || isMonitored))
+                 {
+-                    monitoredTrackId = structure->tracks[index].id.value;
+-                    monitoredPhysicalInput = structure->tracks[index].inputChannel;
+-                    monitoredTrackPostFxPeak = TrackMixing::peak(trackBuffers[index], numSamples);
+-                    if (const auto* rack = structure->tracks[index].fxRack; rack != nullptr)
+-                        for (const auto& processor : rack->processors)
+-                            if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune())
+-                            {
+-                                vibeHealth = processor->getLiveProcessorHealth();
+-                                hasNativeVibe = true;
+-                                break;
+-                            }
+-                    break;
++                    selectedIndex = index;
++                    if (isMonitored)
++                        break;
+                 }
++                if (isMonitored && fallbackMonitoredIndex == structure->trackCount)
++                    fallbackMonitoredIndex = index;
++            }
++            if (selectedIndex == structure->trackCount)
++                selectedIndex = fallbackMonitoredIndex;
++            if (selectedIndex != structure->trackCount)
++            {
++                const auto& track = structure->tracks[selectedIndex];
++                monitoredTrackId = track.id.value;
++                monitoredPhysicalInput = track.inputChannel;
++                monitoredTrackPostFxPeak = TrackMixing::peak(trackBuffers[selectedIndex], numSamples);
++                if (const auto* rack = track.fxRack; rack != nullptr)
++                    for (const auto& processor : rack->processors)
++                        if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune())
++                        {
++                            vibeHealth = processor->getLiveProcessorHealth();
++                            hasNativeVibe = true;
++                            break;
++                        }
++            }
++        }
+         AudioDiagnosticTracer::Event event {};
+         event.ms = traceTimestamp;

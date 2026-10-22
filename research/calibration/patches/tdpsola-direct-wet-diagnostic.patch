@@ -1,0 +1,14 @@
+--- a/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -1378,7 +1378,12 @@ public:
+             const auto burstGainAlpha = 1.0 - std::exp (-1.0 / (burstGainSeconds * sampleRate));
+             unvoicedBurstGain += (unvoicedBurstGainTarget - unvoicedBurstGain) * burstGainAlpha;
+-#if VIBE_RESEARCH_EQUAL_POWER_DRY
++#if VIBE_TDPSOLA_DIAGNOSTIC_DIRECT_WET
++            // Forensic mode only: bypass every wet/dry blend while voiced.
++            // This isolates audible grain synthesis from the handoff layer.
++            destination[n] = static_cast<float> ((shouldRenderWet && grainAvailable ? wet : dry)
++                                                  * unvoicedBurstGain);
++#elif VIBE_RESEARCH_EQUAL_POWER_DRY
+             const auto dryWeight = std::cos (0.5 * 3.14159265358979323846 * wetMix);
+             destination[n] = static_cast<float> ((dry * dryWeight + hybridWet * equalPowerWet) * unvoicedBurstGain);

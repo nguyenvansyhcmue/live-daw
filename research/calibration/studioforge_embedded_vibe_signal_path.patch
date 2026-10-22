@@ -1,0 +1,123 @@
+--- a/Tests/CorePlaybackMixerTests.cpp
++++ b/Tests/CorePlaybackMixerTests.cpp
+@@ -2,6 +2,7 @@
+ #include <iostream>
+ #include <chrono>
+ #include <atomic>
++#include <cstdlib>
+ #include <new>
+ 
+ #ifdef STUDIOFORGE_PERF_BENCHMARK
+@@ -2361,6 +2362,102 @@
+     return expect(model.getFxRackSnapshot(reorderedIndex)->processors[0] == nullptr,
+                   "VST3 remove releases the FX slot without a dangling pointer")
+         && expect(trackB.isValid(), "unrelated track remains valid during VST3 lifecycle");
++}
++
++// Release-path test: the VST3 embedded in StudioForge is run through the
++// real monitored-input -> track insert -> master AudioEngine path.
++bool testEmbeddedVibeSignalPath()
++{
++    const auto* bundlePath = std::getenv("STUDIOFORGE_VIBE_SIGNAL_PATH");
++    const auto* sourcePath = std::getenv("STUDIOFORGE_VIBE_SIGNAL_WAV");
++    if (bundlePath == nullptr || sourcePath == nullptr)
++        return expect(false, "Vibe signal-path test requires packaged VST3 and source WAV paths");
++
++    const juce::File bundle { bundlePath };
++    const juce::File sourceFile { sourcePath };
++    if (! expect(bundle.isDirectory(), "packaged Vibe VST3 exists")) return false;
++    if (! expect(sourceFile.existsAsFile(), "signal-path source WAV exists")) return false;
++    const auto catalog = juce::File::getCurrentWorkingDirectory().getChildFile("StudioForgeEmbeddedVibeSignalPath.xml");
++    catalog.deleteFile();
++    PluginHostService host(catalog);
++    if (! expect(host.scanVst3(bundle).wasOk(), "packaged Vibe scans through StudioForge host")) return false;
++    const auto matches = host.findKnownPlugins("VibeAutotune");
++    if (! expect(! matches.isEmpty(), "packaged Vibe is discoverable by name")) return false;
++    juce::String error;
++    auto effect = host.createEffect(matches.getFirst(), 44100.0, 64, error);
++    if (! expect(effect != nullptr, "packaged Vibe instantiates in StudioForge")) return false;
++
++    const auto setText = [&effect] (std::initializer_list<const char*> names, const juce::String& value)
++    {
++        for (const auto* name : names)
++            if (effect->setParameterText(name, value) && effect->getParameterText(name).containsIgnoreCase(value)) return true;
++        return false;
++    };
++    if (! expect(setText({ "Retune", "Retune Speed" }, "0"), "Vibe retune=0 reaches hosted insert")
++        || ! expect(setText({ "Flex", "Flex-Tune", "Flex Tune" }, "0"), "Vibe flex=0 reaches hosted insert")
++        || ! expect(setText({ "Humanize" }, "0"), "Vibe humanize=0 reaches hosted insert")
++        || ! expect(setText({ "Vibrato", "Natural Vibrato" }, "0"), "Vibe vibrato=0 reaches hosted insert")
++        || ! expect(setText({ "Input Type", "Voice", "inputType" }, "Alto"), "Vibe voice reaches hosted insert")
++        || ! expect(setText({ "Key", "key" }, "F#"), "Vibe key reaches hosted insert")
++        || ! expect(setText({ "Scale", "scale" }, "Natural Minor"), "Vibe scale reaches hosted insert")) return false;
++
++    juce::AudioFormatManager formats;
++    formats.registerBasicFormats();
++    std::unique_ptr<juce::AudioFormatReader> reader(formats.createReaderFor(sourceFile));
++    if (! expect(reader != nullptr && reader->lengthInSamples > 64, "WAV decodes for StudioForge monitor")) return false;
++    TrackDataModel model;
++    model.addTrack(TrackType::audio);
++    model.setFxProcessor(0, 0, effect);
++    model.setTrackInputConfiguration(0, false, true, 0, 1);
++    model.setTrackMonitorDestination(0, MonitorDestination::master);
++    model.setTrackMonitorPermission(0, true);
++    OfflineAudioDevice device(64, 1);
++    AudioEngine engine(&model);
++    engine.audioDeviceAboutToStart(&device);
++    engine.setLivePerformanceEnabled(false);
++    engine.setSoftwareMonitoringEnabled(true);
++
++    constexpr int blockSize = 64;
++    juce::AudioBuffer<float> source(1, blockSize);
++    std::array<float, blockSize> outputLeft {}, outputRight {};
++    float* outputs[] { outputLeft.data(), outputRight.data() };
++    double inputEnergy = 0.0, outputEnergy = 0.0;
++    float outputPeak = 0.0f;
++    int measuredSamples = 0;
++    bool finite = true;
++    const auto callbacks = static_cast<int>((reader->lengthInSamples + blockSize - 1) / blockSize);
++    for (int block = 0; block < callbacks; ++block)
++    {
++        source.clear();
++        reader->read(&source, 0, blockSize, static_cast<juce::int64>(block) * blockSize, true, false);
++        const float* inputs[] { source.getReadPointer(0) };
++        std::fill(outputLeft.begin(), outputLeft.end(), 0.0f);
++        std::fill(outputRight.begin(), outputRight.end(), 0.0f);
++        engine.audioDeviceIOCallbackWithContext(inputs, 1, outputs, 2, blockSize, {});
++        if (block < 128) continue;
++        for (int sample = 0; sample < blockSize; ++sample)
++        {
++            const auto left = outputLeft[static_cast<size_t>(sample)];
++            const auto right = outputRight[static_cast<size_t>(sample)];
++            finite = finite && std::isfinite(left) && std::isfinite(right);
++            inputEnergy += static_cast<double>(source.getSample(0, sample)) * source.getSample(0, sample);
++            outputEnergy += static_cast<double>(left) * left + static_cast<double>(right) * right;
++            outputPeak = juce::jmax(outputPeak, std::max(std::abs(left), std::abs(right)));
++            ++measuredSamples;
++        }
++    }
++    engine.audioDeviceStopped();
++    const auto inputRms = std::sqrt(inputEnergy / juce::jmax(1, measuredSamples));
++    const auto outputRms = std::sqrt(outputEnergy / juce::jmax(1, measuredSamples * 2));
++    std::cout << "STUDIOFORGE_VIBE_SIGNAL_PATH plugin=" << effect->getName()
++              << " latency_samples=" << effect->getLatencySamples()
++              << " input_rms=" << inputRms << " output_rms=" << outputRms
++              << " output_peak=" << outputPeak << " callbacks=" << callbacks << "\\n";
++    catalog.deleteFile();
++    return expect(finite, "AudioEngine master output stays finite through packaged Vibe")
++        && expect(inputRms > 0.0005, "test WAV contains usable vocal signal")
++        && expect(outputRms > inputRms * 0.05, "Vibe does not mute StudioForge monitor path")
++        && expect(outputPeak < 4.0f, "Vibe does not produce runaway monitor output");
+ }
+ 
+ bool testOfflineAudioEnginePath()
+@@ -2495,6 +2592,9 @@
+ int main()
+ {
+     juce::ScopedJuceInitialiser_GUI juceInitialiser;
++    if (std::getenv("STUDIOFORGE_VIBE_SIGNAL_PATH") != nullptr
++        || std::getenv("STUDIOFORGE_VIBE_SIGNAL_WAV") != nullptr)
++        return testEmbeddedVibeSignalPath() ? 0 : 1;
+     const auto passed = testTrackMixing()
+         && testAudioRegionHitTesting()
+         && testTimelineViewportNavigation()

@@ -1,0 +1,125 @@
+diff --git a/Source/Core/Main.cpp b/Source/Core/Main.cpp
+index 1be5f99..f6d8115 100644
+--- a/Source/Core/Main.cpp
++++ b/Source/Core/Main.cpp
+@@ -10,9 +10,11 @@ public:
+ 
+     const juce::String getApplicationName() override { return "StudioForge DAW"; }
+     const juce::String getApplicationVersion() override { return "1.0.0"; }
+ 
+-    void initialise(const juce::String&) override
++    void initialise(const juce::String& commandLine) override
+     {
+-        mainWindow = std::make_unique<MainWindow>("StudioForge DAW");
++        const auto automatedVibeTrace = commandLine.containsIgnoreCase("--automated-vibe-trace");
++        mainWindow = std::make_unique<MainWindow>("StudioForge DAW", automatedVibeTrace);
+     }
+ 
+     void shutdown() override
+diff --git a/Source/Core/MainWindow.h b/Source/Core/MainWindow.h
+index e9c74e1..2b32b2a 100644
+--- a/Source/Core/MainWindow.h
++++ b/Source/Core/MainWindow.h
+@@ -12,7 +12,7 @@ class MainWindow final : public juce::DocumentWindow,
+                          private juce::Timer
+ {
+ public:
+-    explicit MainWindow(const juce::String& name);
++    explicit MainWindow(const juce::String& name, bool startAutomatedVibeTrace = false);
+     ~MainWindow() override;
+ 
+     void closeButtonPressed() override;
+diff --git a/Source/Core/MainWindow.cpp b/Source/Core/MainWindow.cpp
+index 640e2bb..ff7e34c 100644
+--- a/Source/Core/MainWindow.cpp
++++ b/Source/Core/MainWindow.cpp
+@@ -99,7 +99,7 @@ private:
+     WindowControlButton close;
+ };
+ 
+-MainWindow::MainWindow(const juce::String& name)
++MainWindow::MainWindow(const juce::String& name, bool startAutomatedVibeTrace)
+     : juce::DocumentWindow(name,
+           juce::Colour(0xff1d1f21),
+           juce::DocumentWindow::allButtons)
+@@ -138,6 +138,15 @@ MainWindow::MainWindow(const juce::String& name)
+     centreWithSize(1600, 920);
+     setVisible(true);
+     startTimerHz(30);
++    if (startAutomatedVibeTrace && mainComponent != nullptr)
++    {
++        const juce::Component::SafePointer<MainComponent> component(mainComponent);
++        // Wait for AudioEngine::initialise() to open the Core Audio device.
++        // The component then retries native Vibe setup on its normal UI timer
++        // while the packaged plug-in registry completes its asynchronous scan.
++        juce::Timer::callAfterDelay(800, [component]
++        {
++            if (component != nullptr)
++                component->startAutomatedVibeTrace();
++        });
++    }
+ 
+ }
+ 
+diff --git a/Source/UI/MainComponent.h b/Source/UI/MainComponent.h
+index 653f8dd..296a321 100644
+--- a/Source/UI/MainComponent.h
++++ b/Source/UI/MainComponent.h
+@@ -53,6 +53,10 @@ public:
+     void requestProjectBounce();
+     void requestTuneAiUrlAnalysis();
+     void setWorkspaceTrackHeight(int height);
++    // Deterministic support entry point. It is deliberately invoked only by
++    // the explicit command-line switch, never by ordinary launch.
++    void startAutomatedVibeTrace();
++
+     bool isInspectorPanelVisible() const noexcept { return inspectorPane.isVisible(); }
+diff --git a/Source/UI/MainComponent.cpp b/Source/UI/MainComponent.cpp
+index 4c043aa..d8a2b97 100644
+--- a/Source/UI/MainComponent.cpp
++++ b/Source/UI/MainComponent.cpp
+@@ -578,6 +578,44 @@ juce::Result MainComponent::createNewProject()
+     return createProjectFromTemplate(ProjectTemplate::empty);
+ }
+ 
++void MainComponent::startAutomatedVibeTrace()
++{
++    // This is a support-only launch path. It creates no persistent project,
++    // does not start transport, and never enables monitoring before a real
++    // Core Audio device is available.
++    if (audioEngine.getAudioDeviceManager().getCurrentAudioDevice() == nullptr)
++        return;
++
++    if (const auto created = createProjectFromTemplate(ProjectTemplate::audioRecording); created.failed())
++        return;
++
++    enableAvailablePerformanceInputs();
++    const auto activeInputs = audioEngine.getActiveAudioInputChannels();
++    if (activeInputs.isEmpty())
++        return;
++
++    // The first track is the template's Vocal route. Its effect slot remains
++    // owned by PitchCorrectionIntegrationService, so no GUI click or plug-in
++    // browser timing is involved.
++    trackDataModel.setTrackInputConfiguration(0, true, false, activeInputs[0], 1);
++    trackDataModel.setTrackArmed(0, true);
++    selectTrack(0);
++
++    // STAGE applies the explicit low-latency device profile and grants the
++    // configured vocal a post-FX master monitor route. If this fails (for
++    // example no usable output), leave monitoring safely off.
++    if (const auto live = workspaceModeController->requestMode(WorkspaceMode::stage); live.failed())
++        return;
++
++    pitchCorrectionStatus = pitchCorrection.ensureVibeAutotuneForVocalLive();
++    if (pitchCorrectionStatus.ready())
++        audioEngine.prepareActiveEffects();
++    audioEngine.startAudioTrace();
++    audioEngine.markAudioTraceIssue();
++    mixerPane.refreshFromModel();
++    arrangeWindow.repaint();
++}
++
+ juce::Result MainComponent::createProjectFromTemplate(ProjectTemplate projectTemplate)
+ {
+     audioEngine.setPlaybackState(false);

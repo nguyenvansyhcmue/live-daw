@@ -1,0 +1,34 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -20,6 +20,13 @@ constexpr int rendererControlIntervalSamples = VIBE_RENDERER_CONTROL_INTERVAL_SA
+  #define VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE 0
+ #endif
+ 
++// Offline A/B only. -1 preserves the released dynamic margin (two source
++// quanta); non-negative values control when a future TD-PSOLA grain becomes
++// immutable. This never changes selector or public parameter behaviour.
++#ifndef VIBE_TDPSOLA_PLANNER_HANDOFF_MARGIN_SAMPLES
++ #define VIBE_TDPSOLA_PLANNER_HANDOFF_MARGIN_SAMPLES -1
++#endif
++
+ // Candidate-only hook.  The shipped value remains two control ticks; an
+ // offline build may measure whether a single certified hard-tune tick closes
+ // short-note misses without changing the selector or any public control.
+@@ -222,8 +229,12 @@ void VibeAutotuneProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
+     for (auto& renderer : tdpsolaRenderers)
+     {
+         renderer.prepare (analysisSampleRate, psolaMaximumBlockSize, tdpsolaLatencySamples);
+-        // Measured required handoff horizon: one active source quantum plus
+-        // at most one partial output lead.
+-        renderer.setPlannerHandoffMarginSamples (static_cast<uint64_t> (2 * activeSourceSchedulerQuantumSamples));
++        // The release margin is one active source quantum plus at most one
++        // partial output lead. A non-negative offline override measures only
++        // the grain commitment horizon; it cannot alter target selection.
++        const auto plannerHandoffMargin = VIBE_TDPSOLA_PLANNER_HANDOFF_MARGIN_SAMPLES >= 0
++                                      ? VIBE_TDPSOLA_PLANNER_HANDOFF_MARGIN_SAMPLES
++                                      : 2 * activeSourceSchedulerQuantumSamples;
++        renderer.setPlannerHandoffMarginSamples (static_cast<uint64_t> (plannerHandoffMargin));
+         CausalTDPSOLARenderer::DiagnosticAblation productionAblation;
+         productionAblation.retimableEpochs = productionRetimingEnabled;
+         renderer.setDiagnosticAblation (productionAblation);

@@ -1,0 +1,131 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -85,6 +85,11 @@
+ // correction rail unless an A/B build explicitly provides a different value.
+ #ifndef VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+  #define VIBE_MAXIMUM_LIVE_CORRECTION_CENTS 120.0
++#endif
++
++// Offline A/B hook. Hard Tune and Natural Vibrato retain the qualified rail.
++#ifndef VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
++ #define VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+ #endif
+ 
+ // This policy is deliberately independent of formant preservation. Formant
+@@ -1379,11 +1384,13 @@
+         // active for hard-lock, so removing this amplitude rail does not
+         // create a rectangular ratio jump.
+         const auto descentRailGuardActive = descentRailGuardSamples > 0 && ! hardLockPreset;
++        const auto correctionRailCents = correctionRailForControls (hardLockPreset,
++                                                                      naturalVibratoPercent);
+         const auto desiredCorrectionCents = descentRailGuardActive
+                                           ? softRailLimit (rawDesiredCorrectionCents)
+                                           : clamp (rawDesiredCorrectionCents,
+-                                                   -maximumLiveCorrectionCents,
+-                                                   maximumLiveCorrectionCents);
++                                                   -correctionRailCents,
++                                                   correctionRailCents);
+         // In production the fixed 128-sample control scheduler owns this
+         // integration.  Keeping it out of the 512-sample YIN callback is
+         // what prevents note-transition durations from being quantised to a
+@@ -1393,8 +1400,8 @@
+         {
+             smoothedCorrectionCents += (desiredCorrectionCents - smoothedCorrectionCents) * alpha;
+             smoothedCorrectionCents = clamp (smoothedCorrectionCents,
+-                                             -maximumLiveCorrectionCents,
+-                                             maximumLiveCorrectionCents);
++                                             -correctionRailCents,
++                                             correctionRailCents);
+         }
+         correctedPitchCents = correctionReferenceCents + smoothedCorrectionCents + scaledVibratoResidual;
+ 
+@@ -1404,8 +1411,8 @@
+         // normal 25 ms trajectory for near-note vocal correction remains
+         // below this limit.
+         auto safeCorrectionCents = clamp (correctedPitchCents - inputCents,
+-                                          -maximumLiveCorrectionCents,
+-                                          maximumLiveCorrectionCents);
++                                          -correctionRailCents,
++                                          correctionRailCents);
+         const auto maximumStepCents = hardLockPreset ? hardLockMaximumCorrectionStepCents
+                                                       : maximumCorrectionStepCents;
+         if (std::isfinite (outputCorrectionCents))
+@@ -1490,7 +1497,7 @@
+                     rendererCrossingStartCorrectionCents = safeCorrectionCents;
+                     rendererCrossingEndCorrectionCents = clamp (
+                         (static_cast<double> (predictedTarget) - 69.0) * 100.0 - inputCents,
+-                        -maximumLiveCorrectionCents, maximumLiveCorrectionCents);
++                        -correctionRailCents, correctionRailCents);
+                     rendererCrossingCorrectionCents = safeCorrectionCents;
+                     rendererCrossingDurationMs = voicedDescendingReturn
+                                                ? rendererCrossingReturnTransitionMs
+@@ -1584,6 +1591,7 @@
+         cachedHumanize = humanize;
+         cachedCorrectionGain = correctionGain;
+         cachedDescentRailGuard = descentRailGuardActive;
++        cachedCorrectionRailCents = correctionRailCents;
+         cachedHardLockPreset = hardLockPreset;
+         cachedTargetNote = currentTargetNote;
+         cachedCandidateTargetNote = candidate;
+@@ -1703,19 +1711,19 @@
+         const auto desiredCorrectionCents = cachedDescentRailGuard
+                                           ? softRailLimit (rawDesiredCorrectionCents)
+                                           : clamp (rawDesiredCorrectionCents,
+-                                                   -maximumLiveCorrectionCents,
+-                                                   maximumLiveCorrectionCents);
++                                                   -cachedCorrectionRailCents,
++                                                   cachedCorrectionRailCents);
+         const auto timeSeconds = cachedEffectiveRetuneMs * 0.001;
+         const auto alpha = timeSeconds <= 0.0 ? 1.0
+                          : 1.0 - std::exp (-static_cast<double> (elapsedSamples) / (timeSeconds * sampleRate));
+         smoothedCorrectionCents += (desiredCorrectionCents - smoothedCorrectionCents) * alpha;
+         smoothedCorrectionCents = clamp (smoothedCorrectionCents,
+-                                         -maximumLiveCorrectionCents,
+-                                         maximumLiveCorrectionCents);
++                                         -cachedCorrectionRailCents,
++                                         cachedCorrectionRailCents);
+         auto safeCorrectionCents = clamp (correctionReferenceCents + smoothedCorrectionCents
+                                           + cachedScaledVibratoResidual - cachedInputCents,
+-                                          -maximumLiveCorrectionCents,
+-                                          maximumLiveCorrectionCents);
++                                          -cachedCorrectionRailCents,
++                                          cachedCorrectionRailCents);
+         if (rendererCrossingActive)
+         {
+             const auto durationSamples = std::fmax (1.0, rendererCrossingDurationMs * 0.001 * sampleRate);
+@@ -1910,6 +1918,7 @@
+         cachedHumanize = 0.0;
+         cachedCorrectionGain = 0.0;
+         cachedDescentRailGuard = false;
++        cachedCorrectionRailCents = maximumLiveCorrectionCents;
+         cachedHardLockPreset = false;
+         cachedTargetNote = -1;
+         cachedCandidateTargetNote = -1;
+@@ -2058,6 +2067,18 @@
+     // continuous processed path.
+     static constexpr int largeTargetJumpSemitones = 7;
+     static constexpr double maximumLiveCorrectionCents = VIBE_MAXIMUM_LIVE_CORRECTION_CENTS;
++    static constexpr double musicalMaximumLiveCorrectionCents = VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS;
++    static constexpr double hardLockZeroTolerance = 0.05;
++
++    static constexpr double correctionRailForControls (bool hardLockPreset,
++                                                        double naturalVibratoPercent) noexcept
++    {
++        const auto usesNaturalVibrato = naturalVibratoPercent > hardLockZeroTolerance
++                                      || naturalVibratoPercent < -hardLockZeroTolerance;
++        return ! hardLockPreset && ! usesNaturalVibrato
++             ? musicalMaximumLiveCorrectionCents
++             : maximumLiveCorrectionCents;
++    }
+     static constexpr int rapidDescentRailGuardHoldSamples = 1536;
+     static constexpr double maximumCorrectionStepCents = 60.0;
+     static constexpr double hardLockMaximumCorrectionStepCents = VIBE_HARD_LOCK_MAXIMUM_CORRECTION_STEP_CENTS;
+@@ -2931,6 +2952,7 @@
+     double cachedHumanize = 0.0;
+     double cachedCorrectionGain = 0.0;
+     bool cachedDescentRailGuard = false;
++    double cachedCorrectionRailCents = maximumLiveCorrectionCents;
+     bool cachedHardLockPreset = false;
+     int cachedTargetNote = -1;
+     int cachedCandidateTargetNote = -1;

@@ -1,0 +1,102 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -471,4 +471,15 @@
+     g.saveState(); juce::Path workClip; workClip.addRoundedRectangle (workSurface, 8.0f); g.reduceClipRegion (workClip);
+     for (int y = juce::roundToInt (workSurface.getY()); y < juce::roundToInt (workSurface.getBottom()); y += 4) { g.setColour ((y % 19 == 0 ? juce::Colours::white : juce::Colours::black).withAlpha (0.008f)); g.drawHorizontalLine (y, workSurface.getX(), workSurface.getRight()); }
+     g.restoreState();
++    // A single recessed content well owns all three control panels and the
++    // Note Map. The visible gutter makes their parent/child relationship
++    // unambiguous and keeps every inner face away from the metal shell.
++    const auto contentWell = D (35, 132, 1378, 844);
++    g.setColour (juce::Colours::black.withAlpha (.38f));
++    g.fillRoundedRectangle (contentWell.translated (0.0f, 2.0f), 10.0f);
++    auto wellFill = juce::ColourGradient (juce::Colour (0xff6d6659), contentWell.getX(), contentWell.getY(),
++                                          juce::Colour (0xff2c2d29), contentWell.getX(), contentWell.getBottom(), false);
++    g.setGradientFill (wellFill); g.fillRoundedRectangle (contentWell, 9.0f);
++    g.setColour (juce::Colour (0xffe1d5bf).withAlpha (.34f));
++    g.drawRoundedRectangle (contentWell.reduced (.5f), 9.0f, .8f);
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+@@ -509,8 +520,9 @@
+     drawPanel(g,correctionBounds.toFloat(),"CORRECTION"); drawPanel(g,monitorBounds.toFloat(),"LIVE PITCH"); drawPanel(g,setupBounds.toFloat(),"UTILITY");
+     g.setColour (graphite.withAlpha (.58f));
+     g.drawHorizontalLine (juce::roundToInt (layout.originY + 220.0f * layout.scale), layout.originX + 1008.0f * layout.scale, layout.originX + 1382.0f * layout.scale);
++    g.setColour (juce::Colours::black.withAlpha (.42f)); g.fillRoundedRectangle (pianoBounds.toFloat().translated (0.0f, 2.0f), 10.0f);
+     g.setColour(graphite);g.fillRoundedRectangle(pianoBounds.toFloat(),10);g.setColour(champagne.withAlpha(.45f));g.drawRoundedRectangle(pianoBounds.toFloat().reduced(.5f),10,1);
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+-    g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,728,130,24).toNearestInt(),juce::Justification::centredLeft);
++    g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,723,130,24).toNearestInt(),juce::Justification::centredLeft);
+     drawPitchMonitor(g); drawPianoKeyboard(g);
+ }
+@@ -741,5 +753,5 @@
+         if (note % 12 == 0)
+         {
+             g.setColour (inRange ? champagne : champagne.withAlpha (.28f)); g.setFont (juce::FontOptions (9, juce::Font::bold));
+-            auto band = juce::Rectangle<float> (b.getX()+3.0f, (float)pianoBounds.getBottom()-38.0f, b.getWidth()-4.0f, 19.0f);
++            auto band = juce::Rectangle<float> (b.getX()+3.0f, b.getBottom()-20.0f, b.getWidth()-4.0f, 18.0f);
+             g.drawText ("C"+juce::String(note/12-1), band.toNearestInt(), juce::Justification::bottomLeft);
+@@ -785,20 +797,21 @@
+     // The hardware rails occupy x=7..38 and x=1410..1441. Everything the
+     // user reads as the control surface must sit inside this same inner bay.
+     // Previously the panel grid began at x=20 and visibly overran the rails.
+     // Header sits fully inside the champagne bay instead of sharing the
+     // chassis' top edge.  This removes the black seam and corner collisions.
+-    headerBounds = D (43, 56, 1362, 68);
+-    correctionBounds = D (43, 139, 492, 569);
+-    monitorBounds = D (543, 139, 433, 569);
+-    setupBounds = D (984, 139, 421, 569);
+-    pianoBounds = D (43, 722, 1362, 259);
++    const auto safeFaceplate = D (20, 56, 1408, 926);
++    headerBounds = D (43, 60, 1362, 66);
++    correctionBounds = D (43, 140, 492, 560);
++    monitorBounds = D (543, 140, 433, 560);
++    setupBounds = D (984, 140, 421, 560);
++    pianoBounds = D (43, 716, 1362, 252);
+ 
+     // Small, deliberate hardware controls; the previous oversized power
+     // glyph competed with the header instead of reading as a switch.
+-    bypassButton.setBounds (D (1275, 63, 48, 48));
+-    settingsButton.setBounds (D (1350, 67, 36, 36));
++    bypassButton.setBounds (D (1275, 68, 46, 46));
++    settingsButton.setBounds (D (1351, 72, 34, 34));
+ 
+     // Correction column: dominant, but no longer so oversized that it
+     // overwhelms the monitor and makes the three-panel composition lopsided.
+     retuneSpeedLabel.setBounds (D (83, 184, 258, 22));
+     knobBounds[0] = D (82, 239, 258, 322); retuneSpeedSlider.setBounds (knobBounds[0]);
+@@ -837,12 +850,12 @@
+     // The context controls occupy their own row.  The old y=739..773 row
+     // overlapped the note ruler at y=762 and visually merged both systems.
+-    noteMapVoiceSelector.setBounds (D (200, 735, 116, 30));
+-    noteMapKeySelector.setBounds (D (328, 735, 74, 30));
+-    noteMapScaleSelector.setBounds (D (414, 735, 154, 30));
+-    editNotesButton.setBounds (D (580, 735, 30, 30));
+-    groupOctavesButton.setBounds (D (1120, 731, 247, 38));
++    noteMapVoiceSelector.setBounds (D (200, 728, 116, 30));
++    noteMapKeySelector.setBounds (D (328, 728, 74, 30));
++    noteMapScaleSelector.setBounds (D (414, 728, 154, 30));
++    editNotesButton.setBounds (D (580, 728, 30, 30));
++    groupOctavesButton.setBounds (D (1120, 724, 247, 38));
+     // A dedicated gap separates context, per-note states and physical keys.
+-    auto keyboard = D (57, 796, 1334, 142);
+-    const auto statusStrip = D (57, 774, 1334, 18);
++    auto keyboard = D (57, 790, 1334, 154);
++    const auto statusStrip = D (57, 770, 1334, 16);
+     const auto whiteWidth = (float) keyboard.getWidth() / 35.0f;
+     int whiteIndex = 0;
+@@ -866,6 +879,18 @@
+         const auto markerWidth = juce::jmax (9, juce::jmin (17, key.getWidth() - 2));
+         noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY(), markerWidth, statusStrip.getHeight() };
+     }
++
++   #if JUCE_DEBUG
++    // Layout contract: every visual surface is geometrically contained by
++    // its parent at every host scale because all bounds share the artboard.
++    jassert (safeFaceplate.contains (headerBounds));
++    jassert (safeFaceplate.contains (correctionBounds));
++    jassert (safeFaceplate.contains (monitorBounds));
++    jassert (safeFaceplate.contains (setupBounds));
++    jassert (safeFaceplate.contains (pianoBounds));
++    jassert (pianoBounds.contains (keyboard));
++    jassert (pianoBounds.contains (statusStrip));
++   #endif
+ }

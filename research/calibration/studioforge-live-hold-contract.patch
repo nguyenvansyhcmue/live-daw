@@ -1,0 +1,117 @@
+diff --git a/Source/Plugins/LiveTuneConfidenceGate.h b/Source/Plugins/LiveTuneConfidenceGate.h
+index 62f5a77..439b632 100644
+--- a/Source/Plugins/LiveTuneConfidenceGate.h
++++ b/Source/Plugins/LiveTuneConfidenceGate.h
+@@ -12,11 +12,14 @@ class LiveTuneConfidenceGate
+ public:
+     static constexpr float enterConfidence = 0.52f;
+     static constexpr float holdConfidence = 0.42f;
+-    static constexpr double dropoutHoldSeconds = 0.035;
++    // This is a continuity window, not a second detector. It covers normal
++    // consonants and note transitions before wet release begins.
++    static constexpr double dropoutHoldSeconds = 0.075;
+ 
+     void reset() noexcept
+     {
+         open = false;
++        holding = false;
+         remainingHoldSamples = 0;
+     }
+ 
+@@ -29,26 +32,34 @@ public:
+         if (confident)
+         {
+             open = true;
++            holding = false;
+             remainingHoldSamples = std::max(1, static_cast<int>(std::ceil(
+                 std::max(1.0, sampleRate) * dropoutHoldSeconds)));
+         }
+         else if (open && remainingHoldSamples > 0)
+         {
++            holding = true;
+             remainingHoldSamples = std::max(0, remainingHoldSamples - std::max(1, callbackSamples));
+             if (remainingHoldSamples == 0)
++            {
+                 open = false;
++                holding = false;
++            }
+         }
+         else
+         {
+             open = false;
++            holding = false;
+         }
+ 
+         return open;
+     }
+ 
+     bool isOpen() const noexcept { return open; }
++    bool isHolding() const noexcept { return holding; }
+ 
+ private:
+     bool open = false;
++    bool holding = false;
+     int remainingHoldSamples = 0;
+ };
+diff --git a/Source/AudioEngine/AudioEffectProcessor.h b/Source/AudioEngine/AudioEffectProcessor.h
+index 646653e..86a04ed 100644
+--- a/Source/AudioEngine/AudioEffectProcessor.h
++++ b/Source/AudioEngine/AudioEffectProcessor.h
+@@ -19,7 +19,8 @@ enum class LiveProcessorState : uint8_t
+     ready,
+     priming,
+     tracking,
+-    protectedDry
++    protectedDry,
++    holding
+ };
+ 
+ // Lock-free snapshot read by the message thread. Implementations publish only
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+index be14470..b96d3d0 100644
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -215,8 +215,9 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
+     publishedCorrectionCents.store(std::isfinite(tracking.correctionCents) ? tracking.correctionCents : 0.0f,
+                                    std::memory_order_relaxed);
+     // Enter wet only when the tracker is credible. Once live, retain it
+-    // through a short, bounded tracker dropout so natural vibrato and brief
+-    // consonants do not pump dry/wet. Safety faults still close immediately.
++    // through a bounded tracker dropout so natural vibrato, consonants and
++    // note transitions do not pump dry/wet. Safety faults still close
++    // immediately; tracker confidence by itself never enters protection.
+     const auto voiced = confidenceGate.advance(tracking.voiced, tracking.confidence,
+                                                samples, preparedSampleRate);
+     publishedVoiced.store(voiced, std::memory_order_relaxed);
+@@ -286,9 +287,12 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
+     }
+     else if (! historyReady || healthyWetBlocks < 3)
+         liveState.store(LiveProcessorState::priming, std::memory_order_relaxed);
+-    else
+-        liveState.store(voiced ? LiveProcessorState::tracking : LiveProcessorState::ready,
++    else if (voiced)
++        liveState.store(confidenceGate.isHolding() ? LiveProcessorState::holding
++                                                    : LiveProcessorState::tracking,
+                         std::memory_order_relaxed);
++    else
++        liveState.store(LiveProcessorState::ready, std::memory_order_relaxed);
+ }
+ 
+ void NativeVibeAutotuneProcessor::releaseResources()
+diff --git a/Source/UI/InspectorComponents.cpp b/Source/UI/InspectorComponents.cpp
+index e50e91b..51ab395 100644
+--- a/Source/UI/InspectorComponents.cpp
++++ b/Source/UI/InspectorComponents.cpp
+@@ -666,6 +666,11 @@ void ChannelStripComponent::refreshAudioFx()
+                     activeColour = juce::Colour(0xff23806f);
+                     activeTooltip = "TRACKING — tuned renderer is healthy";
+                     break;
++                case LiveProcessorState::holding:
++                    label << "  ·  HOLD";
++                    activeColour = juce::Colour(0xff3d7b85);
++                    activeTooltip = "HOLD — retaining corrected continuity through a brief pitch dropout";
++                    break;
+                 case LiveProcessorState::protectedDry:
+                     label << "  ·  PROTECTED";
+                     activeColour = juce::Colour(0xff765147);
+

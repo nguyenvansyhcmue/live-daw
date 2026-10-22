@@ -1,0 +1,36 @@
+--- a/Source/Plugins/PluginHostService.cpp
++++ b/Source/Plugins/PluginHostService.cpp
+@@ -24,14 +24,20 @@
+ {
+     // Product bundles are discovered by format and metadata. The host must
+     // never route a particular product name through a private processor path.
+-    const auto executable = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
+-    return executable.getParentDirectory().getParentDirectory()
++    const auto application = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
++    return application.getChildFile ("Contents")
+         .getChildFile ("Resources").getChildFile ("PlugIns").getChildFile ("VST3");
+ }
+ 
+ juce::File vst3ProbeExecutable()
+ {
++    const auto application = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
++    const auto packagedProbe = application.getChildFile ("Contents").getChildFile ("Resources")
++        .getChildFile ("Helpers").getChildFile ("StudioForgeVst3Probe");
++    if (packagedProbe.existsAsFile())
++        return packagedProbe;
+    #if defined(STUDIOFORGE_VST3_PROBE_PATH)
++    // Development fallback only. Released apps carry the helper in Resources.
+     return juce::File { STUDIOFORGE_VST3_PROBE_PATH };
+    #else
+     return {};
+--- a/Source/Control/PitchCorrectionIntegrationService.cpp
++++ b/Source/Control/PitchCorrectionIntegrationService.cpp
+@@ -12,7 +12,7 @@
+ juce::File bundledVibeAutotune()
+ {
+     const auto application = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
+-    return application.getParentDirectory().getParentDirectory()
++    return application.getChildFile ("Contents")
+         .getChildFile ("Resources").getChildFile ("PlugIns").getChildFile ("VST3")
+         .getChildFile ("VibeAutotune.vst3");
+ }

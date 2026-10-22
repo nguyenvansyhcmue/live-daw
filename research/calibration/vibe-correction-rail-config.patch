@@ -1,0 +1,25 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -79,6 +79,12 @@
+  // an offline build may admit the existing high-confidence predictor after
+  // 32 ms to test the measured 69 ms adjacent-note turnaround.
+  #define VIBE_RAPID_ADJACENT_MINIMUM_DWELL_SAMPLES 3840
++#endif
++
++// Offline candidate hook. Production remains at the qualified +/-120-cent
++// correction rail unless an A/B build explicitly provides a different value.
++#ifndef VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
++ #define VIBE_MAXIMUM_LIVE_CORRECTION_CENTS 120.0
+ #endif
+ 
+ // This policy is deliberately independent of formant preservation. Formant
+@@ -2051,7 +2057,7 @@
+     // implausible tracker jump; ordinary musical intervals stay on the
+     // continuous processed path.
+     static constexpr int largeTargetJumpSemitones = 7;
+-    static constexpr double maximumLiveCorrectionCents = 120.0;
++    static constexpr double maximumLiveCorrectionCents = VIBE_MAXIMUM_LIVE_CORRECTION_CENTS;
+     static constexpr int rapidDescentRailGuardHoldSamples = 1536;
+     static constexpr double maximumCorrectionStepCents = 60.0;
+     static constexpr double hardLockMaximumCorrectionStepCents = VIBE_HARD_LOCK_MAXIMUM_CORRECTION_STEP_CENTS;

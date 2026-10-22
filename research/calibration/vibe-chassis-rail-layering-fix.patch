@@ -1,0 +1,32 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -446,6 +446,9 @@
+     g.setGradientFill (chassisFill); g.fillRoundedRectangle (chassis, 15.0f);
+     g.setColour (juce::Colour (0xffe3d7c0).withAlpha (.72f)); g.drawRoundedRectangle (chassis.reduced (.5f), 15.0f, 1.3f);
+     g.setColour (juce::Colour (0xff504b40)); g.drawRoundedRectangle (chassis.reduced (3.0f), 12.0f, 1.0f);
++    // All visible surfaces use this one inset bay. The former rail geometry
++    // began outside it, so the metal slabs could visually sit on top of the
++    // header and Note Map at the chassis edges.
+     auto workSurface = chassis.reduced (9.0f);
+     auto bg=juce::ColourGradient(juce::Colour(0xffd5c9b2),workSurface.getX(),workSurface.getY(),juce::Colour(0xffa89c87),workSurface.getX(),workSurface.getBottom(),false);g.setGradientFill(bg);g.fillRoundedRectangle(workSurface,10.0f);
+     g.saveState(); juce::Path workClip; workClip.addRoundedRectangle (workSurface, 10.0f); g.reduceClipRegion (workClip);
+@@ -454,11 +457,15 @@
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+     screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
+     screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+-    // Broad champagne rails are a defining part of the hardware chassis.
+-    auto leftRail = D (7, 43, 31, 953), rightRail = D (1410, 43, 31, 953);
++    // Narrow side cheeks sit inside the same work-surface clip as every
++    // other layer. They frame the contents instead of obscuring their edges.
++    auto leftRail = D (15, 51, 19, 936), rightRail = D (1414, 51, 19, 936);
+     auto railFill = juce::ColourGradient (juce::Colour (0xffeadbca), leftRail.getX(), leftRail.getY(), juce::Colour (0xff8b7765), leftRail.getRight(), leftRail.getY(), false);
+-    g.setGradientFill (railFill); g.fillRect (leftRail); g.fillRect (rightRail);
+-    g.setColour (juce::Colour (0xff171713)); g.drawRect (leftRail, 1.1f); g.drawRect (rightRail, 1.1f);
++    g.saveState();
++    juce::Path railClip; railClip.addRoundedRectangle (workSurface, 10.0f); g.reduceClipRegion (railClip);
++    g.setGradientFill (railFill); g.fillRoundedRectangle (leftRail, 2.0f); g.fillRoundedRectangle (rightRail, 2.0f);
++    g.setColour (juce::Colour (0xff171713)); g.drawRoundedRectangle (leftRail, 2.0f, 1.0f); g.drawRoundedRectangle (rightRail, 2.0f, 1.0f);
++    g.restoreState();
+     // Header is a separate recessed faceplate, not a black shadow bleeding
+     // into the champagne surface below it.
+     auto header = headerBounds.toFloat();

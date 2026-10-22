@@ -1,0 +1,376 @@
+--- a/Source/UI/MixerPane.h
++++ b/Source/UI/MixerPane.h
+@@ -131,6 +131,8 @@
+     void setView(View newView);
+     void syncViewVisibility();
+     void requestHeight(int height);
++    size_t firstVacantFxSlot(int trackIndex) const noexcept;
++    size_t activeFxCount(int trackIndex) const noexcept;
+ 
+     // Reference console proportions: a concise toolbar above a fixed-density
+     // channel strip. Individual controls must never stretch just because the
+@@ -154,6 +156,11 @@
+     std::array<juce::ToggleButton, TrackDataModel::maxTracks> muteButtons;
+     std::array<juce::ToggleButton, TrackDataModel::maxTracks> soloButtons;
+     std::array<std::array<FxSlotButton, TrackDataModel::maxFxSlots>, TrackDataModel::maxTracks> fxButtons;
++    // The processor rack stays fixed-size and realtime safe; this is only a
++    // compact Stage presentation of it. A strip expands on demand instead of
++    // permanently consuming the mixer with eight empty insert wells.
++    std::array<juce::TextButton, TrackDataModel::maxTracks> fxRackButtons;
++    std::array<bool, TrackDataModel::maxTracks> fxRacksExpanded {};
+     std::array<juce::Label, TrackDataModel::maxTracks> labels;
+     std::array<juce::Rectangle<int>, TrackDataModel::maxTracks> trackStripBounds;
+     int displayedTrackCount = -1;
+--- a/Source/UI/MixerPane.cpp
++++ b/Source/UI/MixerPane.cpp
+@@ -1,3 +1,5 @@
+ #include "MixerPane.h"
+
++#include <algorithm>
++
+ #include "../AudioEngine/AudioEngine.h"
+@@ -370,6 +370,25 @@
+         };
+         addAndMakeVisible(chainBypassButtons[i]);
+ 
++        auto& rackButton = fxRackButtons[static_cast<size_t>(i)];
++        rackButton.setLookAndFeel(&mixerConsoleLookAndFeel());
++        styleToolbarButton(rackButton);
++        rackButton.setTooltip("Insert rack. Click to add the first plug-in or expand this channel's insert list.");
++        rackButton.onClick = [this, i]
++        {
++            if (trackModel == nullptr || static_cast<size_t>(i) >= trackModel->getTrackCount()) return;
++            if (activeFxCount(i) == 0)
++            {
++                const auto slot = firstVacantFxSlot(i);
++                if (slot < TrackDataModel::maxFxSlots) showPluginBrowser(i, slot);
++                return;
++            }
++            fxRacksExpanded[static_cast<size_t>(i)] = ! fxRacksExpanded[static_cast<size_t>(i)];
++            requestHeight(fxRacksExpanded[static_cast<size_t>(i)] ? 620 : preferredHeight);
++            resized();
++        };
++        addAndMakeVisible(rackButton);
++
+         const auto configureTrackControl = [this, i] (juce::ToggleButton& control, const juce::String& text, juce::Colour colour, auto callback)
+         {
+             control.setButtonText(text); styleChannelButton(control, colour); control.setLookAndFeel(&mixerConsoleLookAndFeel()); control.onClick = callback; addAndMakeVisible(control);
+@@ -531,8 +550,8 @@
+     for (size_t i = 0; i < labels.size(); ++i)
+     {
+         const auto visible = tracksVisible && static_cast<int>(i) < displayedTrackCount;
+-        labels[i].setVisible(visible); meters[i].setVisible(visible); faders[i].setVisible(visible); panSliders[i].setVisible(visible); gainReadouts[i].setVisible(visible); chainBypassButtons[i].setVisible(visible); armButtons[i].setVisible(visible); monitorButtons[i].setVisible(visible); muteButtons[i].setVisible(visible); soloButtons[i].setVisible(visible);
+-        for (auto& button : fxButtons[i]) button.setVisible(visible);
++        labels[i].setVisible(visible); meters[i].setVisible(visible); faders[i].setVisible(visible); panSliders[i].setVisible(visible); gainReadouts[i].setVisible(visible); chainBypassButtons[i].setVisible(visible); armButtons[i].setVisible(visible); monitorButtons[i].setVisible(visible); muteButtons[i].setVisible(visible); soloButtons[i].setVisible(visible); fxRackButtons[i].setVisible(visible);
++        for (auto& button : fxButtons[i]) button.setVisible(visible && fxRacksExpanded[i] && ! button.getBounds().isEmpty());
+         for (auto& knob : sendKnobs[i]) knob.setVisible(visible);
+         for (auto& button : sendRouteButtons[i]) button.setVisible(visible);
+     }
+@@ -721,6 +740,9 @@
+             fxButtons[index][slot].setActive(processor != nullptr && ! bypassed);
+             hasProcessor = hasProcessor || processor != nullptr;
+         }
++        const auto count = activeFxCount(static_cast<int>(index));
++        fxRackButtons[index].setButtonText(count == 0 ? "+ INSERT" : "FX " + juce::String(static_cast<int>(count))
++            + (fxRacksExpanded[index] ? "  \u25be" : "  \u25b8"));
+         chainBypassButtons[index].setEnabled(hasProcessor);
+         for (size_t slot = 0; slot < sendKnobs[index].size(); ++slot)
+         {
+@@ -1072,7 +1094,16 @@
+             // Offset the full control rack together. Its PAN section consumes
+             // the remaining height so the lower half never becomes dead space.
+             inner.removeFromTop(12);
+-            auto fxArea = inner.removeFromTop(verticallyCompact ? 52 : 84); const auto visibleFxSlots = verticallyCompact ? 1 : 3; const auto rowHeight = juce::jmax(16, (fxArea.getHeight() - 16) / visibleFxSlots); for (size_t slot = 0; slot < fxButtons[static_cast<size_t>(i)].size(); ++slot) fxButtons[static_cast<size_t>(i)][slot].setBounds(static_cast<int>(slot) < visibleFxSlots ? juce::Rectangle<int>(fxArea.getX(), fxArea.getY() + 16 + static_cast<int>(slot) * rowHeight, fxArea.getWidth(), rowHeight - 2) : juce::Rectangle<int>());
++            const auto expandedRack = fxRacksExpanded[static_cast<size_t>(i)] && ! verticallyCompact;
++            auto fxArea = inner.removeFromTop(expandedRack ? 164 : 38);
++            fxRackButtons[static_cast<size_t>(i)].setBounds(fxArea.getX(), fxArea.getY(), fxArea.getWidth(), 22);
++            const auto slotArea = fxArea.withTrimmedTop(26);
++            const auto rowHeight = expandedRack ? juce::jmax(16, slotArea.getHeight() / static_cast<int>(TrackDataModel::maxFxSlots)) : 0;
++            for (size_t slot = 0; slot < fxButtons[static_cast<size_t>(i)].size(); ++slot)
++                fxButtons[static_cast<size_t>(i)][slot].setBounds(expandedRack
++                    ? juce::Rectangle<int>(slotArea.getX(), slotArea.getY() + static_cast<int>(slot) * rowHeight,
++                                             slotArea.getWidth(), rowHeight - 2)
++                    : juce::Rectangle<int>());
+             if (verticallyCompact)
+             {
+                 for (auto& knob : sendKnobs[static_cast<size_t>(i)]) knob.setBounds({});
+@@ -1175,3 +1206,25 @@
+     dockHeight = juce::jlimit(150, 760, height);
+     if (onHeightChangeRequested != nullptr) onHeightChangeRequested(dockHeight);
+ }
++
++size_t MixerPane::firstVacantFxSlot(int trackIndex) const noexcept
++{
++    if (trackModel == nullptr || trackIndex < 0 || static_cast<size_t>(trackIndex) >= trackModel->getTrackCount())
++        return 0;
++    if (const auto* rack = trackModel->getFxRackSnapshot(static_cast<size_t>(trackIndex)); rack != nullptr)
++        for (size_t slot = 0; slot < rack->processors.size(); ++slot)
++            if (rack->processors[slot] == nullptr)
++                return slot;
++    return TrackDataModel::maxFxSlots;
++}
++
++size_t MixerPane::activeFxCount(int trackIndex) const noexcept
++{
++    if (trackModel == nullptr || trackIndex < 0 || static_cast<size_t>(trackIndex) >= trackModel->getTrackCount())
++        return 0;
++    const auto* rack = trackModel->getFxRackSnapshot(static_cast<size_t>(trackIndex));
++    if (rack == nullptr)
++        return 0;
++    return static_cast<size_t>(std::count_if(rack->processors.begin(), rack->processors.end(),
++        [] (const auto& processor) { return processor != nullptr; }));
++}
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -224,8 +224,14 @@
+     void prepareRack(const TrackDataModel::FxRackSnapshot* rack, double sampleRate, int blockSize);
+     int rackLatencySamples(const TrackDataModel::FxRackSnapshot* rack) const noexcept;
+     int maximumTrackRackLatency(const TrackDataModel::RenderStructureSnapshot& structure) const noexcept;
++    int maximumActiveBusRackLatency(const TrackDataModel::RenderStructureSnapshot& structure) const noexcept;
+     void applyTrackLatencyCompensation(size_t trackIndex, juce::AudioBuffer<float>& buffer,
+                                        int delaySamples, int numSamples) noexcept;
++    void applyBusLatencyCompensation(size_t busIndex, juce::AudioBuffer<float>& buffer,
++                                     int delaySamples, int numSamples) noexcept;
++    void applyDirectPathLatencyCompensation(int delaySamples, int numSamples) noexcept;
++    void stageDirectPathForBusCompensation(const TrackDataModel::RenderStructureSnapshot* structure,
++                                           int numSamples) noexcept;
+     int protectedPluginCount(const TrackDataModel::FxRackSnapshot* rack) const noexcept;
+     bool shouldProcessForLive(const AudioEffectProcessor& processor) const noexcept;
+     void recordCallbackTiming(int numSamples, std::chrono::steady_clock::time_point started) noexcept;
+@@ -356,6 +362,11 @@
+     static constexpr int trackLatencyCompensationCapacity = 32768;
+     std::array<juce::AudioBuffer<float>, TrackDataModel::maxTracks> trackLatencyDelayBuffers;
+     std::array<int, TrackDataModel::maxTracks> trackLatencyDelayWrite {};
++    std::array<juce::AudioBuffer<float>, TrackDataModel::maxBuses> busLatencyDelayBuffers;
++    std::array<int, TrackDataModel::maxBuses> busLatencyDelayWrite {};
++    juce::AudioBuffer<float> directPathBuffer;
++    juce::AudioBuffer<float> directPathDelayBuffer;
++    int directPathDelayWrite = 0;
+     std::array<juce::AudioBuffer<float>, TrackDataModel::maxBuses> busBuffers;
+     std::array<std::array<float, TrackDataModel::maxSendsPerTrack>, TrackDataModel::maxTracks> smoothedSendGains {};
+     std::array<juce::MidiBuffer, TrackDataModel::maxTracks> trackMidiBuffers;
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -998,6 +998,10 @@
+     dataModel->setPlayheadPosition(options.useCycle && cycleWasActive ? cycleStart : 0.0);
+     dataModel->setPlaying(true);
+     processingBuffer.setSize(2, options.blockSize, false, true, true);
++    directPathBuffer.setSize(2, options.blockSize, false, true, true);
++    directPathDelayBuffer.setSize(2, trackLatencyCompensationCapacity, false, true, true);
++    directPathDelayBuffer.clear();
++    directPathDelayWrite = 0;
+     liveKeyReferenceBuffer.setSize(2, options.blockSize, false, true, true);
+     for (auto& buffer : trackBuffers) buffer.setSize(2, options.blockSize, false, true, true);
+     for (size_t index = 0; index < trackLatencyDelayBuffers.size(); ++index)
+@@ -1007,6 +1011,12 @@
+         trackLatencyDelayWrite[index] = 0;
+     }
+     for (auto& buffer : busBuffers) buffer.setSize(2, options.blockSize, false, true, true);
++    for (size_t index = 0; index < busLatencyDelayBuffers.size(); ++index)
++    {
++        busLatencyDelayBuffers[index].setSize(2, trackLatencyCompensationCapacity, false, true, true);
++        busLatencyDelayBuffers[index].clear();
++        busLatencyDelayWrite[index] = 0;
++    }
+     for (auto& midi : trackMidiBuffers) midi.ensureSize(MidiEventBuffer::capacity * 4);
+     juce::AudioBuffer<float> renderBuffer(2, options.blockSize);
+     float* outputs[] { renderBuffer.getWritePointer(0), renderBuffer.getWritePointer(1) };
+@@ -1344,13 +1354,33 @@
+     auto result = 0;
+     for (size_t trackIndex = 0; trackIndex < structure.trackCount; ++trackIndex)
+         result = juce::jmax(result, rackLatencySamples(structure.tracks[trackIndex].fxRack));
++    return result;
++}
++
++int AudioEngine::maximumActiveBusRackLatency(const TrackDataModel::RenderStructureSnapshot& structure) const noexcept
++{
++    // Only buses fed by a route participate. An empty return must never add
++    // monitor delay merely because it still owns an inserted processor.
++    auto result = 0;
++    for (size_t trackIndex = 0; trackIndex < structure.trackCount; ++trackIndex)
++        for (const auto& send : structure.tracks[trackIndex].sends)
++            if (send.targetBus.isValid())
++            {
++                const auto busIndex = structure.getBusIndex(send.targetBus);
++                if (busIndex >= 0)
++                    result = juce::jmax(result, rackLatencySamples(structure.buses[static_cast<size_t>(busIndex)].fxRack));
++            }
+     return result;
+ }
+ 
+ void AudioEngine::applyTrackLatencyCompensation(size_t trackIndex, juce::AudioBuffer<float>& buffer,
+                                                 int delaySamples, int numSamples) noexcept
+ {
+-    if (trackIndex >= trackLatencyDelayBuffers.size() || numSamples <= 0)
++    // Zero is a true bypass. Routing zero through a circular delay line reads
++    // stale history at the write head and turns a 0-sample path into a long
++    // delayed duplicate — exactly the comb-filter/late-harmonic symptom PDC
++    // must prevent.
++    if (trackIndex >= trackLatencyDelayBuffers.size() || numSamples <= 0 || delaySamples <= 0)
+         return;
+     auto& history = trackLatencyDelayBuffers[trackIndex];
+     const auto capacity = history.getNumSamples();
+@@ -1376,6 +1406,76 @@
+         }
+     }
+     trackLatencyDelayWrite[trackIndex] = (writeStart + count) % capacity;
++}
++
++void AudioEngine::applyBusLatencyCompensation(size_t busIndex, juce::AudioBuffer<float>& buffer,
++                                              int delaySamples, int numSamples) noexcept
++{
++    if (busIndex >= busLatencyDelayBuffers.size() || numSamples <= 0 || delaySamples <= 0) return;
++    auto& history = busLatencyDelayBuffers[busIndex];
++    const auto capacity = history.getNumSamples();
++    const auto channels = juce::jmin(buffer.getNumChannels(), history.getNumChannels());
++    if (capacity <= 0 || channels <= 0) return;
++    const auto delay = juce::jlimit(0, capacity - 1, delaySamples);
++    const auto count = juce::jmin(numSamples, buffer.getNumSamples());
++    const auto writeStart = busLatencyDelayWrite[busIndex];
++    for (int channel = 0; channel < channels; ++channel)
++    {
++        auto* destination = buffer.getWritePointer(channel);
++        auto* delayLine = history.getWritePointer(channel);
++        auto write = writeStart;
++        for (int sample = 0; sample < count; ++sample)
++        {
++            const auto read = (write - delay + capacity) % capacity;
++            const auto input = destination[sample];
++            destination[sample] = delayLine[read];
++            delayLine[write] = input;
++            write = (write + 1) % capacity;
++        }
++    }
++    busLatencyDelayWrite[busIndex] = (writeStart + count) % capacity;
++}
++
++void AudioEngine::applyDirectPathLatencyCompensation(int delaySamples, int numSamples) noexcept
++{
++    if (delaySamples <= 0) return;
++    const auto capacity = directPathDelayBuffer.getNumSamples();
++    const auto channels = juce::jmin(directPathBuffer.getNumChannels(), directPathDelayBuffer.getNumChannels());
++    if (capacity <= 0 || channels <= 0 || numSamples <= 0) return;
++    const auto delay = juce::jlimit(0, capacity - 1, delaySamples);
++    const auto count = juce::jmin(numSamples, directPathBuffer.getNumSamples());
++    const auto writeStart = directPathDelayWrite;
++    for (int channel = 0; channel < channels; ++channel)
++    {
++        auto* destination = directPathBuffer.getWritePointer(channel);
++        auto* delayLine = directPathDelayBuffer.getWritePointer(channel);
++        auto write = writeStart;
++        for (int sample = 0; sample < count; ++sample)
++        {
++            const auto read = (write - delay + capacity) % capacity;
++            const auto input = destination[sample];
++            destination[sample] = delayLine[read];
++            delayLine[write] = input;
++            write = (write + 1) % capacity;
++        }
++    }
++    directPathDelayWrite = (writeStart + count) % capacity;
++}
++
++void AudioEngine::stageDirectPathForBusCompensation(const TrackDataModel::RenderStructureSnapshot* structure,
++                                                    int numSamples) noexcept
++{
++    if (structure == nullptr) return;
++    const auto channels = juce::jmin(processingBuffer.getNumChannels(), directPathBuffer.getNumChannels());
++    for (int channel = 0; channel < channels; ++channel)
++        directPathBuffer.copyFrom(channel, 0, processingBuffer, channel, 0, numSamples);
++    processingBuffer.clear(0, numSamples);
++
++    // Studio mixes must align dry/direct paths to active AUX returns. Live
++    // monitoring intentionally avoids this extra PDC: the performer hears
++    // only intrinsic plug-in latency, never the longest unrelated return.
++    if (! isLivePerformanceEnabled())
++        applyDirectPathLatencyCompensation(maximumActiveBusRackLatency(*structure), numSamples);
+ }
+ 
+ int AudioEngine::protectedPluginCount(const TrackDataModel::FxRackSnapshot* rack) const noexcept
+@@ -1452,6 +1552,10 @@
+     rebuildOutputChannelMap(device);
+     processingBuffer.setSize(juce::jmax(2, outputChannels), bufferCapacity,
+                              false, true, true);
++    directPathBuffer.setSize(2, bufferCapacity, false, true, true);
++    directPathDelayBuffer.setSize(2, trackLatencyCompensationCapacity, false, true, true);
++    directPathDelayBuffer.clear();
++    directPathDelayWrite = 0;
+     liveKeyReferenceBuffer.setSize(2, bufferCapacity, false, true, true);
+     streamBusBuffer.setSize(2, bufferCapacity, false, true, true);
+     streamMonitorBuffer.setSize(2, bufferCapacity, false, true, true);
+@@ -1466,6 +1570,12 @@
+     }
+     for (auto& buffer : busBuffers)
+         buffer.setSize(2, processingBuffer.getNumSamples(), false, true, true);
++    for (size_t index = 0; index < busLatencyDelayBuffers.size(); ++index)
++    {
++        busLatencyDelayBuffers[index].setSize(2, trackLatencyCompensationCapacity, false, true, true);
++        busLatencyDelayBuffers[index].clear();
++        busLatencyDelayWrite[index] = 0;
++    }
+     for (auto& midi : trackMidiBuffers)
+         midi.ensureSize(MidiEventBuffer::capacity * 4);
+ 
+@@ -1723,6 +1833,7 @@
+     renderInputMonitoring(inputChannelData, numInputChannels, structure, numSamples);
+ 
+     processTrackAudio(structure, automationSample, anyTrackSoloed, numSamples);
++    stageDirectPathForBusCompensation(structure, numSamples);
+     processBusReturns(structure, numSamples);
+ 
+     processMasterOutput(outputChannelData, numOutputChannels, numSamples, playing, blockStartSample);
+@@ -1920,7 +2031,10 @@
+                                     double automationSample, bool anyTrackSoloed, int numSamples) noexcept
+ {
+     if (structure == nullptr) return;
+-    const auto longestTrackLatency = maximumTrackRackLatency(*structure);
++    // PDC is essential while mixing/printing. In a live workspace it must not
++    // make a monitored singer wait for an unrelated high-latency track; the
++    // monitored path retains only the selected insert chain's own latency.
++    const auto longestTrackLatency = isLivePerformanceEnabled() ? 0 : maximumTrackRackLatency(*structure);
+     for (size_t trackIndex = 0; trackIndex < structure->trackCount; ++trackIndex)
+     {
+         auto& trackBuffer = trackBuffers[trackIndex];
+@@ -1935,7 +2049,7 @@
+         // Align every insert chain before sends, faders and summing. A vocal
+         // through Vibe therefore stays time-aligned with raw backing tracks.
+         applyTrackLatencyCompensation(trackIndex, trackBuffer,
+-                                      longestTrackLatency - rackLatencySamples(track.fxRack), numSamples);
++                                      juce::jmax(0, longestTrackLatency - rackLatencySamples(track.fxRack)), numSamples);
+ 
+         // Reference audio is captured after the selected track's insert chain
+         // but before fader, buses, master FX, vocal monitoring and streaming.
+@@ -1974,6 +2088,7 @@
+ void AudioEngine::processBusReturns(const TrackDataModel::RenderStructureSnapshot* structure, int numSamples) noexcept
+ {
+     if (structure == nullptr) return;
++    const auto longestBusLatency = isLivePerformanceEnabled() ? 0 : maximumActiveBusRackLatency(*structure);
+     for (size_t busIndex = 0; busIndex < structure->busCount; ++busIndex)
+     {
+         const auto& bus = structure->buses[busIndex];
+@@ -1982,6 +2097,8 @@
+                 if (const auto& processor = bus.fxRack->processors[slot]; processor != nullptr && ! bus.fxRack->bypass[slot]
+                     && shouldProcessForLive(*processor))
+                     processEffectBlock(*processor, busBuffers[busIndex], numSamples);
++        applyBusLatencyCompensation(busIndex, busBuffers[busIndex],
++                                    juce::jmax(0, longestBusLatency - rackLatencySamples(bus.fxRack)), numSamples);
+         if (bus.muted) busBuffers[busIndex].clear(0, numSamples);
+         else for (int channel = 0; channel < busBuffers[busIndex].getNumChannels(); ++channel)
+             busBuffers[busIndex].applyGain(channel, 0, numSamples, bus.gain);
+@@ -1989,6 +2106,8 @@
+         for (int channel = 0; channel < juce::jmin(busBuffers[busIndex].getNumChannels(), processingBuffer.getNumChannels()); ++channel)
+             juce::FloatVectorOperations::add(processingBuffer.getWritePointer(channel), busBuffers[busIndex].getReadPointer(channel), numSamples);
+     }
++    for (int channel = 0; channel < juce::jmin(directPathBuffer.getNumChannels(), processingBuffer.getNumChannels()); ++channel)
++        juce::FloatVectorOperations::add(processingBuffer.getWritePointer(channel), directPathBuffer.getReadPointer(channel), numSamples);
+ }
+ 
+ void AudioEngine::addTrackToBus(const TrackDataModel::RenderTrack& track,
+@@ -2227,6 +2346,7 @@
+ void AudioEngine::clearRealtimeBuffers(int numSamples) noexcept
+ {
+     processingBuffer.clear(0, numSamples);
++    directPathBuffer.clear(0, numSamples);
+     liveKeyReferenceBuffer.clear(0, numSamples);
+     streamMonitorBuffer.clear(0, numSamples);
+     cueMonitorBuffer.clear(0, numSamples);

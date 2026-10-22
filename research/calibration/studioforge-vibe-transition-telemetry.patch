@@ -1,0 +1,191 @@
+diff --git a/autotune/VibeAutotune/PluginProcessor.h b/autotune/VibeAutotune/PluginProcessor.h
+index f6db004..63f4935 100644
+--- a/autotune/VibeAutotune/PluginProcessor.h
++++ b/autotune/VibeAutotune/PluginProcessor.h
+@@ -45,6 +45,14 @@ public:
+         bool voiced = false;
+         uint64_t timestampSamples = 0;
+         int analysisLatencySamples = 0;
++        // Atomically-published control state used by a host trace. These are
++        // intentionally numeric, so the audio callback can report target
++        // ownership without allocating UI strings.
++        int detectedMidiNote = -1;
++        int targetMidiNote = -1;
++        int outputMidiNote = -1;
++        float inputCents = 0.0f;
++        float correctionCents = 0.0f;
+     };
+ 
+     struct SourceSchedulerDiagnostics
+diff --git a/autotune/VibeAutotune/PluginProcessor.cpp b/autotune/VibeAutotune/PluginProcessor.cpp
+index 6fb636b..e737c94 100644
+--- a/autotune/VibeAutotune/PluginProcessor.cpp
++++ b/autotune/VibeAutotune/PluginProcessor.cpp
+@@ -2240,6 +2240,11 @@ VibeAutotuneProcessor::PitchTrackingData VibeAutotuneProcessor::getPitchTracking
+     data.voiced = latestVoiced.load (std::memory_order_relaxed);
+     data.timestampSamples = latestPitchTimestampSamples.load (std::memory_order_relaxed);
+     data.analysisLatencySamples = latestAnalysisLatencySamples.load (std::memory_order_relaxed);
++    data.detectedMidiNote = latestDetectedMidiNote.load (std::memory_order_relaxed);
++    data.targetMidiNote = latestTargetMidiNote.load (std::memory_order_relaxed);
++    data.outputMidiNote = latestOutputMidiNote.load (std::memory_order_relaxed);
++    data.inputCents = latestInputCents.load (std::memory_order_relaxed);
++    data.correctionCents = latestCentsDeviation.load (std::memory_order_relaxed);
+     return data;
+ }
+ 
+diff --git a/Source/AudioEngine/AudioEffectProcessor.h b/Source/AudioEngine/AudioEffectProcessor.h
+index 38c77ab..2000482 100644
+--- a/Source/AudioEngine/AudioEffectProcessor.h
++++ b/Source/AudioEngine/AudioEffectProcessor.h
+@@ -32,6 +32,11 @@ struct LiveProcessorHealth
+     bool trackerVoiced = false;
+     float trackerConfidence = 0.0f;
+     float trackerF0Hz = 0.0f;
++    int trackerDetectedMidiNote = -1;
++    int trackerTargetMidiNote = -1;
++    int trackerOutputMidiNote = -1;
++    float trackerInputCents = 0.0f;
++    float correctionCents = 0.0f;
+     uint64_t protectionCount = 0;
+     uint64_t overloadCount = 0;
+ };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.h b/Source/Plugins/NativeVibeAutotuneProcessor.h
+index feda6fd..e06a24c 100644
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.h
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.h
+@@ -67,6 +67,11 @@ private:
+     std::atomic<bool> publishedTrackerVoiced { false };
+     std::atomic<float> publishedTrackerConfidence { 0.0f };
+     std::atomic<float> publishedTrackerF0Hz { 0.0f };
++    std::atomic<int> publishedTrackerDetectedMidiNote { -1 };
++    std::atomic<int> publishedTrackerTargetMidiNote { -1 };
++    std::atomic<int> publishedTrackerOutputMidiNote { -1 };
++    std::atomic<float> publishedTrackerInputCents { 0.0f };
++    std::atomic<float> publishedCorrectionCents { 0.0f };
+     std::atomic<uint64_t> protectionCount { 0 };
+     std::atomic<uint64_t> overloadCount { 0 };
+ };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+index 3ca9255..8b8be0b 100644
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -52,6 +52,11 @@ void NativeVibeAutotuneProcessor::prepareToPlay(double sampleRate, int samplesPe
+     publishedTrackerVoiced.store(false, std::memory_order_relaxed);
+     publishedTrackerConfidence.store(0.0f, std::memory_order_relaxed);
+     publishedTrackerF0Hz.store(0.0f, std::memory_order_relaxed);
++    publishedTrackerDetectedMidiNote.store(-1, std::memory_order_relaxed);
++    publishedTrackerTargetMidiNote.store(-1, std::memory_order_relaxed);
++    publishedTrackerOutputMidiNote.store(-1, std::memory_order_relaxed);
++    publishedTrackerInputCents.store(0.0f, std::memory_order_relaxed);
++    publishedCorrectionCents.store(0.0f, std::memory_order_relaxed);
+     prepared = true;
+ }
+ 
+@@ -87,6 +92,11 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
+         publishedTrackerVoiced.store(false, std::memory_order_relaxed);
+         publishedTrackerConfidence.store(0.0f, std::memory_order_relaxed);
+         publishedTrackerF0Hz.store(0.0f, std::memory_order_relaxed);
++        publishedTrackerDetectedMidiNote.store(-1, std::memory_order_relaxed);
++        publishedTrackerTargetMidiNote.store(-1, std::memory_order_relaxed);
++        publishedTrackerOutputMidiNote.store(-1, std::memory_order_relaxed);
++        publishedTrackerInputCents.store(0.0f, std::memory_order_relaxed);
++        publishedCorrectionCents.store(0.0f, std::memory_order_relaxed);
+         return;
+     }
+ 
+@@ -182,6 +192,13 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
+     publishedTrackerF0Hz.store(std::isfinite(tracking.stableF0Hz) && tracking.stableF0Hz > 0.0
+                                     ? static_cast<float>(tracking.stableF0Hz) : 0.0f,
+                                 std::memory_order_relaxed);
++    publishedTrackerDetectedMidiNote.store(tracking.detectedMidiNote, std::memory_order_relaxed);
++    publishedTrackerTargetMidiNote.store(tracking.targetMidiNote, std::memory_order_relaxed);
++    publishedTrackerOutputMidiNote.store(tracking.outputMidiNote, std::memory_order_relaxed);
++    publishedTrackerInputCents.store(std::isfinite(tracking.inputCents) ? tracking.inputCents : 0.0f,
++                                     std::memory_order_relaxed);
++    publishedCorrectionCents.store(std::isfinite(tracking.correctionCents) ? tracking.correctionCents : 0.0f,
++                                   std::memory_order_relaxed);
+     // Enter wet only when the tracker is credible. Once live, retain it
+     // through a short, bounded tracker dropout so natural vibrato and brief
+     // consonants do not pump dry/wet. Safety faults still close immediately.
+@@ -286,6 +303,11 @@ LiveProcessorHealth NativeVibeAutotuneProcessor::getLiveProcessorHealth() const
+     health.trackerVoiced = publishedTrackerVoiced.load(std::memory_order_relaxed);
+     health.trackerConfidence = publishedTrackerConfidence.load(std::memory_order_relaxed);
+     health.trackerF0Hz = publishedTrackerF0Hz.load(std::memory_order_relaxed);
++    health.trackerDetectedMidiNote = publishedTrackerDetectedMidiNote.load(std::memory_order_relaxed);
++    health.trackerTargetMidiNote = publishedTrackerTargetMidiNote.load(std::memory_order_relaxed);
++    health.trackerOutputMidiNote = publishedTrackerOutputMidiNote.load(std::memory_order_relaxed);
++    health.trackerInputCents = publishedTrackerInputCents.load(std::memory_order_relaxed);
++    health.correctionCents = publishedCorrectionCents.load(std::memory_order_relaxed);
+     health.protectionCount = protectionCount.load(std::memory_order_relaxed);
+     health.overloadCount = overloadCount.load(std::memory_order_relaxed);
+     return health;
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.h b/Source/AudioEngine/AudioDiagnosticTracer.h
+index a26c988..c78c2fd 100644
+--- a/Source/AudioEngine/AudioDiagnosticTracer.h
++++ b/Source/AudioEngine/AudioDiagnosticTracer.h
+@@ -21,12 +21,13 @@ public:
+         uint64_t inputMask;
+         uint64_t outputMask;
+         double sampleRate;
+-        float inputPeak, secondaryInputPeak, outputPeak, trackPostFxPeak, vibeWetMix, vibeTrackerConfidence, vibeTrackerF0Hz;
++        float inputPeak, secondaryInputPeak, outputPeak, trackPostFxPeak, vibeWetMix, vibeTrackerConfidence, vibeTrackerF0Hz,
++              vibeTrackerInputCents, vibeCorrectionCents;
+         uint64_t vibeProtectionCount, vibeOverloadCount;
+         uint32_t callbackFrames;
+         uint32_t deviceBufferSize;
+         uint32_t deviceHash;
+-        int input, mode;
++        int input, mode, vibeTrackerDetectedMidiNote, vibeTrackerTargetMidiNote, vibeTrackerOutputMidiNote;
+         uint8_t kind, inputChannels, outputChannels, panic, vibeState, vibeTrackerVoiced;
+     };
+     AudioDiagnosticTracer(); ~AudioDiagnosticTracer() override;
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+index 07afe06..5b63ab1 100644
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -46,7 +46,7 @@ void AudioDiagnosticTracer::run()
+ {
+     std::unique_ptr<juce::FileOutputStream> stream(output.createOutputStream());
+     if (stream == nullptr) return;
+-    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
++    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeDetectedMidi,vibeTargetMidi,vibeOutputMidi,vibeInputCents,vibeCorrectionCents,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
+     auto nextCoreAudioPoll = uint64_t { 0 };
+     while (! threadShouldExit() || read.load() != write.load())
+     {
+@@ -65,6 +65,11 @@ void AudioDiagnosticTracer::run()
+                               + juce::String(static_cast<int>(e.vibeTrackerVoiced)) + ","
+                               + juce::String(e.vibeTrackerConfidence) + ","
+                               + juce::String(e.vibeTrackerF0Hz) + ","
++                              + juce::String(e.vibeTrackerDetectedMidiNote) + ","
++                              + juce::String(e.vibeTrackerTargetMidiNote) + ","
++                              + juce::String(e.vibeTrackerOutputMidiNote) + ","
++                              + juce::String(e.vibeTrackerInputCents) + ","
++                              + juce::String(e.vibeCorrectionCents) + ","
+                               + juce::String(e.vibeProtectionCount) + ","
+                               + juce::String(e.vibeOverloadCount) + ","
+                               + juce::String(e.deviceHash) + "," + juce::String(e.sampleRate) + ","
+@@ -78,7 +83,7 @@ void AudioDiagnosticTracer::run()
+         if (now >= nextCoreAudioPoll)
+         {
+             const auto input = coreAudioInput.read();
+-            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"
++            stream->writeText(juce::String(now) + ",3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,0,0,0,0,"
+                               + juce::String(input.gain) + "," + juce::String(input.muted) + "\n",
+                               false, false, "UTF-8");
+             nextCoreAudioPoll = now + 250;
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+index 7e3f61e..89ba334 100644
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1794,6 +1794,11 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
+         event.vibeTrackerVoiced = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.trackerVoiced) : 0;
+         event.vibeTrackerConfidence = hasNativeVibe ? vibeHealth.trackerConfidence : 0.0f;
+         event.vibeTrackerF0Hz = hasNativeVibe ? vibeHealth.trackerF0Hz : 0.0f;
++        event.vibeTrackerDetectedMidiNote = hasNativeVibe ? vibeHealth.trackerDetectedMidiNote : -1;
++        event.vibeTrackerTargetMidiNote = hasNativeVibe ? vibeHealth.trackerTargetMidiNote : -1;
++        event.vibeTrackerOutputMidiNote = hasNativeVibe ? vibeHealth.trackerOutputMidiNote : -1;
++        event.vibeTrackerInputCents = hasNativeVibe ? vibeHealth.trackerInputCents : 0.0f;
++        event.vibeCorrectionCents = hasNativeVibe ? vibeHealth.correctionCents : 0.0f;
+         event.vibeProtectionCount = hasNativeVibe ? vibeHealth.protectionCount : 0;
+         event.vibeOverloadCount = hasNativeVibe ? vibeHealth.overloadCount : 0;
+         if (monitoredPhysicalInput >= 0)

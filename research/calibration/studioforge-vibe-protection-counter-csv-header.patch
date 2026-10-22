@@ -1,0 +1,10 @@
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -46,7 +46,7 @@ void AudioDiagnosticTracer::run()
+ {
+     std::unique_ptr<juce::FileOutputStream> stream(output.createOutputStream());
+     if (stream == nullptr) return;
+-    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeDetectedMidi,vibeTargetMidi,vibeOutputMidi,vibeInputCents,vibeCorrectionCents,vibeRendererCollapsed,vibeRendererExcessive,vibeRendererInvalid,vibeCallbackOverloaded,vibeHardDryRescue,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
++    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeTrackerVoiced,vibeTrackerConfidence,vibeTrackerF0Hz,vibeDetectedMidi,vibeTargetMidi,vibeOutputMidi,vibeInputCents,vibeCorrectionCents,vibeRendererCollapsed,vibeRendererExcessive,vibeRendererInvalid,vibeCallbackOverloaded,vibeHardDryRescue,vibeRendererCollapseCount,vibeRendererExcessiveCount,vibeRendererInvalidCount,vibeHardDryRescueCount,vibeSustainedOverloadProtectionCount,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
+

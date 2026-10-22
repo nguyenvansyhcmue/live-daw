@@ -1,0 +1,195 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -204,7 +204,6 @@ target_include_directories(StudioForgeDAW PRIVATE
+ 
+ target_link_libraries(StudioForgeDAW PRIVATE
+     StudioForgeBrandAssets
+-    StudioForgeNativeVibe
+     juce::juce_audio_basics
+     juce::juce_audio_devices
+     juce::juce_audio_formats
+@@ -219,7 +218,6 @@ target_link_libraries(StudioForgeDAW PRIVATE
+ )
+ 
+ target_compile_definitions(StudioForgeDAW PRIVATE
+-    STUDIOFORGE_NATIVE_VIBE_AVAILABLE=1
+     STUDIOFORGE_TUNE_AI_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tune-AI"
+     JUCE_WEB_BROWSER=0
+     JUCE_USE_CURL=0
+@@ -234,7 +232,7 @@ add_dependencies(StudioForgeDAW StudioForgeVst3Probe)
+ # before an AU is installed or registered with macOS. This definition is only
+ # emitted when the explicit development bundle already exists.
+ set(STUDIOFORGE_VIBE_AUTOTUNE_VST3
+-    "${CMAKE_CURRENT_SOURCE_DIR}/autotune/build-studioforge-juce8-stable/VibeAutotune_artefacts/Release/VST3/VibeAutotune.vst3")
++    "${CMAKE_CURRENT_SOURCE_DIR}/autotune/build-studioforge-host/VibeAutotune_artefacts/Release/VST3/VibeAutotune.vst3")
+ if (EXISTS "${STUDIOFORGE_VIBE_AUTOTUNE_VST3}")
+     target_compile_definitions(StudioForgeDAW PRIVATE
+         STUDIOFORGE_VIBE_AUTOTUNE_VST3_PATH="${STUDIOFORGE_VIBE_AUTOTUNE_VST3}"
+diff --git a/Source/Control/PitchCorrectionIntegrationService.cpp b/Source/Control/PitchCorrectionIntegrationService.cpp
+--- a/Source/Control/PitchCorrectionIntegrationService.cpp
++++ b/Source/Control/PitchCorrectionIntegrationService.cpp
+@@ -120,15 +120,15 @@ PitchCorrectionIntegrationService::Status PitchCorrectionIntegrationService::en
+         if (track < 0) return { PitchCorrectionIntegrationState::routeInvalid, "Configured vocal track is missing." };
+         const auto* rack = model.getFxRackSnapshot(static_cast<size_t>(track));
+         auto existing = rack != nullptr ? rack->processors[static_cast<size_t>(route->fxSlot)] : nullptr;
+-        if (existing != nullptr && ! existing->isStudioForgeNativeVibeAutotune())
++        if (existing != nullptr
++            && existing->getPersistentIdentifier() != vibe->createIdentifierString())
+         {
+             if (normalized(existing->getName()) != "vibeautotune")
+                 return { PitchCorrectionIntegrationState::wrongPluginInSlot, stateMessage(PitchCorrectionIntegrationState::wrongPluginInSlot) };
+ 
+-            // AU/VST3 wrappers and StudioForge's native Vibe intentionally
+-            // share the same persistent plug-in identity. Do not use that ID
+-            // to decide migration: old hosted instances must be replaced or
+-            // their renderer warm-up can mute live monitoring.
++            // Keep the explicit Auto Key -> Vibe route on the canonical
++            // scanned format while preserving the user's plug-in state. This
++            // is product integration policy, not a private audio-host path.
+             juce::MemoryBlock previousState;
+             existing->getState(previousState);
+             juce::String error;
+diff --git a/Source/Plugins/PluginHostService.cpp b/Source/Plugins/PluginHostService.cpp
+--- a/Source/Plugins/PluginHostService.cpp
++++ b/Source/Plugins/PluginHostService.cpp
+@@ -1,59 +1,17 @@
+ #include "PluginHostService.h"
+ #include "../Midi/MidiTransposeProcessor.h"
+ 
+-#if defined(STUDIOFORGE_NATIVE_VIBE_AVAILABLE)
+- #include "NativeVibeAutotuneProcessor.h"
+-#endif
+-
+ namespace
+ {
+-juce::File bundledVibeAutotuneVst3()
++juce::File bundledVst3Directory()
+ {
+-    // A shipped DAW must not depend on a developer-machine path. Prefer the
+-    // copy packaged inside the app bundle, then use the workspace bundle only
+-    // when running an in-place development build.
++    // Product bundles are discovered by format and metadata. The host must
++    // never route a particular product name through a private processor path.
+     const auto executable = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
+-    const auto packaged = executable.getParentDirectory().getParentDirectory()
+-        .getChildFile ("Resources").getChildFile ("PlugIns").getChildFile ("VST3")
+-        .getChildFile ("VibeAutotune.vst3");
+-    if (packaged.exists())
+-        return packaged;
+-
+-   #if defined(STUDIOFORGE_VIBE_AUTOTUNE_VST3_PATH)
+-    return juce::File { STUDIOFORGE_VIBE_AUTOTUNE_VST3_PATH };
+-   #else
+-    return {};
+-   #endif
+-}
+-
+-bool descriptionUsesBundle(const juce::PluginDescription& description, const juce::File& bundle)
+-{
+-    if (! bundle.exists() || description.fileOrIdentifier.isEmpty())
+-        return false;
+-
+-    auto candidate = juce::File { description.fileOrIdentifier };
+-    auto parent = candidate.getParentDirectory();
+-    for (auto depth = 0; ! candidate.hasFileExtension(".vst3") && parent.exists() && depth++ < 8;
+-         parent = parent.getParentDirectory())
+-        candidate = parent;
+-
+-    return candidate.hasFileExtension(".vst3")
+-        && candidate.getFullPathName() == bundle.getFullPathName();
+-}
+-
+-bool isVibeAutotuneDescription(const juce::PluginDescription& description)
+-{
+-    const auto normalise = [] (juce::String text)
+-    {
+-        return text.toLowerCase().retainCharacters("abcdefghijklmnopqrstuvwxyz0123456789");
+-    };
+-    const auto identifier = normalise(description.createIdentifierString());
+-    const auto name = normalise(description.name);
+-    return name == "vibeautotune"
+-        || identifier == "vibeautotune"
+-        || identifier.endsWith("vibeautotune");
++    return executable.getParentDirectory().getParentDirectory()
++        .getChildFile ("Resources").getChildFile ("PlugIns").getChildFile ("VST3");
+ }
+ 
+ juce::File vst3ProbeExecutable()
+@@ -189,16 +147,6 @@ public:
+     {
+         return instance != nullptr ? juce::jmax(0, instance->getLatencySamples()) : 0;
+     }
+-    bool isLivePerformanceEssential() const noexcept override
+-    {
+-        if (instance == nullptr)
+-            return false;
+-
+-        const auto description = instance->getPluginDescription();
+-        return description.pluginFormatName.equalsIgnoreCase("VST3")
+-            && description.manufacturerName.equalsIgnoreCase("VibeAudio")
+-            && description.name.equalsIgnoreCase("VibeAutotune");
+-    }
+     juce::String getPersistentIdentifier() const override
+     {
+         return instance != nullptr ? instance->getPluginDescription().createIdentifierString() : juce::String {};
+@@ -320,11 +268,12 @@ PluginHostService::PluginHostService(juce::File catalogFile) : catalog(std::move
+     const auto hasSavedCatalog = catalog.existsAsFile();
+     loadCatalogFromDisk();
+ 
+-    // A development Vibe bundle is deliberately scanned by its exact path.
+-    // This avoids relying on the macOS AU registry and never broadens a
+-    // production scan to arbitrary workspace files.
+-    if (const auto bundledVibe = bundledVibeAutotuneVst3(); bundledVibe.exists())
+-        scanVst3Async(bundledVibe, {});
++    // Scan every product shipped in the application bundle using the same
++    // protected scanner and metadata path as a user-installed VST3.
++    const auto bundledDirectory = bundledVst3Directory();
++    if (bundledDirectory.isDirectory())
++        for (const auto& bundle : bundledDirectory.findChildFiles(juce::File::findDirectories, false, "*.vst3"))
++            scanVst3Async(bundle, {});
+ 
+    #if !defined(STUDIOFORGE_DISABLE_AUTOMATIC_PLUGIN_SCAN)
+     scanDefaultVst3LocationsAsync();
+@@ -564,40 +513,13 @@ juce::AudioPluginFormat* PluginHostService::findAudioUnitFormat() const noexcept
+ juce::Array<juce::PluginDescription> PluginHostService::copyKnownPlugins() const
+ {
+     const juce::ScopedLock lock(catalogLock);
+-    auto plugins = knownPlugins.getTypes();
+-
+-    // Development hosts can have an older AU/VST3 with the same product name
+-    // installed in macOS. Place the exact workspace VST3 first so the live
+-    // control integration and browser resolve the version built for this DAW.
+-    const auto bundledVibe = bundledVibeAutotuneVst3();
+-    for (int index = 0; index < plugins.size(); ++index)
+-        if (descriptionUsesBundle(plugins.getReference(index), bundledVibe))
+-        {
+-            plugins.move(index, 0);
+-            break;
+-        }
+-    return plugins;
++    return knownPlugins.getTypes();
+ }
+ 
+ std::shared_ptr<AudioEffectProcessor> PluginHostService::createEffect(const juce::PluginDescription& description,
+                                                                         double sampleRate, int blockSize,
+                                                                         juce::String& errorMessage) const
+ {
+-#if defined(STUDIOFORGE_NATIVE_VIBE_AVAILABLE)
+-    // Vibe's own JUCE editor is linked into StudioForge. This preserves the
+-    // exact production UI and DSP while avoiding the VST3/AppKit remote-view
+-    // bridge that was crashing on focus in this host.
+-    // Catalog records may retain an old developer or system VST3 path. The
+-    // product identity, not the scanned bundle location, decides ownership:
+-    // StudioForge always runs its Vibe through the native adapter.
+-    if (isVibeAutotuneDescription(description))
+-    {
+-        auto effect = std::make_shared<NativeVibeAutotuneProcessor>(description.createIdentifierString());
+-        effect->prepareToPlay(sampleRate, blockSize, 2);
+-        errorMessage.clear();
+-        return effect;
+-    }
+-#endif
+     const juce::ScopedLock lock(catalogLock);
+     auto instance = formatManager.createPluginInstance(description, sampleRate, blockSize, errorMessage);
+     if (instance == nullptr)

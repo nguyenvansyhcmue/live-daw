@@ -1,0 +1,16 @@
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -75,6 +75,11 @@ void AudioDiagnosticTracer::run()
+                               + juce::String(static_cast<int>(e.vibeRendererInvalid)) + ","
+                               + juce::String(static_cast<int>(e.vibeCallbackOverloaded)) + ","
+                               + juce::String(static_cast<int>(e.vibeHardDryRescue)) + ","
++                              + juce::String(e.vibeRendererCollapseCount) + ","
++                              + juce::String(e.vibeRendererExcessiveCount) + ","
++                              + juce::String(e.vibeRendererInvalidCount) + ","
++                              + juce::String(e.vibeHardDryRescueCount) + ","
++                              + juce::String(e.vibeSustainedOverloadProtectionCount) + ","
+                               + juce::String(e.vibeProtectionCount) + ","
+                               + juce::String(e.vibeOverloadCount) + ","
+                               + juce::String(e.deviceHash) + "," + juce::String(e.sampleRate) + ","
+

@@ -1,0 +1,126 @@
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -51,6 +51,32 @@
+     if (extension == ".aif" || extension == ".aiff") return std::make_unique<juce::AiffAudioFormat>();
+     if (extension == ".flac") return std::make_unique<juce::FlacAudioFormat>();
+     return {};
++}
++
++// Backing buffers are deliberately over-allocated during device setup so a
++// CoreAudio renegotiation never allocates in the realtime callback. An insert
++// must nevertheless see exactly the callback span, never that capacity. A
++// 64-frame callback passed as 4096 frames advances plug-in delay lines and
++// oscillators at the wrong rate and exposes stale tail samples as noise.
++void processEffectBlock(AudioEffectProcessor& processor,
++                        juce::AudioBuffer<float>& backingBuffer,
++                        int numSamples) noexcept
++{
++    const auto channels = juce::jmin(2, backingBuffer.getNumChannels());
++    if (channels <= 0 || numSamples <= 0 || numSamples > backingBuffer.getNumSamples()) return;
++    juce::AudioBuffer<float> callbackBlock(backingBuffer.getArrayOfWritePointers(), channels, numSamples);
++    processor.processBlock(callbackBlock);
++}
++
++void processEffectBlock(AudioEffectProcessor& processor,
++                        juce::AudioBuffer<float>& backingBuffer,
++                        juce::MidiBuffer& midi,
++                        int numSamples) noexcept
++{
++    const auto channels = juce::jmin(2, backingBuffer.getNumChannels());
++    if (channels <= 0 || numSamples <= 0 || numSamples > backingBuffer.getNumSamples()) return;
++    juce::AudioBuffer<float> callbackBlock(backingBuffer.getArrayOfWritePointers(), channels, numSamples);
++    processor.processBlock(callbackBlock, midi);
+ }
+ }
+ 
+@@ -1690,7 +1716,7 @@
+         for (size_t slot = 0; slot < TrackDataModel::maxFxSlots; ++slot)
+             if (const auto& processor = rack->processors[slot]; processor != nullptr && !rack->bypass[slot]
+                 && shouldProcessForLive(*processor))
+-                processor->processBlock(processingBuffer);
++                processEffectBlock(*processor, processingBuffer, numSamples);
+ 
+     graph.process(processingBuffer, numSamples);
+     if (isPlaying && (metronomeEnabled.load(std::memory_order_acquire)
+@@ -1784,7 +1810,7 @@
+                 if (const auto& processor = track.fxRack->processors[slot]; processor != nullptr
+                     && ! track.fxRack->bypass[slot] && ! processor->isMidiEffect()
+                     && shouldProcessForLive(*processor))
+-                    processor->processBlock(trackBuffer, trackMidiBuffers[trackIndex]);
++                    processEffectBlock(*processor, trackBuffer, trackMidiBuffers[trackIndex], numSamples);
+ 
+         // Reference audio is captured after the selected track's insert chain
+         // but before fader, buses, master FX, vocal monitoring and streaming.
+@@ -1830,7 +1856,7 @@
+             for (size_t slot = 0; slot < TrackDataModel::maxFxSlots; ++slot)
+                 if (const auto& processor = bus.fxRack->processors[slot]; processor != nullptr && ! bus.fxRack->bypass[slot]
+                     && shouldProcessForLive(*processor))
+-                    processor->processBlock(busBuffers[busIndex]);
++                    processEffectBlock(*processor, busBuffers[busIndex], numSamples);
+         if (bus.muted) busBuffers[busIndex].clear(0, numSamples);
+         else for (int channel = 0; channel < busBuffers[busIndex].getNumChannels(); ++channel)
+             busBuffers[busIndex].applyGain(channel, 0, numSamples, bus.gain);
+diff --git a/Tests/CorePlaybackMixerTests.cpp b/Tests/CorePlaybackMixerTests.cpp
+--- a/Tests/CorePlaybackMixerTests.cpp
++++ b/Tests/CorePlaybackMixerTests.cpp
+@@ -1357,7 +1357,51 @@
+     return expect(approximatelyEqual(outputLeft[0], 0.0f) && approximatelyEqual(outputRight[0], 0.0f),
+                   "disabled input monitoring produces no stopped-transport audio");
+ }
++
++class CallbackSpanProbeEffect final : public AudioEffectProcessor
++{
++public:
++    void prepareToPlay(double, int, int) override {}
++    void processBlock(juce::AudioBuffer<float>& buffer) override
++    {
++        lastBlockSamples.store(buffer.getNumSamples(), std::memory_order_relaxed);
++        ++calls;
++    }
++    void releaseResources() override {}
++    juce::String getName() const override { return "Callback span probe"; }
+ 
++    std::atomic<int> lastBlockSamples { 0 };
++    std::atomic<int> calls { 0 };
++};
++
++bool testPluginReceivesExactDeviceCallbackSpan()
++{
++    TrackDataModel model;
++    model.addTrack(TrackType::audio);
++    auto probe = std::make_shared<CallbackSpanProbeEffect>();
++    model.setFxProcessor(0, 0, probe);
++    OfflineAudioDevice device;
++    AudioEngine engine(&model);
++    engine.audioDeviceAboutToStart(&device);
++    engine.setLivePerformanceEnabled(true);
++    model.setTrackInputConfiguration(0, false, true, 0, 1);
++    model.setTrackMonitorDestination(0, MonitorDestination::master);
++    model.setTrackMonitorPermission(0, true);
++
++    float input[4] { 0.2f, 0.2f, 0.2f, 0.2f };
++    const float* inputs[] { input };
++    float outputLeft[4] {}, outputRight[4] {};
++    float* outputs[] { outputLeft, outputRight };
++    engine.audioDeviceIOCallbackWithContext(inputs, 1, outputs, 2, 4, {});
++    if (! expect(probe->calls.load(std::memory_order_relaxed) == 1,
++                 "an insert processes one time per device callback")) return false;
++    if (! expect(probe->lastBlockSamples.load(std::memory_order_relaxed) == 4,
++                 "an insert receives the exact device callback span, not backing-buffer capacity")) return false;
++    return expect(approximatelyEqual(outputLeft[0], 0.2f * 0.70710678f)
++                      && approximatelyEqual(outputRight[0], 0.2f * 0.70710678f),
++                  "the exact-span adapter preserves monitored audio");
++}
++
+ bool testLiveInputRunsThroughTrackFx()
+ {
+     TrackDataModel model;
+@@ -2361,6 +2405,7 @@
+         && testMultiTrackRecording()
+         && testPunchRecordingCapture()
+         && testMarqueeRangeDeletion()
++        && testPluginReceivesExactDeviceCallbackSpan()
+         && testInputMonitoring()
+         && testLiveInputRunsThroughTrackFx()
+         && testInputMonitoringRecoversAfterWeakSource()

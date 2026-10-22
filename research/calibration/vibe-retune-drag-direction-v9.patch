@@ -1,0 +1,39 @@
+--- a/VibeAutotune/AnalogRotaryControl.h
++++ b/VibeAutotune/AnalogRotaryControl.h
+@@ -30,6 +30,7 @@
+     float getDisplayAngleRadians() const noexcept;
+     float getPressDepth() const noexcept { return pressDepth; }
+     bool isAnimating() const noexcept { return animating; }
++    void setVerticalDragInverted (bool shouldInvert) noexcept { verticalDragInverted = shouldInvert; }
+ 
+     void mouseDown (const juce::MouseEvent&) override;
+     void mouseDrag (const juce::MouseEvent&) override;
+@@ -56,4 +57,5 @@
+     float inertiaAgeSeconds = 0.0f;
+     int lastDragDirection = 0;
+     bool applyingInertia = false;
++    bool verticalDragInverted = false;
+ };
+--- a/VibeAutotune/AnalogRotaryControl.cpp
++++ b/VibeAutotune/AnalogRotaryControl.cpp
+@@ -63,7 +63,8 @@
+     // Incremental vertical drag is deliberately independent of timer rate.
+     // Changing direction or pressing Shift mid-gesture cannot resurrect an
+     // old velocity or jump back to a drag-start anchor.
+-    const auto deltaY = lastDragY - e.position.y;
++    const auto physicalDeltaY = lastDragY - e.position.y;
++    const auto deltaY = verticalDragInverted ? -physicalDeltaY : physicalDeltaY;
+     lastDragY = e.position.y;
+     const auto fine = e.mods.isShiftDown() ? definition.fineMultiplier : 1.0f;
+     const auto range = getMaximum() - getMinimum();
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -45,6 +45,8 @@
+     class RetuneRotarySlider final : public AnalogRotaryControl
+     {
+     public:
++        RetuneRotarySlider() { setVerticalDragInverted (true); }
++
+         double proportionOfLengthToValue (double proportion) override
+         {
+             const auto p = juce::jlimit (0.0, 1.0, proportion);

@@ -1,0 +1,50 @@
+diff --git a/Source/Services/TuneAiAnalysisService.cpp b/Source/Services/TuneAiAnalysisService.cpp
+--- a/Source/Services/TuneAiAnalysisService.cpp
++++ b/Source/Services/TuneAiAnalysisService.cpp
+@@ -2,6 +2,23 @@
+ 
+ namespace
+ {
++juce::File findPackagedTuneAiBundle()
++{
++   #if JUCE_MAC
++    const auto executable = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
++    const auto hostBundle = executable.getParentDirectory().getParentDirectory().getParentDirectory();
++    const auto sibling = hostBundle.getParentDirectory().getChildFile("Tune-AI.app");
++    if (sibling.isDirectory())
++        return sibling;
++   #endif
++    return {};
++}
++
++juce::File packagedTuneAiRoot()
++{
++    return findPackagedTuneAiBundle().getChildFile("Contents/Resources/tune-AI");
++}
++
+ TuneAiAnalysisService::Result parseResult(const juce::String& output, int exitCode)
+ {
+     auto result = TuneAiAnalysisService::Result {};
+@@ -77,6 +94,9 @@ juce::File TuneAiAnalysisService::findBridgeScript() const
+     const auto fromWorkingDirectory = juce::File::getCurrentWorkingDirectory().getChildFile("tune-AI/daw_bridge.py");
+     if (fromWorkingDirectory.existsAsFile()) return fromWorkingDirectory;
+ 
++    const auto fromPackagedApp = packagedTuneAiRoot().getChildFile("daw_bridge.py");
++    if (fromPackagedApp.existsAsFile()) return fromPackagedApp;
++
+    #if defined(STUDIOFORGE_TUNE_AI_SOURCE_DIR)
+     const auto fromBuildSource = juce::File(STUDIOFORGE_TUNE_AI_SOURCE_DIR).getChildFile("daw_bridge.py");
+     if (fromBuildSource.existsAsFile()) return fromBuildSource;
+@@ -94,6 +114,12 @@ juce::File TuneAiAnalysisService::findStandaloneAppScript() const
+ 
+ juce::Result TuneAiAnalysisService::launchStandaloneApp() const
+ {
++    const auto bundle = findPackagedTuneAiBundle();
++    if (bundle.isDirectory())
++        return juce::Process::openDocument(bundle.getFullPathName(), {})
++                   ? juce::Result::ok()
++                   : juce::Result::fail("macOS could not open the packaged Tune-AI app.");
++
+     const auto app = findStandaloneAppScript();
+     if (! app.existsAsFile())
+         return juce::Result::fail("Tune-AI app was not found beside the StudioForge source.");

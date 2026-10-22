@@ -1,0 +1,82 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -377,9 +377,23 @@
+     noteMapVoiceSelector.onChange = [this] { inputTypeSelector.setSelectedItemIndex (noteMapVoiceSelector.getSelectedItemIndex(), juce::sendNotification); };
+     noteMapKeySelector.onChange = [this] { keySelector.setSelectedItemIndex (noteMapKeySelector.getSelectedItemIndex(), juce::sendNotification); };
+     noteMapScaleSelector.onChange = [this] { scaleSelector.setSelectedItemIndex (noteMapScaleSelector.getSelectedItemIndex(), juce::sendNotification); };
+-    inputTypeSelector.onChange = [this] { noteMapVoiceSelector.setSelectedItemIndex (inputTypeSelector.getSelectedItemIndex(), juce::dontSendNotification); };
+-    keySelector.onChange = [this] { noteMapKeySelector.setSelectedItemIndex (keySelector.getSelectedItemIndex(), juce::dontSendNotification); };
+-    scaleSelector.onChange = [this] { noteMapScaleSelector.setSelectedItemIndex (scaleSelector.getSelectedItemIndex(), juce::dontSendNotification); };
++    inputTypeSelector.onChange = [this]
++    {
++        noteMapVoiceSelector.setSelectedItemIndex (inputTypeSelector.getSelectedItemIndex(), juce::dontSendNotification);
++        repaint (pianoBounds);
++    };
++    keySelector.onChange = [this]
++    {
++        noteMapKeySelector.setSelectedItemIndex (keySelector.getSelectedItemIndex(), juce::dontSendNotification);
++        processor.resetNotePolicyToCurrentScale();
++        repaint (pianoBounds);
++    };
++    scaleSelector.onChange = [this]
++    {
++        noteMapScaleSelector.setSelectedItemIndex (scaleSelector.getSelectedItemIndex(), juce::dontSendNotification);
++        processor.resetNotePolicyToCurrentScale();
++        repaint (pianoBounds);
++    };
+     noteMapVoiceSelector.setSelectedItemIndex (inputTypeSelector.getSelectedItemIndex(), juce::dontSendNotification);
+     noteMapKeySelector.setSelectedItemIndex (keySelector.getSelectedItemIndex(), juce::dontSendNotification);
+     noteMapScaleSelector.setSelectedItemIndex (scaleSelector.getSelectedItemIndex(), juce::dontSendNotification);
+@@ -813,16 +827,16 @@
+     utility (6, 1032, 456, trackingLabel, trackingSlider);
+     utility (7, 1228, 456, voicedColourLabel, voicedColourSlider);
+ 
+-    noteMapVoiceSelector.setBounds (D (182, 739, 116, 34));
+-    noteMapKeySelector.setBounds (D (311, 739, 74, 34));
+-    noteMapScaleSelector.setBounds (D (398, 739, 154, 34));
+-    // Pencil stays with the three context fields; centred placement made it
+-    // look detached from both the Note Map and the keys it edits.
+-    editNotesButton.setBounds (D (566, 739, 34, 34));
+-    groupOctavesButton.setBounds (D (1100, 727, 267, 49));
+-    // Equal left/right inset keeps the keyboard mechanically centred in its tray.
+-    auto keyboard = D (57, 782, 1334, 156);
+-    const auto statusStrip = D (57, 762, 1334, 20);
++    // The context controls occupy their own row.  The old y=739..773 row
++    // overlapped the note ruler at y=762 and visually merged both systems.
++    noteMapVoiceSelector.setBounds (D (200, 735, 116, 30));
++    noteMapKeySelector.setBounds (D (328, 735, 74, 30));
++    noteMapScaleSelector.setBounds (D (414, 735, 154, 30));
++    editNotesButton.setBounds (D (580, 735, 30, 30));
++    groupOctavesButton.setBounds (D (1120, 731, 247, 38));
++    // A dedicated gap separates context, per-note states and physical keys.
++    auto keyboard = D (57, 796, 1334, 142);
++    const auto statusStrip = D (57, 774, 1334, 18);
+     const auto whiteWidth = (float) keyboard.getWidth() / 35.0f;
+     int whiteIndex = 0;
+     for (int note = firstKey; note <= lastKey; ++note)
+@@ -842,8 +856,8 @@
+     for (int note = firstKey; note <= lastKey; ++note)
+     {
+         const auto key = pianoKeyBounds[(size_t) (note - firstKey)];
+-        const auto markerWidth = juce::jmax (8, juce::jmin (15, key.getWidth() - 2));
+-        noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY() + 2, markerWidth, juce::jmax (11, statusStrip.getHeight() - 3) };
++        const auto markerWidth = juce::jmax (9, juce::jmin (17, key.getWidth() - 2));
++        noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY(), markerWidth, statusStrip.getHeight() };
+     }
+ }
+ void VibeAutotuneEditor::paintOverChildren (juce::Graphics& g)
+@@ -1006,9 +1020,11 @@
+     const auto current = processor.getGroupOctaves()
+                        ? processor.getNoteRuleForPitchClass (midiNote % 12)
+                        : processor.getNoteRuleForMidiNote (midiNote);
+-    // Everyday interaction: allowed <-> excluded. Expert states stay in
+-    // the contextual menu and never clutter this compact note-filter strip.
+-    applyNoteRule (midiNote, current == NoteRule::Legal ? NoteRule::IllegalNearest : NoteRule::Legal);
++    // One repeated click walks the complete realtime rule set:
++    // legal -> nearest legal -> force up -> force down -> bypass -> legal.
++    // A secondary click still opens the explicit named menu.
++    const auto direction = event.mods.isShiftDown() ? 4 : 1;
++    applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + direction) % 5));
+ }
+ void VibeAutotuneEditor::timerCallback()
+ {

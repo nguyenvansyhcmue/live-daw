@@ -1,0 +1,60 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -15,7 +15,10 @@
+ struct LiveTuneLayoutMetrics
+ {
+     static constexpr float designWidth = 1448.0f;
+-    static constexpr float designHeight = 1086.0f;
++    // The visual chassis deliberately finishes directly beneath the Note Map.
++    // Keeping a taller artboard here produced an empty black "footer" inside
++    // the AU editor, before Logic's own unavoidable host footer.
++    static constexpr float designHeight = 1008.0f;
+ 
+     explicit LiveTuneLayoutMetrics (juce::Rectangle<int> client)
+         : scale (juce::jmin ((float) client.getWidth() / designWidth, (float) client.getHeight() / designHeight)),
+@@ -369,9 +372,9 @@
+     transposeSlider.textFromValueFunction = [] (double v) { const auto n = juce::roundToInt (v); return (n > 0 ? "+" : "") + juce::String (n); };
+     for (auto* slider : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) })
+         slider->updateText();
+-    setResizable (true, true); setResizeLimits (840, 630, 1448, 1086);
++    setResizable (true, true); setResizeLimits (840, 585, 1448, 1008);
+     if (auto* constrainer = getConstrainer()) constrainer->setFixedAspectRatio (LiveTuneLayoutMetrics::designWidth / LiveTuneLayoutMetrics::designHeight);
+-    setSize (1024, 768); startTimerHz (30);
++    setSize (1024, 713); startTimerHz (30);
+ }
+ VibeAutotuneEditor::~VibeAutotuneEditor() { stopTimer(); bypassButton.setLookAndFeel (nullptr); settingsButton.setLookAndFeel (nullptr); editNotesButton.setLookAndFeel (nullptr); groupOctavesButton.setLookAndFeel (nullptr); inputTypeSelector.setLookAndFeel (nullptr); keySelector.setLookAndFeel (nullptr); scaleSelector.setLookAndFeel (nullptr); noteMapScaleSelector.setLookAndFeel (nullptr); for (auto* s : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) }) s->setLookAndFeel (nullptr); }
+ void VibeAutotuneEditor::configureSelector (juce::ComboBox& s, juce::Label& l, const juce::String& t, const juce::StringArray& c) { s.addItemList (c, 1); s.setLookAndFeel (&hardware); s.setColour (juce::ComboBox::backgroundColourId, graphite); s.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f)); s.setColour (juce::ComboBox::textColourId, ivory); s.setColour (juce::ComboBox::arrowColourId, brass); addAndMakeVisible (s); l.setText (t, juce::dontSendNotification); l.setFont (juce::FontOptions (10, juce::Font::bold)); l.setColour (juce::Label::textColourId, graphite); addAndMakeVisible (l); }
+@@ -411,7 +414,10 @@
+     g.fillAll (juce::Colour (0xff070a0a));
+     const LiveTuneLayoutMetrics layout (getLocalBounds());
+     const auto D = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+-    auto chassis = D (5, 42, 1438, 962);
++    // The last physical surface is the Note Map / keyboard tray.  Do not add
++    // a second decorative lower deck: it makes the UI look like it has an
++    // unfinished black footer.
++    auto chassis = D (5, 42, 1438, 954);
+     auto chassisFill = juce::ColourGradient (juce::Colour (0xff242622), chassis.getX(), chassis.getY(), juce::Colour (0xff080908), chassis.getX(), chassis.getBottom(), false);
+     g.setGradientFill (chassisFill); g.fillRoundedRectangle (chassis, 15.0f);
+     g.setColour (juce::Colour (0xffe3d7c0).withAlpha (.72f)); g.drawRoundedRectangle (chassis.reduced (.5f), 15.0f, 1.3f);
+@@ -421,19 +427,11 @@
+     g.saveState(); juce::Path workClip; workClip.addRoundedRectangle (workSurface, 10.0f); g.reduceClipRegion (workClip);
+     for (int y = juce::roundToInt (workSurface.getY()); y < juce::roundToInt (workSurface.getBottom()); y += 4) { g.setColour ((y % 19 == 0 ? juce::Colours::white : juce::Colours::black).withAlpha (0.008f)); g.drawHorizontalLine (y, workSurface.getX(), workSurface.getRight()); }
+     g.restoreState();
+-    // The reference chassis stops the champagne work surface immediately
+-    // below the Note Map. The remaining artboard is dark anodised metal and
+-    // a deep bottom shadow, never an empty beige area.
+-    const auto lowerTop = layout.originY + 980.0f * layout.scale;
+-    auto lowerChassis = juce::Rectangle<float> (workSurface.getX(), lowerTop, workSurface.getWidth(), juce::jmax (0.0f, workSurface.getBottom() - lowerTop));
+-    auto lowerFill = juce::ColourGradient (juce::Colour (0xff1a1b18), lowerChassis.getX(), lowerChassis.getY(), juce::Colour (0xff050605), lowerChassis.getX(), lowerChassis.getBottom(), false);
+-    g.setGradientFill (lowerFill); g.fillRect (lowerChassis);
+-    g.setColour (champagne.withAlpha (.24f)); g.drawHorizontalLine (juce::roundToInt (lowerTop), lowerChassis.getX(), lowerChassis.getRight());
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+     screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
+-    screw (D (24, 989, 1, 1).getPosition()); screw (D (1424, 989, 1, 1).getPosition());
++    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+     // Broad champagne rails are a defining part of the hardware chassis.
+-    auto leftRail = D (7, 43, 31, 959), rightRail = D (1410, 43, 31, 959);
++    auto leftRail = D (7, 43, 31, 953), rightRail = D (1410, 43, 31, 953);
+     auto railFill = juce::ColourGradient (juce::Colour (0xffeadbca), leftRail.getX(), leftRail.getY(), juce::Colour (0xff8b7765), leftRail.getRight(), leftRail.getY(), false);
+     g.setGradientFill (railFill); g.fillRect (leftRail); g.fillRect (rightRail);
+     g.setColour (juce::Colour (0xff171713)); g.drawRect (leftRail, 1.1f); g.drawRect (rightRail, 1.1f);

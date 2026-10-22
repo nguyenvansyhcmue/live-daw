@@ -1,0 +1,22 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -50,6 +50,9 @@
+ #ifndef VIBE_HARD_LOCK_RAPID_REVERSAL_SETTLE_MS
+  #define VIBE_HARD_LOCK_RAPID_REVERSAL_SETTLE_MS 8.0
+ #endif
++#ifndef VIBE_HARD_TUNE_RAPID_REVERSAL_GUARD_SECONDS
++ #define VIBE_HARD_TUNE_RAPID_REVERSAL_GUARD_SECONDS 0.048
++#endif
+ #ifndef VIBE_HARD_LOCK_RAPID_REVERSAL_HOLD_SAMPLES
+  #define VIBE_HARD_LOCK_RAPID_REVERSAL_HOLD_SAMPLES 256
+ #endif
+@@ -2045,7 +2048,7 @@
+     static constexpr int targetReversalPersistenceFrames = 2;
+     // Alto analyses every 256 samples, so nine frames preserve a rapid
+     // returned note for 48 ms without changing ordinary note commits.
+-    static constexpr double hardTuneRapidReversalGuardSeconds = 0.048;
++    static constexpr double hardTuneRapidReversalGuardSeconds = VIBE_HARD_TUNE_RAPID_REVERSAL_GUARD_SECONDS;
+     // Classic still has a more direct target policy, but never permits a
+     // single suspicious analysis frame to become an audible note switch.
+     static constexpr int classicTargetPersistenceFrames = 2;

@@ -1,0 +1,73 @@
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/AudioEngine/AudioEngine.cpp
+@@ -1363,6 +1363,12 @@
+     // monitor delay merely because it still owns an inserted processor.
+     auto result = 0;
+     for (size_t trackIndex = 0; trackIndex < structure.trackCount; ++trackIndex)
++    {
++        const auto outputBusIndex = structure.getBusIndex(structure.tracks[trackIndex].outputBus);
++        if (outputBusIndex >= 0)
++            result = juce::jmax(result,
++                                rackLatencySamples(structure.buses[static_cast<size_t>(outputBusIndex)].fxRack));
++
+         for (const auto& send : structure.tracks[trackIndex].sends)
+             if (send.targetBus.isValid())
+             {
+@@ -1370,6 +1376,7 @@
+                 if (busIndex >= 0)
+                     result = juce::jmax(result, rackLatencySamples(structure.buses[static_cast<size_t>(busIndex)].fxRack));
+             }
++    }
+     return result;
+ }
+
+--- a/tests/CorePlaybackMixerTests.cpp
++++ b/tests/CorePlaybackMixerTests.cpp
+@@ -1437,7 +1437,39 @@
+                       && approximatelyEqual(right[2], centredStereoSum),
+                   "track plugin latency compensation aligns a delayed insert with dry tracks");
+ }
++
++bool testAuxOutputLatencyCompensation()
++{
++    TrackDataModel model;
++    const auto directTrack = model.addTrack(TrackType::audio);
++    const auto auxTrack = model.addTrack(TrackType::audio);
++    const auto aux = model.addBus();
++    model.setBusFxProcessor(aux, 0, std::make_shared<FixedLatencyImpulseEffect>());
++    model.setTrackOutputBus(auxTrack, aux);
+ 
++    auto impulse = std::make_shared<juce::AudioBuffer<float>>(2, 4);
++    impulse->clear();
++    impulse->setSample(0, 0, 0.25f);
++    impulse->setSample(1, 0, 0.25f);
++    model.addClipToTrack(model.getTrackIndex(directTrack), {}, 0.0, impulse);
++    model.addClipToTrack(model.getTrackIndex(auxTrack), {}, 0.0, impulse);
++
++    OfflineAudioDevice device(4);
++    AudioEngine engine(&model);
++    engine.audioDeviceAboutToStart(&device);
++    model.setPlaying(true);
++    float left[4] {}, right[4] {};
++    float* outputs[] { left, right };
++    engine.audioDeviceIOCallbackWithContext(nullptr, 0, outputs, 2, 4, {});
++    engine.audioDeviceStopped();
++
++    constexpr auto alignedStereoSum = 2.0f * 0.25f * 0.70710678f;
++    return expect(approximatelyEqual(left[0], 0.0f) && approximatelyEqual(right[0], 0.0f)
++                      && approximatelyEqual(left[2], alignedStereoSum)
++                      && approximatelyEqual(right[2], alignedStereoSum),
++                  "Studio PDC aligns a direct track with an AUX-output track that owns latency");
++}
++
+ bool testPluginReceivesExactDeviceCallbackSpan()
+ {
+     TrackDataModel model;
+@@ -2470,6 +2502,7 @@
+         && testPunchRecordingCapture()
+         && testMarqueeRangeDeletion()
+         && testTrackPluginDelayCompensation()
++        && testAuxOutputLatencyCompensation()
+         && testPluginReceivesExactDeviceCallbackSpan()
+         && testInputMonitoring()
+         && testLiveInputRunsThroughTrackFx()

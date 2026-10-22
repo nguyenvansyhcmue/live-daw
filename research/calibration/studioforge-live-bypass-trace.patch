@@ -1,0 +1,92 @@
+diff --git a/Source/AudioEngine/AudioEffectProcessor.h b/Source/AudioEngine/AudioEffectProcessor.h
+--- a/Source/AudioEngine/AudioEffectProcessor.h
++++ b/Source/AudioEngine/AudioEffectProcessor.h
+@@ -28,6 +28,7 @@ struct LiveProcessorHealth
+     LiveProcessorState state = LiveProcessorState::unavailable;
+     float wetMix = 0.0f;
+     bool voiced = false;
++    bool bypassed = false;
+     uint64_t protectionCount = 0;
+     uint64_t overloadCount = 0;
+ };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.h b/Source/Plugins/NativeVibeAutotuneProcessor.h
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.h
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.h
+@@ -58,6 +58,7 @@ private:
+     std::atomic<LiveProcessorState> liveState { LiveProcessorState::ready };
+     std::atomic<float> publishedWetMix { 0.0f };
+     std::atomic<bool> publishedVoiced { false };
++    std::atomic<bool> publishedBypassed { false };
+     std::atomic<uint64_t> protectionCount { 0 };
+     std::atomic<uint64_t> overloadCount { 0 };
+ };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -48,6 +48,7 @@ void NativeVibeAutotuneProcessor::prepareToPlay(double sampleRate, int samplesP
+     wasBypassed = true;
+     liveState.store(LiveProcessorState::ready, std::memory_order_relaxed);
+     publishedWetMix.store(0.0f, std::memory_order_relaxed);
++    publishedBypassed.store(false, std::memory_order_relaxed);
+     prepared = true;
+ }
+@@ -79,8 +80,10 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& b
+         liveState.store(LiveProcessorState::ready, std::memory_order_relaxed);
+         publishedWetMix.store(0.0f, std::memory_order_relaxed);
+         publishedVoiced.store(false, std::memory_order_relaxed);
++        publishedBypassed.store(true, std::memory_order_relaxed);
+         return;
+     }
++    publishedBypassed.store(false, std::memory_order_relaxed);
+ 
+     const auto samples = buffer.getNumSamples();
+@@ -251,6 +254,7 @@ LiveProcessorHealth NativeVibeAutotuneProcessor::getLiveProcessorHealth() const
+     health.state = liveState.load(std::memory_order_relaxed);
+     health.wetMix = publishedWetMix.load(std::memory_order_relaxed);
+     health.voiced = publishedVoiced.load(std::memory_order_relaxed);
++    health.bypassed = publishedBypassed.load(std::memory_order_relaxed);
+     health.protectionCount = protectionCount.load(std::memory_order_relaxed);
+     health.overloadCount = overloadCount.load(std::memory_order_relaxed);
+     return health;
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1606,6 +1606,7 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputCha
+         float monitoredTrackPostFxPeak = 0.0f;
+         LiveProcessorHealth vibeHealth;
+         auto hasNativeVibe = false;
++        auto vibeRackBypassed = false;
+         if (structure != nullptr)
+             for (size_t index = 0; index < structure->trackCount; ++index)
+                 if (isInputMonitoringEligible(structure->tracks[index]))
+@@ -1616,10 +1616,13 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputCha
+                     monitoredPhysicalInput = structure->tracks[index].inputChannel;
+                     monitoredTrackPostFxPeak = TrackMixing::peak(trackBuffers[index], numSamples);
+                     if (const auto* rack = structure->tracks[index].fxRack; rack != nullptr)
+-                        for (const auto& processor : rack->processors)
++                        for (size_t slot = 0; slot < rack->processors.size(); ++slot)
++                        {
++                            const auto& processor = rack->processors[slot];
+                             if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune())
+                             {
+                                 vibeHealth = processor->getLiveProcessorHealth();
++                                vibeRackBypassed = rack->bypass[slot];
+                                 hasNativeVibe = true;
+                                 break;
+                             }
++                        }
+@@ -1630,7 +1632,12 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputCha
+         event.input = monitoredPhysicalInput;
+         event.mode = static_cast<int>(getWorkspaceMode());
+         event.panic = static_cast<uint8_t>(panicMuteEnabled.load(std::memory_order_relaxed));
+         event.trackPostFxPeak = monitoredTrackPostFxPeak;
+-        event.vibeState = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.state) : 0;
++        // 5 = host FX-slot bypass; 6 = Vibe's own bypass parameter. Existing
++        // 0..4 values remain the LiveProcessorState enum, keeping CSV schema
++        // stable while showing which layer prevented live correction.
++        event.vibeState = ! hasNativeVibe ? 0
++            : vibeRackBypassed ? 5
++            : vibeHealth.bypassed ? 6 : static_cast<uint8_t>(vibeHealth.state);
+         event.vibeWetMix = hasNativeVibe ? vibeHealth.wetMix : 0.0f;
+         event.vibeProtectionCount = hasNativeVibe ? vibeHealth.protectionCount : 0;
+         event.vibeOverloadCount = hasNativeVibe ? vibeHealth.overloadCount : 0;

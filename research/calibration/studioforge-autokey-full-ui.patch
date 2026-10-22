@@ -1,0 +1,103 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -121,7 +121,6 @@ target_sources(StudioForgeDAW PRIVATE
+     Source/Midi/MidiTransposeProcessor.cpp
+     Source/Plugins/PluginHostService.cpp
+     Source/UI/MainComponent.cpp
+-    Source/UI/TuneAiPanel.cpp
+     Source/UI/DeviceSettingsPanel.cpp
+     Source/UI/ProjectSettingsPanel.cpp
+     Source/UI/PluginBrowserPanel.cpp
+diff --git a/Source/UI/MainComponent.h b/Source/UI/MainComponent.h
+--- a/Source/UI/MainComponent.h
++++ b/Source/UI/MainComponent.h
+@@ -22,8 +22,6 @@
+ #include "../Control/PitchCorrectionIntegrationService.h"
+ #include "../Core/WorkspaceModeController.h"
+ 
+-class TuneAiPanel;
+-
+ class MainComponent final : public juce::Component, private juce::Timer
+ {
+ public:
+@@ -88,7 +86,5 @@ private:
+     juce::String applyTuneAiKey(const MusicalKey&, bool mic1, bool mic2);
+     void beginBeatKeyLearning(int trackIndex);
+     void requestWorkspaceMode(WorkspaceMode mode);
+-    void showTuneAiPanel();
+-    void hideTuneAiPanel();
+     void timerCallback() override;
+     juce::File createRecordingDestination() const;
+@@ -100,7 +96,6 @@ private:
+     PluginHostService pluginHost;
+     PitchCorrectionIntegrationService pitchCorrection { trackDataModel, pluginHost, controlBridge };
+     TuneAiAnalysisService tuneAiAnalysis;
+-    std::unique_ptr<TuneAiPanel> tuneAiPanel;
+     ControlBar controlBar { &trackDataModel, &audioEngine };
+     ArrangeWindow arrangeWindow { &trackDataModel, &audioEngine };
+     InspectorPane inspectorPane { trackDataModel, audioEngine, pluginHost };
+diff --git a/Source/UI/MainComponent.cpp b/Source/UI/MainComponent.cpp
+--- a/Source/UI/MainComponent.cpp
++++ b/Source/UI/MainComponent.cpp
+@@ -3,7 +3,6 @@
+ #include "../Project/ProjectSerializer.h"
+ #include "../Project/ProjectState.h"
+ #include "StudioForgeDialog.h"
+-#include "TuneAiPanel.h"
+ 
+ MainComponent::MainComponent()
+ {
+@@ -261,35 +260,9 @@ void MainComponent::requestWorkspaceMode(WorkspaceMode mode)
+ 
+ void MainComponent::requestTuneAiUrlAnalysis()
+ {
+-    showTuneAiPanel();
+-}
+-
+-void MainComponent::showTuneAiPanel()
+-{
+-    if (tuneAiPanel == nullptr)
+-    {
+-        tuneAiPanel = std::make_unique<TuneAiPanel>(tuneAiAnalysis,
+-            [safeThis = juce::Component::SafePointer<MainComponent>(this)] (const MusicalKey& key, bool mic1, bool mic2)
+-            {
+-                return safeThis != nullptr ? safeThis->applyTuneAiKey(key, mic1, mic2)
+-                                           : juce::String("StudioForge is no longer available.");
+-            });
+-        tuneAiPanel->onDismissRequested = [safeThis = juce::Component::SafePointer<MainComponent>(this)]
+-        {
+-            if (safeThis != nullptr) safeThis->hideTuneAiPanel();
+-        };
+-        addChildComponent(*tuneAiPanel);
+-    }
+-
+-    tuneAiPanel->setVisible(true);
+-    tuneAiPanel->toFront(false);
+-    resized();
+-}
+-
+-void MainComponent::hideTuneAiPanel()
+-{
+-    if (tuneAiPanel != nullptr)
+-        tuneAiPanel->setVisible(false);
++    if (const auto result = tuneAiAnalysis.launchStandaloneApp(); result.failed())
++        StudioForgeDialog::showWarning("Tune-AI app could not open",
++                                       result.getErrorMessage());
+ }
+ 
+ juce::String MainComponent::applyTuneAiKey(const MusicalKey& key, bool useMic1, bool useMic2)
+@@ -1138,13 +1111,4 @@ void MainComponent::resized()
+ 
+     arrangeWindow.setBounds(area);
+     startupWorkflow.setBounds(getLocalBounds());
+-
+-    if (tuneAiPanel != nullptr && tuneAiPanel->isVisible())
+-    {
+-        const auto available = getLocalBounds().reduced(32);
+-        const auto width = juce::jmin(620, available.getWidth());
+-        const auto height = juce::jmin(480, available.getHeight());
+-        tuneAiPanel->setBounds(available.withSizeKeepingCentre(width, height));
+-        tuneAiPanel->toFront(false);
+-    }
+ }

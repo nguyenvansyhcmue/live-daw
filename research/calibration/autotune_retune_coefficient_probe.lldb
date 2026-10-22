@@ -1,0 +1,10 @@
+# OFFLINE ONLY; stop on the first 50 ms DSP entry after observing 0/10/25.
+command script import /Users/hiimdrdey/autotune/autotune_hook2_state_trace.py
+script autotune_hook2_state_trace.initialize(lldb.debugger)
+target modules add '/Library/Audio/Plug-Ins/Components/Auto-Tune Artist.component/Contents/MacOS/Auto-Tune Artist'
+breakpoint set --name 'AutoTunePluginAudioProcessor::parameterChanged' --shlib 'Auto-Tune Artist'
+breakpoint command add -F autotune_hook2_state_trace.parameter_changed 1
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add -F autotune_hook2_state_trace.retune_coefficient_probe 2
+run
+process kill

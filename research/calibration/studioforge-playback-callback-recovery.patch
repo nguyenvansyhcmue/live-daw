@@ -1,0 +1,69 @@
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1028,10 +1028,33 @@
+ 
+ void AudioEngine::setPlaybackState(bool shouldPlay) noexcept
+ {
++    if (shouldPlay)
++        restartAudioDeviceIfCallbackStalled();
+     if (dataModel != nullptr)
+         dataModel->setPlaying(shouldPlay);
+ }
++
++void AudioEngine::restartAudioDeviceIfCallbackStalled()
++{
++    auto* device = deviceManager.getCurrentAudioDevice();
++    if (device == nullptr)
++        return;
++
++    const auto now = static_cast<uint64_t>(juce::Time::getMillisecondCounterHiRes());
++    const auto last = lastAudioCallbackMs.load(std::memory_order_acquire);
++    // A healthy CoreAudio stream calls us continuously (normally every 1–11
++    // ms). A generous window prevents a restart during normal UI work while
++    // still recovering the dead-but-selected device state exposed by trace.
++    if (last != 0 && now - last < 750)
++        return;
++    if (restartingStalledAudioDevice.exchange(true, std::memory_order_acq_rel))
++        return;
++
++    deviceManager.closeAudioDevice();
++    deviceManager.restartLastAudioDevice();
++    restartingStalledAudioDevice.store(false, std::memory_order_release);
++}
+ 
+ bool AudioEngine::isPlaying() const noexcept
+ {
+     return dataModel != nullptr && dataModel->isPlaying();
+@@ -1572,6 +1595,8 @@
+     if (numSamples <= 0 || outputChannelData == nullptr)
+         return;
+ 
++    lastAudioCallbackMs.store(static_cast<uint64_t>(juce::Time::getMillisecondCounterHiRes()),
++                              std::memory_order_release);
+     CallbackTimingScope callbackTiming(*this, numSamples);
+ 
+     for (int channel = 0; channel < numOutputChannels; ++channel)
+diff --git a/Source/AudioEngine/AudioEngine.h b/Source/AudioEngine/AudioEngine.h
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -250,6 +250,10 @@ private:
+     void rebuildInputChannelMap(const juce::AudioIODevice* device) noexcept;
+     void rebuildOutputChannelMap(const juce::AudioIODevice* device) noexcept;
+     void recordDeviceSessionEvent(uint8_t kind) noexcept;
++    // Control-thread recovery for a CoreAudio session that reports a device
++    // but has stopped delivering callbacks. Playback has no transport clock
++    // in that condition, so recover before declaring the transport running.
++    void restartAudioDeviceIfCallbackStalled();
+     // Runs only on JUCE's message thread after CoreAudio reports that its
+     // device list changed. It never touches the realtime callback.
+     void recoverPreferredAudioDeviceAfterHotPlug();
+@@ -277,6 +281,8 @@ private:
+     std::unique_ptr<juce::MidiOutput> midiOutput;
+     std::atomic<juce::MidiOutput*> publishedMidiOutput { nullptr };
+     std::atomic<unsigned int> midiOutputCallbackUsers { 0 };
++    std::atomic<uint64_t> lastAudioCallbackMs { 0 };
++    std::atomic<bool> restartingStalledAudioDevice { false };
+     // Names loaded from audio-device.xml.  They deliberately survive a
+     // fallback to the built-in device, so a DAW opened before a Scarlett can
+     // reclaim the user's chosen interface as soon as it is plugged in.

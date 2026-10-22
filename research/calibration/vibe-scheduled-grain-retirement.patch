@@ -1,0 +1,11 @@
+diff --git a/autotune/VibeAutotune/CausalTDPSOLARenderer.h b/autotune/VibeAutotune/CausalTDPSOLARenderer.h
+--- a/autotune/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/autotune/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -2170,6 +2170,7 @@
+         // event remains addressable until every one of its contributions has
+         // become audible, which is the prerequisite for a later, safe
+         // source/synthesis reschedule.
++        retireAudibleScheduledGrains();
+         for (size_t attempt = 0; attempt < scheduledGrains.size(); ++attempt)
+         {
+             auto& slot = scheduledGrains[scheduledGrainWrite];

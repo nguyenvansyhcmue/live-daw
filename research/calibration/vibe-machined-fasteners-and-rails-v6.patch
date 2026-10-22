@@ -1,0 +1,104 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -503,21 +503,95 @@
+     g.setGradientFill (wellFill); g.fillRoundedRectangle (contentWell, 9.0f);
+     g.setColour (juce::Colour (0xffe1d5bf).withAlpha (.34f));
+     g.drawRoundedRectangle (contentWell.reduced (.5f), 9.0f, .8f);
+-    auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
++    // Machined fastener: cast shadow, recessed collar, radial metal face and
++    // a milled slot with its own highlight.  It remains procedural so it is
++    // crisp at every host scale instead of looking like a stretched icon.
++    auto drawFastener = [&] (juce::Point<float> centre, float slotAngle)
++    {
++        constexpr float diameter = 15.0f;
++        const auto face = juce::Rectangle<float> (diameter, diameter).withCentre (centre);
++        g.setColour (juce::Colours::black.withAlpha (.50f));
++        g.fillEllipse (face.translated (0.8f, 1.5f).expanded (1.0f));
++        auto collar = juce::ColourGradient (juce::Colour (0xfff0dfbd), face.getX(), face.getY(),
++                                            juce::Colour (0xff574b3b), face.getRight(), face.getBottom(), false);
++        collar.addColour (.48, juce::Colour (0xffbda77e));
++        g.setGradientFill (collar); g.fillEllipse (face);
++        g.setColour (juce::Colour (0xff191915)); g.fillEllipse (face.reduced (2.0f));
++        const auto disc = face.reduced (2.8f);
++        auto steel = juce::ColourGradient (juce::Colour (0xfff4ead6), disc.getX() + disc.getWidth() * .24f, disc.getY() + disc.getHeight() * .20f,
++                                           juce::Colour (0xff292823), disc.getRight(), disc.getBottom(), true);
++        steel.addColour (.34, juce::Colour (0xffb3a993));
++        steel.addColour (.72, juce::Colour (0xff5d5a50));
++        g.setGradientFill (steel); g.fillEllipse (disc);
++        juce::Path highlightArc;
++        highlightArc.addCentredArc (disc.getCentreX(), disc.getCentreY(), disc.getWidth() * .46f,
++                                    disc.getHeight() * .46f, 0.0f,
++                                    juce::MathConstants<float>::pi * 1.05f,
++                                    juce::MathConstants<float>::pi * 1.75f, true);
++        g.setColour (juce::Colours::white.withAlpha (.28f));
++        g.strokePath (highlightArc, juce::PathStrokeType (1.0f));
++        g.setColour (juce::Colours::black.withAlpha (.52f));
++        g.drawEllipse (disc.reduced (.25f), .65f);
++
++        juce::Path slot;
++        slot.addRoundedRectangle (-3.1f, -.72f, 6.2f, 1.44f, .55f);
++        const auto transform = juce::AffineTransform::rotation (slotAngle).translated (centre.x, centre.y);
++        g.setColour (juce::Colour (0xff11110f).withAlpha (.88f));
++        g.fillPath (slot, transform);
++        g.setColour (juce::Colour (0xfff1dfb7).withAlpha (.32f));
++        g.strokePath (slot, juce::PathStrokeType (.42f), transform);
++    };
+     // Narrow side cheeks sit inside the same work-surface clip as every
+     // other layer. They frame the contents instead of obscuring their edges.
+     // Rails are short inner cheeks, not full-height slabs.  Their ends stay
+     // clear of the corner fasteners and the outer chassis border.
+     auto leftRail = D (18, 73, 16, 892), rightRail = D (1414, 73, 16, 892);
+-    auto railFill = juce::ColourGradient (juce::Colour (0xffeadbca), leftRail.getX(), leftRail.getY(), juce::Colour (0xff8b7765), leftRail.getRight(), leftRail.getY(), false);
+     g.saveState();
+     juce::Path railClip; railClip.addRoundedRectangle (workSurface, 8.0f); g.reduceClipRegion (railClip);
+-    g.setGradientFill (railFill); g.fillRoundedRectangle (leftRail, 2.0f); g.fillRoundedRectangle (rightRail, 2.0f);
+-    g.setColour (juce::Colour (0xff171713).withAlpha (.60f)); g.drawRoundedRectangle (leftRail, 2.0f, .7f); g.drawRoundedRectangle (rightRail, 2.0f, .7f);
++    auto drawRail = [&] (juce::Rectangle<float> rail, bool isLeft)
++    {
++        const auto inward = isLeft ? 1.0f : -1.0f;
++        g.setColour (juce::Colours::black.withAlpha (.42f));
++        g.fillRoundedRectangle (rail.translated (inward * 2.0f, 1.2f).expanded (.8f, 0.0f), 2.6f);
++
++        auto metal = juce::ColourGradient (isLeft ? juce::Colour (0xff5c5043) : juce::Colour (0xffe8d8bd), rail.getX(), rail.getY(),
++                                           isLeft ? juce::Colour (0xffe8d8bd) : juce::Colour (0xff5c5043), rail.getRight(), rail.getY(), false);
++        metal.addColour (.16, isLeft ? juce::Colour (0xff9f8d77) : juce::Colour (0xffd8c6aa));
++        metal.addColour (.46, juce::Colour (0xfff0e1ca));
++        metal.addColour (.72, juce::Colour (0xffa18c74));
++        metal.addColour (.91, juce::Colour (0xff6f5f50));
++        g.setGradientFill (metal); g.fillRoundedRectangle (rail, 2.4f);
++
++        g.saveState();
++        g.reduceClipRegion (rail.toNearestInt());
++        for (float y = rail.getY() + 4.0f; y < rail.getBottom() - 3.0f; y += 5.0f)
++        {
++            const auto alpha = ((juce::roundToInt (y) / 5) & 1) != 0 ? .030f : .018f;
++            g.setColour (juce::Colours::white.withAlpha (alpha));
++            g.drawHorizontalLine (juce::roundToInt (y), rail.getX() + 1.0f, rail.getRight() - 1.0f);
++        }
++        g.restoreState();
++
++        const auto outerX = isLeft ? rail.getX() + .8f : rail.getRight() - .8f;
++        const auto innerX = isLeft ? rail.getRight() - 1.3f : rail.getX() + 1.3f;
++        g.setColour (juce::Colours::white.withAlpha (.34f));
++        g.drawVerticalLine (juce::roundToInt (outerX), rail.getY() + 3.0f, rail.getBottom() - 3.0f);
++        g.setColour (juce::Colour (0xff211d18).withAlpha (.72f));
++        g.drawVerticalLine (juce::roundToInt (innerX), rail.getY() + 2.0f, rail.getBottom() - 2.0f);
++        g.setColour (juce::Colour (0xfff2e3ca).withAlpha (.25f));
++        g.drawHorizontalLine (juce::roundToInt (rail.getY() + 1.0f), rail.getX() + 2.0f, rail.getRight() - 2.0f);
++        g.setColour (juce::Colours::black.withAlpha (.46f));
++        g.drawHorizontalLine (juce::roundToInt (rail.getBottom() - 1.0f), rail.getX() + 2.0f, rail.getRight() - 2.0f);
++        g.drawRoundedRectangle (rail.reduced (.35f), 2.1f, .7f);
++    };
++    drawRail (leftRail, true);
++    drawRail (rightRail, false);
+     g.restoreState();
+     // Hardware fasteners are the topmost chassis detail, never hidden by a rail.
+-    screw (D (25, 62, 1, 1).getPosition()); screw (D (1423, 62, 1, 1).getPosition());
+-    screw (D (25, 982, 1, 1).getPosition()); screw (D (1423, 982, 1, 1).getPosition());
++    drawFastener (D (25, 62, 1, 1).getPosition(), -.64f);
++    drawFastener (D (1423, 62, 1, 1).getPosition(), .58f);
++    drawFastener (D (25, 982, 1, 1).getPosition(), .72f);
++    drawFastener (D (1423, 982, 1, 1).getPosition(), -.52f);
+     // Header is a separate recessed faceplate, not a black shadow bleeding
+     // into the champagne surface below it.
+     auto header = headerBounds.toFloat();

@@ -1,0 +1,22 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -18,5 +18,10 @@
+ #endif
+ constexpr int rendererControlIntervalSamples = VIBE_RENDERER_CONTROL_INTERVAL_SAMPLES;
++// Offline renderer A/B only. The released component remains spectral.
++#ifndef VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE
++ #define VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE 0
++#endif
++
+ // Candidate-only hook.  The shipped value remains two control ticks; an
+ // offline build may measure whether a single certified hard-tune tick closes
+ // short-note misses without changing the selector or any public control.
+@@ -225,6 +230,6 @@ void VibeAutotuneProcessor::prepareToPlay (double newSampleRate, int samplesPer
+     // The spectral renderer has fixed storage and a fixed latency contract,
+     // so it is the production live path until TD-PSOLA has equivalent
+     // real-device stress coverage.
+-    usePhaseContinuousRenderer.store (true, std::memory_order_release);
++    usePhaseContinuousRenderer.store (! VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE, std::memory_order_release);
+     for (auto& renderer : phaseContinuousRenderers)
+         renderer.prepare (analysisSampleRate, psolaMaximumBlockSize);

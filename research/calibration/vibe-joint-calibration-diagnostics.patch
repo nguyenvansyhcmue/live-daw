@@ -1,0 +1,79 @@
+--- a/autotune/VibeAutotune/CorrectionTrajectory.h
++++ b/autotune/VibeAutotune/CorrectionTrajectory.h
+@@ -290,6 +290,15 @@
+             ? clamp (retune25T90Ms, 40.0, 140.0) / ln10
+             : artistRetune25MsTimeConstantMs;
+     }
++    // Offline joint-fit only. Unity values preserve every production curve.
++    void setDiagnosticJointControlScales (double flexResidualScale,
++                                          double humanizeScale,
++                                          double negativeNaturalPhaseScale) noexcept
++    {
++        diagnosticFlexResidualScale = clamp (flexResidualScale, 0.50, 1.50);
++        diagnosticHumanizeScale = clamp (humanizeScale, 0.50, 1.50);
++        diagnosticNegativeNaturalPhaseScale = clamp (negativeNaturalPhaseScale, 0.0, 2.50);
++    }
+     // The verified Artist response through 50 ms is preserved below. Above
+     // it, displayed Retune means correction time: at 300/400 ms correction
+     // covers 90% of its initial error in 300/400 ms. Target choice remains
+@@ -1126,7 +1135,8 @@
+         // variance determine whether a residual is vibrato.
+         const auto humanize = humanizeProcessor.process (humanizePercent, fastRetuneAmount,
+                                                           sustainRamp, humanizeVibratoRecognition,
+-                                                          sampleRate, hopSamples);
++                                                          sampleRate, hopSamples)
++                              * diagnosticHumanizeScale;
+         // Artist's neutral behaviour is level-dependent: a small natural
+         // vibrato remains almost intact, while a wide 30-cent vibrato is
+         // pulled firmly toward centre. Humanize progressively restores that
+@@ -2063,7 +2073,7 @@
+     // Rows are Flex 0/25/50/75/100 and columns are -60..+60 cents.
+     // Bilinear interpolation keeps automation continuous between the
+     // observed control positions without inventing a symmetric response.
+-    static double flexCorrectionGain (double flex, double pitchErrorCents) noexcept
++    double flexCorrectionGain (double flex, double pitchErrorCents) const noexcept
+     {
+         constexpr std::array<double, 5> flexKnots {{ 0.0, 0.25, 0.50, 0.75, 1.0 }};
+         constexpr std::array<double, 9> errorKnots {{ -60.0, -30.0, -10.0, -5.0,
+@@ -2102,7 +2112,8 @@
+         const auto residualAtUpperFlex = residualFraction[flexLower + 1][errorLower]
+                                         + (residualFraction[flexLower + 1][errorLower + 1]
+                                            - residualFraction[flexLower + 1][errorLower]) * errorAmount;
+-        const auto residual = residualAtLowerFlex + (residualAtUpperFlex - residualAtLowerFlex) * flexAmount;
++        const auto residual = clamp01 ((residualAtLowerFlex
++                                       + (residualAtUpperFlex - residualAtLowerFlex) * flexAmount) * diagnosticFlexResidualScale);
+         return 1.0 - residual;
+     }
+ 
+@@ -2790,6 +2801,8 @@
+         {{ 1.004, 1.254, 1.228 }}  // +12
+     }};
+     double diagnosticNegativeNaturalPhaseScale = 1.0;
++    double diagnosticFlexResidualScale = 1.0;
++    double diagnosticHumanizeScale = 1.0;
+     double transitionStartCents = std::numeric_limits<double>::quiet_NaN();
+     double transitionEndCents = std::numeric_limits<double>::quiet_NaN();
+     double transitionTargetCents = std::numeric_limits<double>::quiet_NaN();
+--- a/autotune/VibeAutotune/PluginProcessor.cpp
++++ b/autotune/VibeAutotune/PluginProcessor.cpp
+@@ -136,6 +136,9 @@ VibeAutotuneProcessor::createParameterLayout()
+     // through the AU host process.
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticRetune10T90Ms", 1 }, "Diagnostic Retune 10 T90", Range (-1.0f, 80.0f, 0.1f), -1.0f));
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticRetune25T90Ms", 1 }, "Diagnostic Retune 25 T90", Range (-1.0f, 140.0f, 0.1f), -1.0f));
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticFlexResidualScale", 1 }, "Diagnostic Flex Residual", Range (0.5f, 1.5f, 0.01f), 1.0f));
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticHumanizeScale", 1 }, "Diagnostic Humanize Scale", Range (0.5f, 1.5f, 0.01f), 1.0f));
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticNegativeNaturalPhaseScale", 1 }, "Diagnostic Natural Phase", Range (0.0f, 2.5f, 0.01f), 1.0f));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "key", 1 }, "Key", juce::StringArray { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 6));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "scale", 1 }, "Scale", juce::StringArray {
+         "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic",
+@@ -1643,6 +1646,10 @@ void VibeAutotuneProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
+         const auto diagnosticRetune25T90Ms = parameters.getRawParameterValue ("diagnosticRetune25T90Ms")->load (std::memory_order_relaxed);
+         correctionTrajectory.setDiagnosticRetuneT90Overrides (diagnosticRetune10T90Ms,
+                                                                diagnosticRetune25T90Ms);
++        correctionTrajectory.setDiagnosticJointControlScales (
++            parameters.getRawParameterValue ("diagnosticFlexResidualScale")->load (std::memory_order_relaxed),
++            parameters.getRawParameterValue ("diagnosticHumanizeScale")->load (std::memory_order_relaxed),
++            parameters.getRawParameterValue ("diagnosticNegativeNaturalPhaseScale")->load (std::memory_order_relaxed));
+         const auto voicedColourPercent = parameters.getRawParameterValue ("voicedColour")->load (std::memory_order_relaxed);
+         for (auto& renderer : tdpsolaRenderers)
+             renderer.setVoicedColourAmountPercent (voicedColourPercent);

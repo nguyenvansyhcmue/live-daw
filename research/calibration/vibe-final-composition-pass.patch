@@ -1,0 +1,32 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -684,12 +684,14 @@ void VibeAutotuneEditor::resized()
+-    retuneSpeedLabel.setBounds (D (75, 176, 275, 24));
+-    knobBounds[0] = D (65, 228, 285, 355); retuneSpeedSlider.setBounds (knobBounds[0]);
++    // Correction column: dominant, but no longer so oversized that it
++    // overwhelms the monitor and makes the three-panel composition lopsided.
++    retuneSpeedLabel.setBounds (D (83, 184, 258, 22));
++    knobBounds[0] = D (82, 239, 258, 322); retuneSpeedSlider.setBounds (knobBounds[0]);
+ 
+     const auto character = [&] (int index, float y, juce::Label& label, juce::Slider& slider)
+     {
+-        label.setBounds (D (365, y, 145, 20));
+-        knobBounds[(size_t) index] = D (365, y + 31, 145, 140); slider.setBounds (knobBounds[(size_t) index]);
++        label.setBounds (D (370, y, 130, 18));
++        knobBounds[(size_t) index] = D (370, y + 27, 130, 128); slider.setBounds (knobBounds[(size_t) index]);
+@@ -707,10 +709,10 @@ void VibeAutotuneEditor::resized()
+         label.setBounds (D (x, y, 150, 20));
+-        knobBounds[(size_t) index] = D (x, y + 30, 150, 165); slider.setBounds (knobBounds[(size_t) index]);
++        knobBounds[(size_t) index] = D (x, y + 26, 150, 154); slider.setBounds (knobBounds[(size_t) index]);
+     };
+-    utility (4, 1032, 302, transposeLabel, transposeSlider);
+-    utility (5, 1228, 302, referencePitchLabel, referencePitchSlider);
+-    utility (6, 1032, 507, trackingLabel, trackingSlider);
+-    utility (7, 1228, 507, voicedColourLabel, voicedColourSlider);
++    // Utility controls start high enough to balance the monitor instead of
++    // leaving an accidental, empty upper third of the right-hand panel.
++    utility (4, 1032, 226, transposeLabel, transposeSlider);
++    utility (5, 1228, 226, referencePitchLabel, referencePitchSlider);
++    utility (6, 1032, 431, trackingLabel, trackingSlider);
++    utility (7, 1228, 431, voicedColourLabel, voicedColourSlider);

@@ -1,0 +1,37 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -30,6 +30,13 @@ constexpr int rendererControlIntervalSamples = VIBE_RENDERER_CONTROL_INTERVAL_SA
+  #define VIBE_TDPSOLA_PLANNER_HANDOFF_MARGIN_SAMPLES -1
+ #endif
+ 
++// Offline Studio-quality A/B only. The normal component retains 1152
++// samples; a larger value gives retimable TD-PSOLA epochs real future
++// control evidence and is reported to the host for correct PDC.
++#ifndef VIBE_TDPSOLA_LATENCY_SAMPLES
++ #define VIBE_TDPSOLA_LATENCY_SAMPLES 1152
++#endif
++
+ // Candidate-only hook.  The shipped value remains two control ticks; an
+ // offline build may measure whether a single certified hard-tune tick closes
+ // short-note misses without changing the selector or any public control.
+@@ -226,8 +233,8 @@ void VibeAutotuneProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
+     pitchAnalysisFrame.resize (maximumPitchAnalysisFrameSize, 0.0f);
+     rawPitchAnalysisFrame.resize (maximumPitchAnalysisFrameSize, 0.0f);
+     psolaMaximumBlockSize = juce::jmax (samplesPerBlock, activeSourceSchedulerQuantumSamples);
+     psolaMaximumChannels = juce::jlimit (1, 2, getTotalNumInputChannels());
+-    constexpr auto tdpsolaLatencySamples = 1152;
++    constexpr auto tdpsolaLatencySamples = VIBE_TDPSOLA_LATENCY_SAMPLES;
+     for (auto& renderer : tdpsolaRenderers)
+     {
+         renderer.prepare (analysisSampleRate, psolaMaximumBlockSize, tdpsolaLatencySamples);
+@@ -250,5 +257,8 @@ void VibeAutotuneProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
+     usePhaseContinuousRenderer.store (! VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE, std::memory_order_release);
+     for (auto& renderer : phaseContinuousRenderers)
+         renderer.prepare (analysisSampleRate, psolaMaximumBlockSize);
+-    rendererLatencySamples = phaseContinuousRenderers[0].latencySamples();
++    // A TD-PSOLA quality candidate must expose the same latency to its
++    // control stream and host PDC as it gives its output FIFO.
++    rendererLatencySamples = VIBE_USE_CAUSAL_TDPSOLA_RENDERER_CANDIDATE
++                           ? tdpsolaLatencySamples : phaseContinuousRenderers[0].latencySamples();
+     rendererControlDelaySamples = rendererLatencySamples;

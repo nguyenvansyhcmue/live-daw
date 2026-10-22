@@ -1,0 +1,79 @@
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.h b/Source/AudioEngine/AudioDiagnosticTracer.h
+--- a/Source/AudioEngine/AudioDiagnosticTracer.h
++++ b/Source/AudioEngine/AudioDiagnosticTracer.h
+@@ -20,12 +20,15 @@ public:
+         uint64_t outputMask;
+         double sampleRate;
+-        float inputPeak, secondaryInputPeak, outputPeak;
++        float inputPeak, secondaryInputPeak, outputPeak, trackPostFxPeak, vibeWetMix;
++        uint64_t vibeProtectionCount, vibeOverloadCount;
+         uint32_t callbackFrames;
+         uint32_t deviceBufferSize;
+         uint32_t deviceHash;
+         int input, mode;
+-        uint8_t kind, inputChannels, outputChannels, panic;
++        uint8_t kind, inputChannels, outputChannels, panic, vibeState;
+     };
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -45,5 +45,5 @@ void AudioDiagnosticTracer::run()
+ {
+     std::unique_ptr<juce::FileOutputStream> stream(output.createOutputStream());
+     if (stream == nullptr) return;
+-    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,inputChannel,mode,panic,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
++    stream->writeText("ms,kind,callbackFrames,input,input2,output,track,trackPostFx,inputChannel,mode,panic,vibeState,vibeWetMix,vibeProtectionCount,vibeOverloadCount,deviceHash,sampleRate,deviceBuffer,inputChannels,outputChannels,inputMask,outputMask,coreAudioInputGain,coreAudioInputMuted\n", false, false, "UTF-8");
+     auto nextCoreAudioPoll = uint64_t { 0 };
+@@ -57,7 +57,12 @@ void AudioDiagnosticTracer::run()
+             stream->writeText(juce::String(e.ms) + "," + juce::String(e.kind) + ","
+                               + juce::String(e.callbackFrames) + "," + juce::String(e.inputPeak) + ","
+                               + juce::String(e.secondaryInputPeak) + "," + juce::String(e.outputPeak) + ","
+                               + juce::String(e.trackId) + "," + juce::String(e.input) + ","
+-                              + juce::String(e.mode) + "," + juce::String(e.panic) + ","
++                              + juce::String(e.trackPostFxPeak) + "," + juce::String(e.input) + ","
++                              + juce::String(e.mode) + "," + juce::String(e.panic) + ","
++                              + juce::String(static_cast<int>(e.vibeState)) + ","
++                              + juce::String(e.vibeWetMix) + ","
++                              + juce::String(e.vibeProtectionCount) + ","
++                              + juce::String(e.vibeOverloadCount) + ","
+                               + juce::String(e.deviceHash) + "," + juce::String(e.sampleRate) + ","
+                               + juce::String(e.deviceBufferSize) + "," + juce::String(e.inputChannels) + ","
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1530,10 +1530,14 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChann
+     {
+         uint64_t monitoredTrackId = 0;
+         auto monitoredPhysicalInput = -1;
++        float monitoredTrackPostFxPeak = 0.0f;
++        LiveProcessorHealth vibeHealth;
++        auto hasNativeVibe = false;
+         if (structure != nullptr)
+             for (size_t index = 0; index < structure->trackCount; ++index)
+                 if (isInputMonitoringEligible(structure->tracks[index]))
+                 {
+                     monitoredTrackId = structure->tracks[index].id.value;
+                     monitoredPhysicalInput = structure->tracks[index].inputChannel;
++                    monitoredTrackPostFxPeak = TrackMixing::peak(trackBuffers[index], numSamples);
++                    if (const auto* rack = structure->tracks[index].fxRack; rack != nullptr)
++                        for (const auto& processor : rack->processors)
++                            if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune())
++                            {
++                                vibeHealth = processor->getLiveProcessorHealth();
++                                hasNativeVibe = true;
++                                break;
++                            }
+                     break;
+                 }
+@@ -1540,7 +1544,12 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChann
+         event.callbackFrames = static_cast<uint32_t>(numSamples);
+         event.trackId = monitoredTrackId;
+         event.input = monitoredPhysicalInput;
+         event.mode = static_cast<int>(getWorkspaceMode());
+         event.panic = static_cast<uint8_t>(panicMuteEnabled.load(std::memory_order_relaxed));
++        event.trackPostFxPeak = monitoredTrackPostFxPeak;
++        event.vibeState = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.state) : 0;
++        event.vibeWetMix = hasNativeVibe ? vibeHealth.wetMix : 0.0f;
++        event.vibeProtectionCount = hasNativeVibe ? vibeHealth.protectionCount : 0;
++        event.vibeOverloadCount = hasNativeVibe ? vibeHealth.overloadCount : 0;
+         if (monitoredPhysicalInput >= 0)

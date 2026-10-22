@@ -1,0 +1,106 @@
+--- a/Tools/StudioForgeCalibrationRunner.cpp
++++ b/Tools/StudioForgeCalibrationRunner.cpp
+@@ -18,6 +18,8 @@
+     if (argc >= 4) request.pluginQuery = argv[3];
+     // One-at-a-time calibration matrix. Case 0 locks the accepted hard-tune
+     // baseline; every other case varies exactly one Artist/Vibe control.
++    // naturalVibrato is the native -12..+12 control, not a UI percent.
++    // Values such as 25/50/75/100 clamp, yielding duplicate bounces.
+     request.cases = { { 0.0f, 0.0f, 0.0f, 0.0f } };
+     for (const auto value : { 10.0f, 25.0f, 50.0f, 100.0f })
+         request.cases.push_back ({ value, 0.0f, 0.0f, 0.0f });
+@@ -25,8 +27,14 @@
+         request.cases.push_back ({ 0.0f, value, 0.0f, 0.0f });
+     for (const auto value : { 25.0f, 50.0f, 75.0f, 100.0f })
+         request.cases.push_back ({ 0.0f, 0.0f, value, 0.0f });
+-    for (const auto value : { 25.0f, 50.0f, 75.0f, 100.0f })
++    for (const auto value : { -12.0f, -9.0f, -6.0f, 3.0f, 6.0f, 9.0f, 12.0f })
+         request.cases.push_back ({ 0.0f, 0.0f, 0.0f, value });
++
++    // Corrected legacy mixed controls: Natural Vibrato remains native.
++    request.cases.push_back ({ 10.0f, 25.0f, 25.0f, 0.0f });
++    request.cases.push_back ({ 25.0f, 50.0f, 50.0f, 3.0f });
++    request.cases.push_back ({ 50.0f, 75.0f, 75.0f, 6.0f });
++    request.cases.push_back ({ 100.0f, 100.0f, 100.0f, 12.0f });
+     juce::String report;
+     if (const auto result = StudioForgeCalibrationRunner::run(request, report); result.failed())
+     {
+--- a/Source/Services/StudioForgeCalibrationRunner.cpp
++++ b/Source/Services/StudioForgeCalibrationRunner.cpp
+@@ -9,6 +9,21 @@
+ {
+ juce::Result configure(AudioEffectProcessor& effect, const StudioForgeCalibrationRunner::Settings& settings)
+ {
++    const auto textValue = [&effect] (std::initializer_list<const char*> names, const juce::String& value)
++    {
++        for (const auto* name : names)
++        {
++            if (! effect.setParameterText(name, value))
++                continue;
++
++            // A text setter can coerce invalid enum text to item zero.
++            // Verify the displayed state instead of trusting the setter.
++            if (effect.getParameterText(name).containsIgnoreCase(value))
++                return true;
++        }
++        return false;
++    };
++
+     const auto text = [&effect] (std::initializer_list<const char*> names, float value)
+     {
+         for (const auto* name : names)
+@@ -24,14 +39,21 @@
+         || ! text({ "Vibrato", "Natural Vibrato" }, settings.naturalVibrato))
+         return juce::Result::fail("Plug-in does not expose Retune, Flex, Humanize, and Vibrato controls");
+ 
+-    // Artist's enums do not parse display strings. Configure its stable
+-    // black-box reference preset only when this is an Artist instance; Vibe
+-    // retains its own selected key/input defaults.
+-    if (effect.getName().containsIgnoreCase("Auto-Tune Artist")
+-        && (! effect.setParameterValue("Input Type", 1.0f / 4.0f)
++    if (effect.getName().containsIgnoreCase("Auto-Tune Artist"))
++    {
++        // Artist's enums do not parse display strings. These normalized
++        // indices are the fixed Alto / F# / Natural Minor reference preset.
++        if (! effect.setParameterValue("Input Type", 1.0f / 4.0f)
+             || ! effect.setParameterValue("Key", 6.0f / 11.0f)
+-            || ! effect.setParameterValue("Scale", 1.0f / 27.0f)))
+-        return juce::Result::fail("Auto-Tune Artist does not expose its expected key controls");
++            || ! effect.setParameterValue("Scale", 1.0f / 27.0f))
++            return juce::Result::fail("Auto-Tune Artist does not expose its expected key controls");
++    }
++    else if (! textValue({ "Input Type", "Voice", "inputType" }, "Alto")
++             || ! textValue({ "Key", "key" }, "F#")
++             || ! textValue({ "Scale", "scale" }, "Natural Minor"))
++    {
++        return juce::Result::fail("VibeAutotune could not lock Alto / F# / Natural Minor");
++    }
+     return juce::Result::ok();
+ }
+ 
+--- a/Tools/analyze_studioforge_calibration.py
++++ b/Tools/analyze_studioforge_calibration.py
+@@ -10,7 +10,8 @@
+ import numpy as np
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "autotune" / "tools"))
+-from compare_pitch_correction_bounces import align, normalized_lag, pitch_track, read_mono
++from compare_pitch_correction_bounces import align, pitch_track, read_mono
++from measure_artist_vibe_latency_aligned import envelope_delay
+ 
+ 
+ def midi(hz):
+@@ -83,9 +84,10 @@ def main():
+         vibe_rate, vibe_signal = read_mono(Path(vibe[case]["output"]))
+         if artist_rate != rate or vibe_rate != rate:
+             raise RuntimeError("All bounces must use the raw input sample rate")
+-        max_lag = int(rate * 0.250)
+-        artist_lag = normalized_lag(raw, artist_signal, max_lag)
+-        vibe_lag = normalized_lag(raw, vibe_signal, max_lag)
++        # Waveform correlation is invalid for PSOLA A/B: matching pitch may
++        # have different phase and grain placement. Align the RMS envelope.
++        artist_lag = envelope_delay(raw, artist_signal, rate)
++        vibe_lag = envelope_delay(raw, vibe_signal, rate)
+         _, artist_aligned = align(raw, artist_signal, artist_lag)
+         _, vibe_aligned = align(raw, vibe_signal, vibe_lag)
+         length = min(len(artist_aligned), len(vibe_aligned))

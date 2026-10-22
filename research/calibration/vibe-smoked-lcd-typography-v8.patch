@@ -1,0 +1,43 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -7,7 +7,8 @@
+ const auto champagne = juce::Colour (0xffd5c5a7), brass = juce::Colour (0xffd5a34b);
+ const auto graphite = juce::Colour (0xff171816), raised = juce::Colour (0xff2a2a26);
+ const auto glass = juce::Colour (0xff070908), ivory = juce::Colour (0xffe3ddcf);
+-const auto ice = juce::Colour (0xffa9c0ca), mint = juce::Colour (0xff91bba0), muted = juce::Colour (0xff716f67);
++const auto ice = juce::Colour (0xffa9c0ca), smokeInk = juce::Colour (0xffaaa69d);
++const auto mint = juce::Colour (0xff91bba0), muted = juce::Colour (0xff716f67);
+ constexpr int firstKey = 24, lastKey = 83;
+ constexpr bool blackKey (int n) { const int p = (n % 12 + 12) % 12; return p == 1 || p == 3 || p == 6 || p == 8 || p == 10; }
+ struct Range { int low, high; };
+@@ -662,10 +663,10 @@
+     auto inputColumn = top.removeFromLeft (110);
+     auto targetColumn = top.removeFromRight (110);
+     g.setFont (juce::FontOptions (16.0f * layout.scale, juce::Font::bold));
+-    g.setColour (ice.withAlpha (.90f)); g.drawText ("INPUT", inputColumn.removeFromTop (17), juce::Justification::centredLeft);
++    g.setColour (smokeInk.withAlpha (.88f)); g.drawText ("INPUT", inputColumn.removeFromTop (17), juce::Justification::centredLeft);
+     g.setColour (champagne.withAlpha (.92f)); g.drawText ("TARGET", targetColumn.removeFromTop (17), juce::Justification::centredRight);
+     g.setFont (juce::FontOptions (29.0f * layout.scale, juce::Font::bold));
+-    g.setColour (ice); g.drawText (visualHasPitch ? visualInputNote : "--", inputColumn, juce::Justification::centredLeft);
++    g.setColour (smokeInk); g.drawText (visualHasPitch ? visualInputNote : "--", inputColumn, juce::Justification::centredLeft);
+     g.setColour (champagne); g.drawText (visualHasPitch ? visualTargetNote : "--", targetColumn, juce::Justification::centredRight);
+     auto c=juce::Point<float>(d.getCentreX(),d.getY()+d.getHeight()*.438f);auto radius=juce::jmin(d.getWidth()*.45f,d.getHeight()*.34f);auto circle=juce::Rectangle<float>(radius*2,radius*2).withCentre(c);g.setColour(juce::Colour(0xff383a36));g.drawEllipse(circle,1);for(int i=0;i<49;i++){auto a=juce::MathConstants<float>::pi*1.12f+i*(juce::MathConstants<float>::pi*1.76f/48.f);auto v=juce::Point<float>(std::cos(a),std::sin(a));g.setColour(i==24?brass:juce::Colour(0xff5b615e));g.drawLine(juce::Line<float>(circle.getCentre()+v*radius*.86f,circle.getCentre()+v*radius*.98f),i==24?2:1);}
+     // The atomic image defines the desired silhouette, but these paths are
+@@ -771,7 +772,7 @@
+                           .withCentre ({ x, c.y + radius * .60f });
+         g.setColour (juce::Colour (0xff020504).withAlpha (.76f));
+         g.fillRoundedRectangle (legend, 3.0f * layout.scale);
+-        g.setColour (ice.withAlpha (.88f));
++        g.setColour (smokeInk.withAlpha (.90f));
+         g.setFont (juce::FontOptions (12.0f * layout.scale, juce::Font::bold));
+         g.drawText (text, legend.toNearestInt(), juce::Justification::centred);
+     };
+@@ -785,7 +786,7 @@
+     g.setColour(juce::Colour(0xff020504).withAlpha(.78f)); g.fillRoundedRectangle(targetReadout, radius*.10f);
+     g.setColour(juce::Colour(0xffb58a38).withAlpha(.20f)); g.drawRoundedRectangle(targetReadout, radius*.10f, .75f);
+     g.setColour(ivory);g.setFont(juce::FontOptions(radius*.30f,juce::Font::bold));g.drawText(tgt.isEmpty()?"--":tgt,targetReadout.toNearestInt(),juce::Justification::centred);
+-    auto correction=visualHasPitch?((visualCorrection>.05?"+":"")+juce::String(visualCorrection,1)+" ct"):"--";auto bottom=d.toNearestInt().withTrimmedTop((int)d.getHeight()-82).reduced(16,0);const auto sep1=bottom.getX()+juce::roundToInt(bottom.getWidth()*.376f);const auto sep2=bottom.getX()+juce::roundToInt(bottom.getWidth()*.722f);std::array<juce::Rectangle<int>,3> cols{{{bottom.getX(),bottom.getY(),sep1-bottom.getX(),bottom.getHeight()},{sep1,bottom.getY(),sep2-sep1,bottom.getHeight()},{sep2,bottom.getY(),bottom.getRight()-sep2,bottom.getHeight()}}};g.setColour(juce::Colour(0xff6f7878).withAlpha(.76f));g.drawVerticalLine(sep1,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.drawVerticalLine(sep2,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.setColour(champagne);g.setFont(juce::FontOptions(13.0f*layout.scale,juce::Font::bold));g.drawText("CORRECTION",cols[0].withHeight(20),juce::Justification::centred);g.drawText("CONFIDENCE",cols[1].withHeight(20),juce::Justification::centred);g.drawText("STATUS",cols[2].withHeight(20),juce::Justification::centred);g.setColour(ivory);g.setFont(juce::FontOptions(21.0f*layout.scale,juce::Font::bold));g.drawText(correction,cols[0].withTrimmedTop(25),juce::Justification::centred);g.setColour(ice);g.drawText(visualHasPitch?juce::String(visualConfidence,2):"--",cols[1].withTrimmedTop(25),juce::Justification::centred);g.setColour(champagne);g.drawText(status,cols[2].withTrimmedTop(25),juce::Justification::centred);
++    auto correction=visualHasPitch?((visualCorrection>.05?"+":"")+juce::String(visualCorrection,1)+" ct"):"--";auto bottom=d.toNearestInt().withTrimmedTop((int)d.getHeight()-82).reduced(16,0);const auto sep1=bottom.getX()+juce::roundToInt(bottom.getWidth()*.376f);const auto sep2=bottom.getX()+juce::roundToInt(bottom.getWidth()*.722f);std::array<juce::Rectangle<int>,3> cols{{{bottom.getX(),bottom.getY(),sep1-bottom.getX(),bottom.getHeight()},{sep1,bottom.getY(),sep2-sep1,bottom.getHeight()},{sep2,bottom.getY(),bottom.getRight()-sep2,bottom.getHeight()}}};g.setColour(juce::Colour(0xff6f7878).withAlpha(.76f));g.drawVerticalLine(sep1,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.drawVerticalLine(sep2,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.setColour(champagne);g.setFont(juce::FontOptions(13.0f*layout.scale,juce::Font::bold));g.drawText("CORRECTION",cols[0].withHeight(20),juce::Justification::centred);g.drawText("CONFIDENCE",cols[1].withHeight(20),juce::Justification::centred);g.drawText("STATUS",cols[2].withHeight(20),juce::Justification::centred);g.setColour(ivory);g.setFont(juce::FontOptions(21.0f*layout.scale,juce::Font::bold));g.drawText(correction,cols[0].withTrimmedTop(25),juce::Justification::centred);g.setColour(smokeInk);g.drawText(visualHasPitch?juce::String(visualConfidence,2):"--",cols[1].withTrimmedTop(25),juce::Justification::centred);g.setColour(champagne);g.drawText(status,cols[2].withTrimmedTop(25),juce::Justification::centred);
+ }
+ 
+ void VibeAutotuneEditor::drawRuleMarker (juce::Graphics& g, juce::Rectangle<float> b,

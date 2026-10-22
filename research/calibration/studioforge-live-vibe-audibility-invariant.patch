@@ -1,0 +1,41 @@
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -147,7 +147,7 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& buf
+     // deliberately changes phase. Detect only objective renderer failures.
+     const auto wetCollapsed = historyReady && dryPeak > 0.01f && wetPeak < dryPeak * 0.08f;
+     const auto wetExcessive = wetPeak > juce::jmax(1.5f, dryPeak * 8.0f + 0.1f);
+-    const auto rendererFault = hasInvalidSample || wetCollapsed || wetExcessive || consecutiveOverloads >= 3;
++    auto rendererFault = hasInvalidSample || wetCollapsed || wetExcessive || consecutiveOverloads >= 3;
+     const auto tracking = processor->getPitchTrackingData();
+     const auto voiced = tracking.voiced && std::isfinite(tracking.confidence) && tracking.confidence >= 0.60;
+     publishedVoiced.store(voiced, std::memory_order_relaxed);
+@@ -181,10 +181,32 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& buf
+         }
+     }
+     wetMix = nextMix;
++
++    // Final live-audibility invariant. A renderer fault can coincide with the
++    // leading edge of a phrase, when the latency-aligned history still holds
++    // silence. Never let that turn an audible microphone callback into an
++    // inaudible output callback: rescue this block with the sanitized direct
++    // input. Healthy renderer output is untouched.
++    auto finalPeak = 0.0f;
++    for (int channel = 0; channel < expectedChannels; ++channel)
++    {
++        const auto range = juce::FloatVectorOperations::findMinAndMax(buffer.getReadPointer(channel), samples);
++        finalPeak = juce::jmax(finalPeak, juce::jmax(std::abs(range.getStart()), std::abs(range.getEnd())));
++    }
++    const auto hardDryRescue = dryPeak > 0.003f && finalPeak < dryPeak * 0.05f;
++    if (hardDryRescue)
++    {
++        for (int channel = 0; channel < expectedChannels; ++channel)
++            buffer.copyFrom(channel, 0, dryInputBuffer, channel, 0, samples);
++        wetMix = 0.0f;
++        healthyWetBlocks = 0;
++        rendererFault = true;
++    }
+     publishedWetMix.store(wetMix, std::memory_order_relaxed);
+ 
+     if (rendererFault)
+     {

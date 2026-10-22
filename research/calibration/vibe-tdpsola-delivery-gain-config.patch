@@ -1,0 +1,33 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -34,6 +34,12 @@ constexpr double rendererControlDezipperSlowSeconds = 0.032;
+ // Measured against the Artist F#4 control fixture. The spectral renderer
+ // needs 9.6% extra control cents to deliver the requested steady correction.
+ constexpr double rendererDeliveryGain = 1.096;
++// Offline calibration hook for the causal TD-PSOLA candidate. Production
++// remains unity until Artist-reference and realtime qualification pass.
++#ifndef VIBE_TDPSOLA_DELIVERY_GAIN
++ #define VIBE_TDPSOLA_DELIVERY_GAIN 1.0
++#endif
++
+ // Exact 0 ms has its own faster renderer automation path. It remains
+ // de-zipped (rather than a discontinuous ratio write) but reaches a target
+ // perceptibly sooner than the normal continuous Retune range.
+@@ -948,7 +954,7 @@ void VibeAutotuneProcessor::analyzePitchFrame (const float* monoSamples, int sa
+         // diagnostic renderer. TD-PSOLA has a different delivered-pitch
+         // gain, so applying that spectral trim to production makes every
+         // held correction overshoot by roughly six cents.
+         const auto rendererDeliveryCompensation = usePhaseContinuousRenderer.load (std::memory_order_relaxed)
+-                                              ? rendererDeliveryGain : 1.0;
++                                              ? rendererDeliveryGain : VIBE_TDPSOLA_DELIVERY_GAIN;
+         const auto deliveryRailCents = rendererDeliveryRailCents (retuneSpeedMs, flexTunePercent,
+                                                                    humanizePercent, naturalVibratoPercent);
+@@ -1001,6 +1007,6 @@ void VibeAutotuneProcessor::analyzePitchFrame (const float* monoSamples, int sa
+         const auto scheduled = correctionTrajectory.advanceScheduledTransition (rendererControlIntervalSamples,
+                                                                                   analysisSampleRate);
+         const auto rendererDeliveryCompensation = usePhaseContinuousRenderer.load (std::memory_order_relaxed)
+-                                              ? rendererDeliveryGain : 1.0;
++                                              ? rendererDeliveryGain : VIBE_TDPSOLA_DELIVERY_GAIN;
+         const auto deliveryRailCents = rendererDeliveryRailCents (retuneSpeedMs, flexTunePercent,
+                                                                    humanizePercent, naturalVibratoPercent);

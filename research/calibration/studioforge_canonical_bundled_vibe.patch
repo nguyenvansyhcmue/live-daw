@@ -1,0 +1,70 @@
+--- a/Source/Control/PitchCorrectionIntegrationService.cpp
++++ b/Source/Control/PitchCorrectionIntegrationService.cpp
+@@ -9,6 +9,14 @@
+     return text.toLowerCase().retainCharacters("abcdefghijklmnopqrstuvwxyz0123456789");
+ }
+ 
++juce::File bundledVibeAutotune()
++{
++    const auto application = juce::File::getSpecialLocation (juce::File::currentApplicationFile);
++    return application.getParentDirectory().getParentDirectory()
++        .getChildFile ("Resources").getChildFile ("PlugIns").getChildFile ("VST3")
++        .getChildFile ("VibeAutotune.vst3");
++}
++
+ juce::String stateMessage(PitchCorrectionIntegrationState state)
+ {
+     switch (state)
+@@ -41,19 +49,30 @@
+ std::optional<juce::PluginDescription> PitchCorrectionIntegrationService::findVibeAutotune() const
+ {
+     const auto plugins = host.getKnownPlugins();
++    const auto canonicalBundle = bundledVibeAutotune();
++    const auto canonicalPath = canonicalBundle.getFullPathName();
++    const auto canonicalExists = canonicalBundle.isDirectory();
+     std::optional<juce::PluginDescription> fallback;
+     for (const auto& plugin : plugins)
+     {
+         if (! isVibeAutotune(plugin))
+             continue;
+-        if (plugin.pluginFormatName.equalsIgnoreCase("VST3")
+-            && juce::File { plugin.fileOrIdentifier }.exists())
+-            return plugin;
++        if (plugin.pluginFormatName.equalsIgnoreCase("VST3"))
++        {
++            const auto plugInPath = juce::File { plugin.fileOrIdentifier };
++            if (canonicalExists && plugInPath.getFullPathName() == canonicalPath)
++                return plugin;
++            if (! canonicalExists && plugInPath.exists())
++                fallback = plugin;
++            continue;
++        }
+         if (! fallback.has_value())
+             fallback = plugin;
+     }
+-    // AU remains a compatibility fallback for Logic, but StudioForge always
+-    // chooses the one canonical VST3 when it is installed.
++    // A product bundle carrying Vibe must never fall through to another Vibe
++    // with the same UID from the system, user, or a stale backup location.
++    if (canonicalExists)
++        return std::nullopt;
+     return fallback;
+ }
+ 
+--- a/Source/Plugins/PluginHostService.cpp
++++ b/Source/Plugins/PluginHostService.cpp
+@@ -425,8 +425,14 @@
+     const auto candidates = vst3Format->searchPathsForPlugins(vst3Format->getDefaultLocationsToSearch(), true, false);
+     juce::StringArray failed;
+     for (const auto& candidate : candidates)
++    {
++        // Vibe ships in this app and is scanned from the exact bundle first.
++        // Do not re-register global or backup copies with the same VST3 UID.
++        if (juce::File { candidate }.getFileNameWithoutExtension().containsIgnoreCase ("VibeAutotune"))
++            continue;
+         if (const auto result = scanVst3(juce::File { candidate }); result.failed())
+             failed.add(result.getErrorMessage());
++    }
+ 
+     {
+         const juce::ScopedLock lock(catalogLock);

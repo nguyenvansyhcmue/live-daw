@@ -1,0 +1,573 @@
+--- a/Source/Project/ProjectTemplates.cpp
++++ b/Source/Project/ProjectTemplates.cpp
+@@ -21,9 +21,8 @@
+     return state;
+ }
+ 
+-void addDefaultVocalControlRoutes(ProjectState& state)
++void addVocalControlRoutes(ProjectState& state, const std::vector<size_t>& vocalTrackIndices)
+ {
+-    if (state.tracks.empty()) return;
+     const auto add = [&state] (ControlTarget target, size_t trackIndex)
+     {
+         if (trackIndex >= state.tracks.size()) return;
+@@ -36,8 +35,10 @@
+         route.secondaryParameterIdentifier = "scale";
+         state.controlRoutingProfile.routes.push_back(std::move(route));
+     };
+-    add(ControlTarget::mic1, 0);
+-    add(ControlTarget::mic2, 1);
++    if (! vocalTrackIndices.empty())
++        add(ControlTarget::mic1, vocalTrackIndices[0]);
++    if (vocalTrackIndices.size() > 1)
++        add(ControlTarget::mic2, vocalTrackIndices[1]);
+ }
+ 
+ void addNumberedTracks(ProjectState& state, TrackType type, const juce::String& name,
+@@ -88,7 +89,8 @@
+             break;
+     }
+ 
+-    addDefaultVocalControlRoutes(state);
++    if (projectTemplate == ProjectTemplate::audioRecording)
++        addVocalControlRoutes(state, { 0 });
+     return state;
+ }
+ 
+@@ -106,8 +108,10 @@
+     {
+         return source == PerformanceInputSource::audioInterface ? includesAudio : includesMidi;
+     };
++    const auto vocalStart = state.tracks.size();
+     if (canUseSource(setup.vocalSource))
+         addPerformanceRoleTracks(state, "Vocal", setup.vocalNames, setup.vocalCount, setup.vocalSource, 1, nextId, nextInput);
++    const auto vocalEnd = state.tracks.size();
+     if (canUseSource(setup.guitarSource))
+         addPerformanceRoleTracks(state, "Guitar", setup.guitarNames, setup.guitarCount, setup.guitarSource, 1, nextId, nextInput);
+     if (canUseSource(setup.bassSource))
+@@ -122,7 +126,12 @@
+         addPerformanceRoleTracks(state, "Backing Track", setup.backingTrackNames, setup.backingTrackCount,
+                                  setup.backingTrackSource, 1, nextId, nextInput);
+ 
+-    addDefaultVocalControlRoutes(state);
++    std::vector<size_t> vocalTrackIndices;
++    vocalTrackIndices.reserve(vocalEnd - vocalStart);
++    for (auto index = vocalStart; index < vocalEnd; ++index)
++        if (state.tracks[index].type == TrackType::audio)
++            vocalTrackIndices.push_back(index);
++    addVocalControlRoutes(state, vocalTrackIndices);
+     return state;
+ }
+ 
+--- a/Source/Control/VibeAutotuneAdapter.cpp
++++ b/Source/Control/VibeAutotuneAdapter.cpp
+@@ -60,6 +60,16 @@
+     {
+         result.succeeded = false;
+         result.error = "VibeAutotune rejected the resolved root or scale value";
++        return result;
+     }
++
++    const auto appliedRoot = effect.getParameterText(result.mapping.root);
++    const auto appliedScale = effect.getParameterText(result.mapping.scale);
++    if ((appliedRoot.isNotEmpty() && normalized(appliedRoot) != normalized(key.rootName()))
++        || (appliedScale.isNotEmpty() && normalized(appliedScale) != normalized(key.scaleName())))
++    {
++        result.succeeded = false;
++        result.error = "VibeAutotune parameter readback does not match the requested key/scale";
++    }
+     return result;
+ }
+--- a/Source/Control/PitchCorrectionIntegrationService.cpp
++++ b/Source/Control/PitchCorrectionIntegrationService.cpp
+@@ -75,12 +75,17 @@
+     const auto vibe = findVibeAutotune();
+     if (! vibe.has_value()) return { PitchCorrectionIntegrationState::pluginNotInstalled, stateMessage(PitchCorrectionIntegrationState::pluginNotInstalled) };
+     const auto& profile = model.getControlRoutingProfile();
+-    for (const auto target : { ControlTarget::mic1, ControlTarget::mic2 })
++    auto routeCount = 0;
++    for (const auto& route : profile.routes)
+     {
+-        const auto* route = profile.find(target, ControlEffect::pitchCorrection);
+-        if (route == nullptr) return { PitchCorrectionIntegrationState::routeInvalid, "No pitch-correction route exists for " + juce::String(target == ControlTarget::mic1 ? "mic1" : "mic2") };
+-        if (const auto status = validateRoute(*route, &*vibe); ! status.ready()) return status;
++        if (route.effect != ControlEffect::pitchCorrection
++            || (route.target != ControlTarget::mic1 && route.target != ControlTarget::mic2))
++            continue;
++        ++routeCount;
++        if (const auto status = validateRoute(route, &*vibe); ! status.ready()) return status;
+     }
++    if (routeCount == 0)
++        return { PitchCorrectionIntegrationState::routeInvalid, "No vocal pitch-correction route is configured." };
+     return { PitchCorrectionIntegrationState::ready, stateMessage(PitchCorrectionIntegrationState::ready), vibe->createIdentifierString(), vibe->pluginFormatName };
+ }
+ 
+@@ -92,14 +97,14 @@
+     if (! vibe.has_value()) return { PitchCorrectionIntegrationState::pluginNotInstalled, stateMessage(PitchCorrectionIntegrationState::pluginNotInstalled) };
+ 
+     auto profile = model.getControlRoutingProfile();
+-    for (const auto target : { ControlTarget::mic1, ControlTarget::mic2 })
++    auto routeCount = 0;
++    for (auto& candidate : profile.routes)
+     {
+-        auto routeIt = std::find_if(profile.routes.begin(), profile.routes.end(), [target] (const ControlRoute& route)
+-        {
+-            return route.target == target && route.effect == ControlEffect::pitchCorrection;
+-        });
+-        auto* route = routeIt != profile.routes.end() ? &*routeIt : nullptr;
+-        if (route == nullptr) return { PitchCorrectionIntegrationState::routeInvalid, "No pitch-correction route exists for vocal target." };
++        if (candidate.effect != ControlEffect::pitchCorrection
++            || (candidate.target != ControlTarget::mic1 && candidate.target != ControlTarget::mic2))
++            continue;
++        ++routeCount;
++        auto* route = &candidate;
+         const auto track = model.getTrackIndex(route->track);
+         if (track < 0) return { PitchCorrectionIntegrationState::routeInvalid, "Configured vocal track is missing." };
+         const auto* rack = model.getFxRackSnapshot(static_cast<size_t>(track));
+@@ -121,6 +126,8 @@
+         route->parameterIdentifier = mapping.mapping.root;
+         route->secondaryParameterIdentifier = mapping.mapping.scale;
+     }
++    if (routeCount == 0)
++        return { PitchCorrectionIntegrationState::routeInvalid, "Create or configure a Vocal track before preparing VibeAutotune." };
+     if (const auto result = model.setControlRoutingProfile(std::move(profile)); result.failed())
+         return { PitchCorrectionIntegrationState::routeInvalid, result.getErrorMessage() };
+     return validate();
+--- a/Source/AudioEngine/LiveKeyDetector.h
++++ b/Source/AudioEngine/LiveKeyDetector.h
+@@ -22,6 +22,9 @@
+     // Realtime-safe: only copies a mono mix to a fixed-size FIFO.
+     void push(const juce::AudioBuffer<float>& source, int numSamples, double sampleRate) noexcept;
+     Result getLatestResult() const noexcept;
++    // Starts a fresh rehearsal pass. The worker owns its history; callers only
++    // publish a generation change and never touch analysis memory.
++    void reset() noexcept;
+ 
+ private:
+     void run() override;
+@@ -32,4 +35,5 @@
+     std::array<float, fifoCapacity> fifoSamples {};
+     std::atomic<double> sourceSampleRate { 0.0 };
+     std::atomic<uint64_t> packedResult { 0 };
++    std::atomic<uint64_t> resetGeneration { 0 };
+ };
+--- a/Source/AudioEngine/LiveKeyDetector.cpp
++++ b/Source/AudioEngine/LiveKeyDetector.cpp
+@@ -71,6 +71,12 @@
+              static_cast<float>((packed >> 5u) & 0xffu) / 255.0f, packed >> 13u };
+ }
+ 
++void LiveKeyDetector::reset() noexcept
++{
++    packedResult.store(0, std::memory_order_release);
++    resetGeneration.fetch_add(1, std::memory_order_acq_rel);
++}
++
+ void LiveKeyDetector::run()
+ {
+     std::vector<float> history;
+@@ -81,9 +87,26 @@
+     int candidateHits = 0;
+     int confirmedRoot = -1;
+     bool confirmedMinor = false;
++    auto observedResetGeneration = resetGeneration.load(std::memory_order_acquire);
+     auto lastAnalysis = juce::Time::getMillisecondCounterHiRes();
+     while (! threadShouldExit())
+     {
++        const auto requestedReset = resetGeneration.load(std::memory_order_acquire);
++        if (requestedReset != observedResetGeneration)
++        {
++            observedResetGeneration = requestedReset;
++            history.clear();
++            candidateRoot = -1;
++            candidateMinor = false;
++            candidateHits = 0;
++            confirmedRoot = -1;
++            confirmedMinor = false;
++            int discardStart1 = 0, discardSize1 = 0, discardStart2 = 0, discardSize2 = 0;
++            fifo.prepareToRead(fifo.getNumReady(), discardStart1, discardSize1,
++                               discardStart2, discardSize2);
++            fifo.finishedRead(discardSize1 + discardSize2);
++            lastAnalysis = juce::Time::getMillisecondCounterHiRes();
++        }
+         const auto rate = sourceSampleRate.load(std::memory_order_relaxed);
+         if (rate != historyRate)
+         {
+@@ -106,7 +129,7 @@
+         {
+             lastAnalysis = now;
+             const auto result = analyse(history, historyRate, revision);
+-            if (result.confidence < 0.45f)
++            if (result.confidence < 0.60f)
+             {
+                 candidateRoot = -1;
+                 candidateHits = 0;
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -136,6 +136,7 @@
+     int getEstimatedLivePluginLatencySamples() const noexcept;
+     int getLiveProtectedPluginCount() const noexcept;
+     LiveKeyDetector::Result getLiveKeyResult() const noexcept;
++    void resetLiveKeyDetection() noexcept { liveKeyDetector.reset(); }
+     // The musical reference is intentionally explicit. A zero TrackId disables
+     // live Auto-Key rather than analysing vocals mixed into the master bus.
+     void setLiveKeyReferenceTrack(TrackId track) noexcept;
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -347,10 +347,11 @@
+     // silently inaudible just because the user selected STAGE or STREAM.
+     if (dataModel != nullptr)
+     {
+-        const auto cueAvailable = callbackOutputForPhysicalChannel(2) >= 0
+-            && callbackOutputForPhysicalChannel(3) >= 0;
+-        const auto destination = profile.mode == WorkspaceMode::stage && cueAvailable
+-            ? MonitorDestination::cue : MonitorDestination::master;
++        // A monitored vocal must enter its track before inserts so Auto-Tune,
++        // EQ, compression, sends and reverb all remain active while performing.
++        // Dedicated cue hardware can still be fed from a normal post-FX bus;
++        // the raw cue shortcut intentionally is not selected here.
++        const auto destination = MonitorDestination::master;
+         const auto deviceName = deviceManager.getCurrentAudioDevice() != nullptr
+             ? deviceManager.getCurrentAudioDevice()->getName().toLowerCase() : juce::String {};
+         // STUDIO is a working audio mode too: selecting it must not turn a
+@@ -1579,7 +1580,10 @@
+     if (isPlaying && (metronomeEnabled.load(std::memory_order_acquire)
+                       || countInMetronomeActive.load(std::memory_order_acquire)))
+         renderMetronome(blockStartSample, numSamples);
+-    if (isLivePerformanceEnabled() && liveKeyReferenceTrackId.load(std::memory_order_acquire) != 0)
++    // Key learning is a rehearsal-pass feature, not a LIVE-mode side effect.
++    // Analyse the chosen beat whenever transport is playing, then the UI can
++    // lock the result before the singer starts the performance pass.
++    if (isPlaying && liveKeyReferenceTrackId.load(std::memory_order_acquire) != 0)
+         liveKeyDetector.push(liveKeyReferenceBuffer, numSamples, activeSampleRate.load(std::memory_order_relaxed));
+     const auto pan = masterPan.load(std::memory_order_relaxed);
+     const auto width = masterWidth.load(std::memory_order_relaxed);
+--- a/Source/UI/ArrangeWindow.h
++++ b/Source/UI/ArrangeWindow.h
+@@ -270,6 +270,9 @@
+     std::function<void(MidiClipId)> onMidiClipSelected;
+     std::function<void(MidiClipId)> onMidiClipOpenRequested;
+     std::function<void()> onPerformanceSetupRequested;
++    // Announces the resolved destination immediately. The owner can arm a
++    // first-pass key analysis without coupling import code to control logic.
++    std::function<void(int, const juce::File&)> onAudioFileImported;
+ 
+     // Selection ownership stays above this view; this method only synchronises
+     // its two visual subviews with the resolved display index.
+--- a/Source/UI/ArrangeWindow.cpp
++++ b/Source/UI/ArrangeWindow.cpp
+@@ -2843,6 +2843,8 @@
+         return;
+     if (onTrackSelected != nullptr)
+         onTrackSelected(resolvedTrack);
++    if (onAudioFileImported != nullptr)
++        onAudioFileImported(resolvedTrack, file);
+ 
+     const auto snappedStart = timelineGrid.isSnapEnabled()
+         ? trackModel->getSnappedSamplePosition(startSample, 0.25) : juce::jmax(0.0, startSample);
+--- a/Source/UI/MainComponent.h
++++ b/Source/UI/MainComponent.h
+@@ -85,6 +85,7 @@
+                                  double timelineStartSample = -1.0);
+     void showRecordingFailure(const juce::Result& result) const;
+     juce::String applyTuneAiKey(const MusicalKey&, bool mic1, bool mic2);
++    void beginBeatKeyLearning(int trackIndex);
+     void requestWorkspaceMode(WorkspaceMode mode);
+     void timerCallback() override;
+     juce::File createRecordingDestination() const;
+@@ -119,6 +120,8 @@
+     double recordingPunchStopSample = -1.0;
+     TrackId selectedTrackId;
+     bool spaceStopPendingReturn = false;
++    enum class AutoKeyState : uint8_t { idle, learning, locked };
++    AutoKeyState autoKeyState = AutoKeyState::idle;
+     uint64_t appliedLiveKeyRevision = 0;
+     PitchCorrectionIntegrationService::Status pitchCorrectionStatus;
+     int pitchCorrectionSetupTicks = 0;
+--- a/Source/UI/MainComponent.cpp
++++ b/Source/UI/MainComponent.cpp
+@@ -152,6 +152,10 @@
+                                                    "Your hardware MIDI tracks are ready. Choose the target device in Device Settings > MIDI OUTPUT.");
+     };
+     arrangeWindow.onTrackSelected = [this](int track) { selectTrack(track); };
++    arrangeWindow.onAudioFileImported = [this](int track, const juce::File&)
++    {
++        beginBeatKeyLearning(track);
++    };
+     arrangeWindow.onPerformanceSetupRequested = [this]
+     {
+         configureTrackCreationDialog();
+@@ -284,12 +288,48 @@
+         result.succeeded ? applied.add("Mic 2") : errors.add("Mic 2: " + result.error);
+     }
+     if (! applied.isEmpty())
++    {
++        // An explicit Tune-AI result owns the key until the user imports a new
++        // beat (which starts a new learn pass). Live detection must not chase
++        // the singer and rewrite the scale during performance.
++        autoKeyState = AutoKeyState::locked;
+         return key.displayName() + " applied to " + applied.joinIntoString(" + ")
+             + (errors.isEmpty() ? juce::String {} : " • " + errors.joinIntoString(" • "));
++    }
+     return errors.isEmpty() ? "No compatible pitch-correction target is configured."
+                             : errors.joinIntoString(" • ");
+ }
++
++void MainComponent::beginBeatKeyLearning(int trackIndex)
++{
++    if (trackIndex < 0 || static_cast<size_t>(trackIndex) >= trackDataModel.getTrackCount())
++        return;
++
++    const auto& track = trackDataModel.getTrack(static_cast<size_t>(trackIndex));
++    if (track.type != TrackType::audio)
++        return;
+ 
++    // Never learn harmony from the vocal that is being corrected. Imported
++    // audio on any non-vocal route is treated as the rehearsal beat.
++    const auto& profile = trackDataModel.getControlRoutingProfile();
++    const auto isVocalRoute = std::any_of(profile.routes.begin(), profile.routes.end(), [&track] (const ControlRoute& route)
++    {
++        return route.effect == ControlEffect::pitchCorrection && route.track == track.id;
++    });
++    if (isVocalRoute)
++        return;
++
++    trackDataModel.setLiveKeyReferenceTrack(track.id);
++    audioEngine.setLiveKeyReferenceTrack(track.id);
++    audioEngine.resetLiveKeyDetection();
++    appliedLiveKeyRevision = 0;
++    autoKeyState = AutoKeyState::learning;
++
++    // This is control-thread setup. It inserts VibeAutotune only on configured
++    // vocal routes and leaves every subsequent EQ/comp/reverb insert intact.
++    pitchCorrectionStatus = pitchCorrection.ensureVibeAutotuneForVocalLive();
++}
++
+ void MainComponent::showInitialTrackCreation()
+ {
+     configureTrackCreationDialog();
+@@ -549,6 +589,12 @@
+     if (result.wasOk())
+     {
+         audioEngine.setLiveKeyReferenceTrack(trackDataModel.getLiveKeyReferenceTrack());
++        if (trackDataModel.getLiveKeyReferenceTrack().isValid())
++        {
++            audioEngine.resetLiveKeyDetection();
++            autoKeyState = AutoKeyState::learning;
++            appliedLiveKeyRevision = 0;
++        }
+         pitchCorrectionStatus = pitchCorrection.validate();
+         if (missingMediaReferences != nullptr)
+             missingMediaReferences->addArray(controlBridge.validateProfile());
+@@ -962,21 +1008,26 @@
+                                        "Recording stopped safely. Reconnect the interface, verify track inputs, then record again.");
+     }
+ 
+-    if (audioEngine.isLivePerformanceEnabled())
++    if (autoKeyState == AutoKeyState::learning)
+     {
+         const auto key = audioEngine.getLiveKeyResult();
+-        if (key.revision != 0 && key.revision != appliedLiveKeyRevision)
++        if (key.revision != 0 && key.revision != appliedLiveKeyRevision && key.confidence >= 0.60f)
+         {
+             const MusicalKey semanticKey { static_cast<PitchClass>(key.root), key.minor ? MusicalScale::minor : MusicalScale::major };
+-            pitchCorrection.applyKey(ControlTarget::mic1, semanticKey);
+-            pitchCorrection.applyKey(ControlTarget::mic2, semanticKey);
++            const auto summary = applyTuneAiKey(semanticKey, true, true);
+             appliedLiveKeyRevision = key.revision;
++            if (autoKeyState == AutoKeyState::locked)
++            {
++                // End of rehearsal pass: return to the song start with the key
++                // frozen. The next Play is the actual singing/performance pass.
++                audioEngine.setPlaybackState(false);
++                trackDataModel.setPlayheadPosition(0.0);
++                StudioForgeDialog::showWarning("Key locked for performance",
++                    semanticKey.displayName() + " • " + summary
++                    + "\nRewound to the beginning. Press Play and sing; Auto-Key will not overwrite this setting.");
++            }
+         }
+     }
+-    else
+-    {
+-        appliedLiveKeyRevision = 0;
+-    }
+ 
+     if (recordingCountdownActive && ! audioEngine.isPlaying())
+     {
+--- a/Source/UI/TuneAiPanel.cpp
++++ b/Source/UI/TuneAiPanel.cpp
+@@ -150,7 +150,21 @@
+                        + juce::String(result.confidence, 2) + " confidence"
+                        + (result.title.isNotEmpty() ? " • " + result.title : juce::String {}),
+                    juce::dontSendNotification);
+-    applySelectedKey();
++    // Confident results can prepare the vocal chain automatically. Ambiguous
++    // material stays visible for manual confirmation instead of silently
++    // putting the singer in the wrong key.
++    if (result.confidence >= 0.60f || result.fromCache)
++    {
++        applySelectedKey();
++        // URL mode is the lightweight sing-along path: Tune-AI prepares and
++        // locks the vocal key, then playback opens in the user's browser. The
++        // DAW microphone continues through its complete live insert chain.
++        juce::URL(urlEditor.getText().trim()).launchInDefaultBrowser();
++    }
++    else
++        status.setText("Low confidence (" + juce::String(result.confidence, 2)
++                           + "). Confirm Key/Scale, then press APPLY TO VOCALS.",
++                       juce::dontSendNotification);
+ }
+ 
+ void TuneAiPanel::applySelectedKey()
+--- a/tests/CorePlaybackMixerTests.cpp
++++ b/tests/CorePlaybackMixerTests.cpp
+@@ -127,12 +127,18 @@
+     if (! expect(recording.tracks.size() == 4 && std::all_of(recording.tracks.begin(), recording.tracks.end(),
+         [] (const PersistedTrackState& track) { return track.type == TrackType::audio && track.id.isValid(); }),
+         "audio recording template creates valid audio tracks")) return false;
++    if (! expect(recording.controlRoutingProfile.routes.size() == 1
++                      && recording.controlRoutingProfile.routes.front().target == ControlTarget::mic1
++                      && recording.controlRoutingProfile.routes.front().track == recording.tracks.front().id,
++                 "audio template routes pitch correction only to its Vocal track")) return false;
+ 
+     const auto midi = ProjectTemplates::create(ProjectTemplate::midiProduction);
+     TrackDataModel model;
+     return expect(midi.tracks.size() == 3 && midi.tracks[0].type == TrackType::instrument
+                       && midi.tracks[2].type == TrackType::externalMidi,
+                   "MIDI production template creates instrument and external MIDI tracks")
++        && expect(midi.controlRoutingProfile.routes.empty(),
++                  "MIDI template does not route pitch correction to instruments")
+         && expect(model.applyProjectState(midi).wasOk() && model.getTrackCount() == 3,
+                   "template project state is accepted by the model");
+ }
+@@ -214,6 +220,10 @@
+     setup.drumCount = 1;
+     const auto project = ProjectTemplates::createLiveSetup(setup);
+     if (! expect(project.tracks.size() == 5, "performance setup creates every selected band role")) return false;
++    if (! expect(project.controlRoutingProfile.routes.size() == 1
++                      && project.controlRoutingProfile.routes.front().target == ControlTarget::mic1
++                      && project.controlRoutingProfile.routes.front().track == project.tracks.front().id,
++                 "single-vocal setup never routes Mic 2 pitch correction to Guitar")) return false;
+ 
+     const auto hasRole = [&project] (const juce::String& name, TrackType type, int channel)
+     {
+diff --git a/Source/UI/ControlBar.h b/Source/UI/ControlBar.h
+--- a/Source/UI/ControlBar.h
++++ b/Source/UI/ControlBar.h
+@@ -57,6 +57,7 @@ public:
+     std::function<void()> onMixerToggle;
+     std::function<void()> onPianoRollToggle;
+     std::function<void()> onBrowserToggle;
++    std::function<void()> onAutoKeyRequested;
+     std::function<void(TrackType)> onCreateTrack;
+     std::function<void()> onRecordRequested;
+     std::function<void(WorkspaceMode)> onWorkspaceModeChanged;
+@@ -92,6 +93,7 @@ private:
+     juce::TextButton pianoRollButton { "P" };
+     juce::TextButton browserButton { "MEDIA" };
+     juce::TextButton addTrackButton { "+ TRACK" };
++    juce::TextButton autoKeyButton { "AUTO KEY" };
+     TransportIconButton goToBeginningButton { TransportIconButton::Icon::goToBeginning };
+     TransportIconButton rewindButton { TransportIconButton::Icon::rewind };
+     TransportIconButton forwardButton { TransportIconButton::Icon::forward };
+diff --git a/Source/UI/ControlBar.cpp b/Source/UI/ControlBar.cpp
+--- a/Source/UI/ControlBar.cpp
++++ b/Source/UI/ControlBar.cpp
+@@ -442,6 +442,7 @@ ControlBar::ControlBar(TrackDataModel* model, AudioEngine* engine)
+     addAndMakeVisible(pianoRollButton);
+     addAndMakeVisible(browserButton);
+     addAndMakeVisible(addTrackButton);
++    addAndMakeVisible(autoKeyButton);
+     addAndMakeVisible(goToBeginningButton);
+     addAndMakeVisible(rewindButton);
+     addAndMakeVisible(forwardButton);
+@@ -459,10 +460,12 @@ ControlBar::ControlBar(TrackDataModel* model, AudioEngine* engine)
+     pianoRollButton.setTooltip("Show or hide Piano Roll");
+     browserButton.setTooltip("Show or hide Media Browser");
+     addTrackButton.setTooltip("Create new track");
++    autoKeyButton.setTooltip("Analyze a beat or YouTube URL, then lock Key and Scale for Auto-Tune");
+     inspectorButton.onClick = [this] { if (onInspectorToggle != nullptr) onInspectorToggle(); };
+     mixerButton.onClick = [this] { if (onMixerToggle != nullptr) onMixerToggle(); };
+     pianoRollButton.onClick = [this] { if (onPianoRollToggle != nullptr) onPianoRollToggle(); };
+     browserButton.onClick = [this] { if (onBrowserToggle != nullptr) onBrowserToggle(); };
++    autoKeyButton.onClick = [this] { if (onAutoKeyRequested != nullptr) onAutoKeyRequested(); };
+     addTrackButton.onClick = [this]
+     {
+         // The modal owns type/count choices so the in-project command uses the
+@@ -924,6 +927,7 @@ void ControlBar::resized()
+         streamModeButton.setBounds(referenceBounds(228, 21, 99, 85));
+         metronomeButton.setBounds(referenceBounds(349, 21, 61, 65));
+         countInButton.setBounds(referenceBounds(423, 21, 122, 65));
++        autoKeyButton.setBounds(referenceBounds(552, 21, 88, 65));
+         countInBarsBox.setVisible(false);
+         transportLCD.setBounds(referenceBounds(650, 18, 453, 94));
+         goToBeginningButton.setBounds(referenceBounds(1120, 21, 68, 65));
+@@ -941,6 +945,7 @@ void ControlBar::resized()
+                                  static_cast<juce::Component*>(&bpmLabel), static_cast<juce::Component*>(&pointerTool),
+                                  static_cast<juce::Component*>(&scissorsTool), static_cast<juce::Component*>(&eraserTool) })
+             component->setVisible(false);
++        autoKeyButton.setVisible(true);
+         return;
+     }
+     // Keep the console as a centred instrument, not a row stretched to the
+@@ -974,8 +979,9 @@ void ControlBar::resized()
+         // its square 1234 key. Shift that reclaimed space into the left group
+         // so the visible Count-in -> LCD gap equals LCD -> transport.
+         const auto clusterRightShift = countInWidth - clusterNudge - countInKeyWidth + 14;
+-        const auto leftWidth = modeWidth * 2 + (modeWidth + 10) + metroWidth + countInWidth
+-            + modeGap * 3 + countInGap;
++        const auto autoKeyWidth = wide ? 88 : 76;
++        const auto leftWidth = modeWidth * 2 + (modeWidth + 10) + metroWidth + countInWidth + autoKeyWidth
++            + modeGap * 3 + countInGap + 8;
+         const auto consoleWidth = leftWidth + outerGap + lcdWidth + outerGap + transportWidth
+             + 18 + timeWidth + 18 + meterWidth;
+         // Align the musical LCD with the start of the arrange ruler rather
+@@ -996,6 +1002,9 @@ void ControlBar::resized()
+         streamModeButton.setBounds(cursor, controlY, modeWidth + 10, controlHeight); cursor += modeWidth + 10 + modeGap;
+         metronomeButton.setBounds(cursor, controlY, metroWidth, controlHeight); cursor += metroWidth + countInGap;
+         countInButton.setBounds(cursor, controlY, countInKeyWidth, controlHeight);
++        cursor += countInKeyWidth + 8;
++        autoKeyButton.setBounds(cursor, controlY, autoKeyWidth, controlHeight);
++        autoKeyButton.setVisible(true);
+         countInBarsBox.setVisible(false);
+         cursor = consoleX + leftWidth + outerGap;
+         transportLCD.setBounds(cursor, controlY, lcdWidth, controlHeight); cursor += lcdWidth + outerGap;
+@@ -1019,6 +1028,7 @@ void ControlBar::resized()
+     pianoRollButton.setVisible(false);
+     browserButton.setVisible(false);
+     addTrackButton.setVisible(false);
++    autoKeyButton.setVisible(true);
+ 
+     const auto rightControlsWidth = 0;
+     const auto rightX = bounds.getRight() - rightControlsWidth;
+@@ -1033,7 +1043,7 @@ void ControlBar::resized()
+     const auto wideLayout = getWidth() >= 1700;
+     const auto lcdWidth = wideLayout ? 360 : 260;
+     const auto meterWidth = wideLayout ? 176 : 0;
+-    constexpr auto performanceControlsWidth = 376;
++    constexpr auto performanceControlsWidth = 460;
+     const auto transportWidth = 6 * 42 + 5 * 4;
+     const auto timeWidth = 150;
+     // The musical LCD is the optical centre of the console. Everything else
+@@ -1046,6 +1056,7 @@ void ControlBar::resized()
+     metronomeButton.setBounds(clusterX + 238, bounds.getY(), 42, buttonHeight);
+     countInButton.setBounds(clusterX + 284, bounds.getY(), 42, buttonHeight);
+     countInBarsBox.setBounds(clusterX + 330, bounds.getY() + 4, 42, buttonHeight - 8);
++    autoKeyButton.setBounds(clusterX + 376, bounds.getY(), 80, buttonHeight);
+     transportLCD.setBounds(lcdX, bounds.getY(), lcdWidth, buttonHeight);
+     const auto transportX = lcdX + lcdWidth + 16;
+     goToBeginningButton.setBounds(transportX, bounds.getY(), 42, buttonHeight);
+diff --git a/Source/UI/MainComponent.cpp b/Source/UI/MainComponent.cpp
+--- a/Source/UI/MainComponent.cpp
++++ b/Source/UI/MainComponent.cpp
+@@ -57,6 +57,10 @@ MainComponent::MainComponent()
+     {
+         setBrowserPanelVisible(! assetBrowser.isVisible());
+     };
++    controlBar.onAutoKeyRequested = [this]
++    {
++        requestTuneAiUrlAnalysis();
++    };
+     controlBar.onCreateTrack = [this](TrackType)
+     {
+         configureTrackCreationDialog();

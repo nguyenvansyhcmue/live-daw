@@ -1,0 +1,109 @@
+import sys
+import ctypes
+from pathlib import Path
+
+# Sideload yt-dlp — phải chạy trước mọi import của app.
+# Khi đóng gói .exe, update_ytdlp() sẽ giải nén bản mới vào _sideload/.
+# Lần mở kế tiếp, dòng này ưu tiên bản sideload thay vì bản đóng trong .exe.
+if getattr(sys, "frozen", False):
+    _sideload = Path(sys.executable).parent / "_sideload"
+    if (_sideload / "yt_dlp").exists():
+        sys.path.insert(0, str(_sideload))
+
+def _run_studioforge_headless_bridge(arguments: list[str]) -> int | None:
+    """Serve a one-shot DAW request from the packaged executable.
+
+    This deliberately runs before QApplication is constructed, so a release
+    build can analyse a URL without showing a second window and without asking
+    the customer's Mac to provide Python or the source checkout.
+    """
+    option = "--studioforge-analyse-url"
+    if option not in arguments:
+        return None
+    try:
+        url = arguments[arguments.index(option) + 1].strip()
+        if not url:
+            raise ValueError("YouTube URL is empty")
+        from daw_bridge import analyse, emit
+        return emit(analyse(url))
+    except Exception as error:  # JSON is the process boundary contract.
+        from daw_bridge import emit
+        return emit({"ok": False, "error": str(error)})
+
+
+# The release bridge must not initialise AppKit/Qt. Apart from being faster,
+# this keeps one-shot analysis valid while the user's DAW is the foreground
+# application and on headless release-audit machines.
+if __name__ == "__main__":
+    _bridge_exit = _run_studioforge_headless_bridge(sys.argv)
+    if _bridge_exit is not None:
+        sys.exit(_bridge_exit)
+
+
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
+
+from core.constants import ASSETS_DIR
+from core.app_controller import AppController
+from ui.main_window import MainWindow
+
+
+def _studioforge_host_frame(arguments: list[str]) -> tuple[int, int, int, int] | None:
+    if "--studioforge-hosted" not in arguments:
+        return None
+    try:
+        value = arguments[arguments.index("--host-frame") + 1]
+        x, y, width, height = (int(part) for part in value.split(","))
+        return x, y, max(1, width), max(1, height)
+    except (IndexError, ValueError):
+        return None
+
+
+def main():
+    # Giúp Windows nhận diện đúng icon app trên taskbar, Alt-Tab và shortcut.
+    # Dòng này nên chạy TRƯỚC khi tạo QApplication.
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "TruyenHuu.THMVocalPanel.ProV3"
+        )
+    except Exception:
+        pass
+
+    app = QApplication(sys.argv)
+    # Tune-AI is a separate, user-facing application when it is opened from
+    # StudioForge.  Do not leave its event loop alive after its final window
+    # has been closed: on macOS that otherwise leaves a misleading Dock icon
+    # even though there is no usable UI on screen.
+    app.setQuitOnLastWindowClosed(True)
+    app.setApplicationName("THM Vocal Panel")
+    app.setOrganizationName("Truyen Huu Music")
+    app.setApplicationDisplayName("THM Vocal Panel")
+
+    # Ưu tiên logo.ico cho Windows. Nếu chưa có thì dùng logo.png.
+    icon_path = ASSETS_DIR / "logo.ico"
+    if not icon_path.exists():
+        icon_path = ASSETS_DIR / "logo.png"
+
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
+
+    controller = AppController()
+    window = MainWindow(controller)
+    host_frame = _studioforge_host_frame(sys.argv)
+    if host_frame is not None:
+        window.present_over_studioforge(host_frame)
+
+    if icon_path.exists():
+        window.setWindowIcon(QIcon(str(icon_path)))
+
+    window.show()
+    exit_code = app.exec()
+
+    # ``MainWindow.closeEvent`` owns normal shutdown, but keep this finalizer
+    # as a safety net for Cmd+Q/application-menu quit paths.
+    window.shutdown_services()
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()

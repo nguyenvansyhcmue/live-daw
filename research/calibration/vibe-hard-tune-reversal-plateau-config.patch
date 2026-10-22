@@ -1,0 +1,29 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -99,10 +99,17 @@
+ // Offline A/B hook. Hard Tune and Natural Vibrato retain the qualified rail.
+ #ifndef VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
+  #define VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+ #endif
+ #ifndef VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
+  #define VIBE_MUSICAL_RAIL_MAX_RETUNE_MS 50.0
+ #endif
+ 
++// Candidate-only switch for the hard-tune A -> B -> A plateau.  It is
++// intentionally compile-time so normal presets and released sessions retain
++// their exact behaviour while the Hook-2 reversal window is evaluated.
++#ifndef VIBE_HARD_TUNE_RAPID_REVERSAL_PLATEAU
++ #define VIBE_HARD_TUNE_RAPID_REVERSAL_PLATEAU 1
++#endif
++
+ // This policy is deliberately independent of formant preservation. Formant
+ // is a renderer property; Classic changes only target/Flex/transition policy.
+@@ -876,6 +883,6 @@ public:
+         const auto confirmedRapidAdjacentTransition = hardTuneLegatoTransition
+                                                     && std::abs (hardTuneLegatoDistance - 100.0) < 0.01;
+-        constexpr bool enableRapidReversalPlateau = true;
++        constexpr bool enableRapidReversalPlateau = VIBE_HARD_TUNE_RAPID_REVERSAL_PLATEAU != 0;
+         const auto rapidAdjacentReversal = enableRapidReversalPlateau
+                                         && hardLockPreset
+                                         && currentTargetNote != targetBeforeSelection

@@ -1,0 +1,31 @@
+--- a/Source/Services/StudioForgeCalibrationRunner.cpp
++++ b/Source/Services/StudioForgeCalibrationRunner.cpp
+@@ -96,6 +96,28 @@
+         if (! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE10_T90_MS", "Diagnostic Retune 10 T90", 80.0f)
+             || ! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE25_T90_MS", "Diagnostic Retune 25 T90", 140.0f))
+             return juce::Result::fail("VibeAutotune does not expose Retune-knot diagnostic parameters");
++
++        const auto setUnitDiagnostic = [&effect] (const char* environment, const char* parameter,
++                                                   float minimum, float maximum)
++        {
++            const auto* value = std::getenv (environment);
++            if (value == nullptr) return true;
++            char* end = nullptr;
++            const auto requested = std::strtof (value, &end);
++            if (end == value || *end != '\0' || ! std::isfinite (requested)
++                || requested < minimum || requested > maximum)
++                return false;
++            if (! effect.setParameterValue (parameter, (requested - minimum) / (maximum - minimum)))
++                return false;
++            const auto observed = effect.getParameterText (parameter).getFloatValue();
++            std::cerr << "calibration " << parameter << '=' << requested
++                      << " (observed " << observed << ")\n";
++            return std::abs (observed - requested) <= 0.011f;
++        };
++        if (! setUnitDiagnostic ("VIBE_DIAG_FLEX_RESIDUAL", "Diagnostic Flex Residual", 0.5f, 1.5f)
++            || ! setUnitDiagnostic ("VIBE_DIAG_HUMANIZE_SCALE", "Diagnostic Humanize Scale", 0.5f, 1.5f)
++            || ! setUnitDiagnostic ("VIBE_DIAG_NATURAL_PHASE", "Diagnostic Natural Phase", 0.0f, 2.5f))
++            return juce::Result::fail("VibeAutotune does not expose joint-calibration parameters");
+     }
+     return juce::Result::ok();
+ }

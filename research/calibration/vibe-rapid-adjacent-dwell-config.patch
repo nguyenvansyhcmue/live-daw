@@ -1,0 +1,24 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -75,5 +75,11 @@
+  #define VIBE_RAPID_ADJACENT_BOUNDARY_DWELL_FRAMES 2
+ #endif
++#ifndef VIBE_RAPID_ADJACENT_MINIMUM_DWELL_SAMPLES
++ // Candidate hook only. Production waits 80 ms after a committed target;
++ // an offline build may admit the existing high-confidence predictor after
++ // 32 ms to test the measured 69 ms adjacent-note turnaround.
++ #define VIBE_RAPID_ADJACENT_MINIMUM_DWELL_SAMPLES 3840
++#endif
+ 
+ // This policy is deliberately independent of formant preservation. Formant
+ // is a renderer property; Classic changes only target/Flex/transition policy.
+@@ -1989,7 +1995,7 @@ private:
+     static constexpr int rapidAdjacentEvidenceWindowFrames = VIBE_RAPID_ADJACENT_EVIDENCE_WINDOW_FRAMES;
+     static constexpr int rapidAdjacentMinimumSupportingSteps = VIBE_RAPID_ADJACENT_MINIMUM_SUPPORTING_STEPS;
+     static constexpr int rapidAdjacentBoundaryDwellFrames = VIBE_RAPID_ADJACENT_BOUNDARY_DWELL_FRAMES;
+-    static constexpr int rapidAdjacentMinimumDwellSamples = 3840;
++    static constexpr int rapidAdjacentMinimumDwellSamples = VIBE_RAPID_ADJACENT_MINIMUM_DWELL_SAMPLES;
+     static constexpr double hardTuneLegatoChainRateCentsPerSecond = 100000.0
+                                                                / hardTuneAdjacentTransitionMs;
+     static constexpr double portamentoMinimumFrameDeltaCents = 3.0;

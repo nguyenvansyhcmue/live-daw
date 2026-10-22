@@ -1,0 +1,98 @@
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -183,9 +183,16 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& bu
+     const auto nextMix = targetMix > wetMix ? juce::jmin(targetMix, wetMix + step)
+                                              : juce::jmax(targetMix, wetMix - step);
+ 
+-    // During first-time latency priming retain the direct microphone. Once
+-    // primed, every safety transition uses the latency-aligned dry stream.
+-    const auto& fallback = historyReady ? alignedDryBuffer : dryInputBuffer;
++    // The safety path is deliberately the immediate microphone whenever the
++    // corrected stream is not audible.  The renderer continues to analyse in
++    // the background, but an unverified renderer must never sit in series
++    // with a live monitor path: a bad phase-renderer block would otherwise
++    // turn a working microphone into silence or broadband noise.  At the
++    // first wet-ramp sample we switch to the latency-aligned dry stream, so
++    // the established dry/wet crossfade remains phase coherent.
++    const auto rendererIsAudible = wetMix > 0.0001f || nextMix > 0.0001f;
++    const auto& fallback = rendererIsAudible && historyReady ? alignedDryBuffer
++                                                              : dryInputBuffer;
+     for (int channel = 0; channel < expectedChannels; ++channel)
+     {
+         auto* wet = buffer.getWritePointer(channel);
+diff --git a/Tests/NativeVibeAutotuneSmokeTest.cpp b/Tests/NativeVibeAutotuneSmokeTest.cpp
+--- a/Tests/NativeVibeAutotuneSmokeTest.cpp
++++ b/Tests/NativeVibeAutotuneSmokeTest.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include <algorithm>
+ #include <cmath>
++#include <cstdint>
+ #include <iostream>
+ #include <limits>
+ 
+@@ -46,6 +47,48 @@ bool runLiveCallbackSize(NativeVibeAutotuneProcessor& vibe, int blockSize)
+         && std::isfinite(health.wetMix)
+         && health.wetMix >= 0.0f && health.wetMix <= 1.0f;
+ }
++
++bool verifyUnverifiedRendererKeepsDirectMic(int blockSize)
++{
++    NativeVibeAutotuneProcessor vibe { "studioforge.native.vibeautotune" };
++    vibe.prepareToPlay(48000.0, blockSize, 2);
++    juce::AudioBuffer<float> block(2, blockSize);
++    juce::AudioBuffer<float> expected(2, blockSize);
++    std::uint32_t noiseState = 0x9e3779b9u;
++
++    const auto fillQuietUnpitchedSignal = [&]
++    {
++        for (int sample = 0; sample < blockSize; ++sample)
++        {
++            noiseState = noiseState * 1664525u + 1013904223u;
++            const auto value = (static_cast<float>((noiseState >> 8) & 0xffffu) / 32767.5f - 1.0f) * 0.002f;
++            block.setSample(0, sample, value);
++            block.setSample(1, sample, -value);
++        }
++    };
++
++    // Prime the internal latency history with a deliberately unpitched,
++    // below-rescue signal. A live plugin must still forward this microphone
++    // signal exactly while its tracker refuses to arm wet correction.
++    for (int index = 0; index < 160; ++index)
++    {
++        fillQuietUnpitchedSignal();
++        vibe.processBlock(block);
++    }
++
++    fillQuietUnpitchedSignal();
++    expected.makeCopyOf(block);
++    vibe.processBlock(block);
++    const auto health = vibe.getLiveProcessorHealth();
++    if (health.wetMix > 0.0001f)
++        return false;
++
++    for (int channel = 0; channel < block.getNumChannels(); ++channel)
++        for (int sample = 0; sample < blockSize; ++sample)
++            if (std::abs(block.getSample(channel, sample) - expected.getSample(channel, sample)) > 0.000001f)
++                return false;
++    return true;
++}
+ }
+ 
+ int main()
+@@ -70,6 +113,14 @@ int main()
+             return 1;
+         }
+ 
++    for (const auto callbackSize : { 32, 64, 128 })
++        if (! verifyUnverifiedRendererKeepsDirectMic(callbackSize))
++        {
++            std::cerr << "Vibe unverified renderer altered the direct microphone at callback size "
++                      << callbackSize << "\\n";
++            return 1;
++        }
++
+     vibe.prepareToPlay(48000.0, 128, 2);
+ 
+     // A live microphone can remain open indefinitely. Run a continuous,

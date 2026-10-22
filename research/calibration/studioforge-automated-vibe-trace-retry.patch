@@ -1,0 +1,60 @@
+diff --git a/Source/UI/MainComponent.h b/Source/UI/MainComponent.h
+index 7567654..70991b1 100644
+--- a/Source/UI/MainComponent.h
++++ b/Source/UI/MainComponent.h
+@@ -138,5 +138,6 @@ private:
+     bool studioBrowserVisible = false;
+     bool studioPianoRollVisible = false;
+     bool suppressWorkspaceModeCallback = false;
++    bool automatedVibeTraceStarted = false;
+     int studioTrackHeight = 72;
+ };
+diff --git a/Source/UI/MainComponent.cpp b/Source/UI/MainComponent.cpp
+index b9f048a..d814723 100644
+--- a/Source/UI/MainComponent.cpp
++++ b/Source/UI/MainComponent.cpp
+@@ -584,7 +584,8 @@ void MainComponent::startAutomatedVibeTrace()
+     // This is a support-only launch path. It creates no persistent project,
+     // does not start transport, and never enables monitoring before a real
+     // Core Audio device is available.
+-    if (audioEngine.getAudioDeviceManager().getCurrentAudioDevice() == nullptr)
++    if (automatedVibeTraceStarted
++        || audioEngine.getAudioDeviceManager().getCurrentAudioDevice() == nullptr)
+         return;
+ 
+     if (const auto created = createProjectFromTemplate(ProjectTemplate::audioRecording); created.failed())
+@@ -613,6 +614,7 @@ void MainComponent::startAutomatedVibeTrace()
+         audioEngine.prepareActiveEffects();
+     audioEngine.startAudioTrace();
+     audioEngine.markAudioTraceIssue();
++    automatedVibeTraceStarted = true;
+     mixerPane.refreshFromModel();
+     arrangeWindow.repaint();
+ }
+diff --git a/Source/Core/MainWindow.cpp b/Source/Core/MainWindow.cpp
+index 3f2d915..e08d491 100644
+--- a/Source/Core/MainWindow.cpp
++++ b/Source/Core/MainWindow.cpp
+@@ -152,11 +152,16 @@ MainWindow::MainWindow(const juce::String& name, bool startAutomatedVibeTrace)
+         // Wait for AudioEngine::initialise() to open the Core Audio device.
+         // The component then retries native Vibe setup on its normal UI timer
+         // while the packaged plug-in registry completes its asynchronous scan.
+-        juce::Timer::callAfterDelay(800, [component]
+-        {
+-            if (component != nullptr)
+-                component->startAutomatedVibeTrace();
+-        });
++        // A USB/Core Audio device may appear after the app itself has opened.
++        // Retry without mutating the session more than once: MainComponent
++        // owns the idempotence latch and returns until a device and input are
++        // actually ready.
++        for (auto attempt = 0; attempt < 10; ++attempt)
++            juce::Timer::callAfterDelay(800 + attempt * 1000, [component]
++            {
++                if (component != nullptr)
++                    component->startAutomatedVibeTrace();
++            });
+     }
+ 
+ }
+

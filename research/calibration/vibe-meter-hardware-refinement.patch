@@ -1,0 +1,111 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -672 +672,15 @@
+-    g.setColour (juce::Colour (0xff030706)); g.fillRoundedRectangle (d, 7.0f);
++    g.setColour (juce::Colours::black.withAlpha (.46f));
++    g.fillRoundedRectangle (d.translated (0.0f, 2.2f).expanded (1.1f), 8.2f);
++    auto bezel = juce::ColourGradient (juce::Colour (0xff8b877d), d.getX(), d.getY(),
++                                       juce::Colour (0xff252a28), d.getX(), d.getBottom(), false);
++    bezel.addColour (.17, juce::Colour (0xffd1c6b2));
++    bezel.addColour (.43, juce::Colour (0xff474a45));
++    bezel.addColour (.78, juce::Colour (0xff171a18));
++    g.setGradientFill (bezel); g.fillRoundedRectangle (d, 7.8f);
++    const auto gasket = d.reduced (2.0f);
++    g.setColour (juce::Colour (0xff080a09)); g.fillRoundedRectangle (gasket, 6.6f);
++    const auto glassFace = d.reduced (4.0f);
++    auto glassBase = juce::ColourGradient (juce::Colour (0xff0a0e0d), glassFace.getX(), glassFace.getY(),
++                                           juce::Colour (0xff020504), glassFace.getX(), glassFace.getBottom(), false);
++    glassBase.addColour (.55, juce::Colour (0xff030706));
++    g.setGradientFill (glassBase); g.fillRoundedRectangle (glassFace, 5.5f);
+@@ -675,2 +689,3 @@
+-    g.setOpacity (.30f);
+-    g.drawImageWithin (glass, juce::roundToInt (d.getX()), juce::roundToInt (d.getY()), juce::roundToInt (d.getWidth()), juce::roundToInt (glassHeight), juce::RectanglePlacement::centred);
++    g.setOpacity (.24f);
++    g.drawImageWithin (glass, juce::roundToInt (glassFace.getX()), juce::roundToInt (glassFace.getY()),
++                       juce::roundToInt (glassFace.getWidth()), juce::roundToInt (glassHeight), juce::RectanglePlacement::centred);
+@@ -678,2 +693,3 @@
+-    g.setColour (juce::Colour (0xff151a1a)); g.drawRoundedRectangle (d.reduced (2.0f), 6.0f, 1.2f);
+-    g.setColour (juce::Colour (0xffa19d8f).withAlpha (.62f)); g.drawRoundedRectangle (d.reduced (.5f), 7.0f, .9f);
++    g.setColour (juce::Colours::white.withAlpha (.075f)); g.drawRoundedRectangle (glassFace.reduced (.4f), 5.2f, .8f);
++    g.setColour (champagne.withAlpha (.48f)); g.drawRoundedRectangle (d.reduced (.55f), 7.3f, .8f);
++    g.setColour (juce::Colours::black.withAlpha (.72f)); g.drawRoundedRectangle (gasket, 6.3f, 1.15f);
+@@ -685 +701,6 @@
+-    g.setFont (juce::FontOptions (16.0f * layout.scale, juce::Font::bold));
++    const auto meterFont = [&] (float height, const juce::String& style, float tracking = 0.0f)
++    {
++        return juce::Font (juce::FontOptions ("Avenir Next", style, height * layout.scale))
++                   .withHorizontalScale (.95f).withExtraKerningFactor (tracking);
++    };
++    g.setFont (meterFont (15.0f, "Demi Bold", .035f));
+@@ -688 +709 @@
+-    g.setFont (juce::FontOptions (29.0f * layout.scale, juce::Font::bold));
++    g.setFont (meterFont (27.0f, "Demi Bold", .018f));
+@@ -691 +712,14 @@
+-    auto c=juce::Point<float>(d.getCentreX(),d.getY()+d.getHeight()*.438f);auto radius=juce::jmin(d.getWidth()*.45f,d.getHeight()*.34f);auto circle=juce::Rectangle<float>(radius*2,radius*2).withCentre(c);g.setColour(juce::Colour(0xff383a36));g.drawEllipse(circle,1);for(int i=0;i<49;i++){auto a=juce::MathConstants<float>::pi*1.12f+i*(juce::MathConstants<float>::pi*1.76f/48.f);auto v=juce::Point<float>(std::cos(a),std::sin(a));g.setColour(i==24?brass:juce::Colour(0xff5b615e));g.drawLine(juce::Line<float>(circle.getCentre()+v*radius*.86f,circle.getCentre()+v*radius*.98f),i==24?2:1);}
++    auto c = juce::Point<float> (d.getCentreX(), d.getY() + d.getHeight() * .438f);
++    auto radius = juce::jmin (d.getWidth() * .45f, d.getHeight() * .34f);
++    auto circle = juce::Rectangle<float> (radius * 2.0f, radius * 2.0f).withCentre (c);
++    g.setColour (juce::Colours::black.withAlpha (.62f)); g.drawEllipse (circle.expanded (1.4f), 2.2f);
++    g.setColour (champagne.withAlpha (.18f)); g.drawEllipse (circle, .85f);
++    for (int i = 0; i < 49; ++i)
++    {
++        const auto a = juce::MathConstants<float>::pi * 1.12f + (float) i * (juce::MathConstants<float>::pi * 1.76f / 48.0f);
++        const auto v = juce::Point<float> (std::cos (a), std::sin (a));
++        const auto major = i == 0 || i == 24 || i == 48 || i % 6 == 0;
++        g.setColour (i == 24 ? brass.withAlpha (.94f) : smokeInk.withAlpha (major ? .72f : .48f));
++        g.drawLine ({ circle.getCentre() + v * radius * (major ? .835f : .875f),
++                      circle.getCentre() + v * radius * .975f }, i == 24 ? 1.9f : major ? 1.25f : .78f);
++    }
+@@ -793 +827,3 @@
+-        g.setColour (juce::Colour (0xff020504).withAlpha (.76f));
++        g.setColour (juce::Colours::black.withAlpha (.55f));
++        g.fillRoundedRectangle (legend.translated (0.0f, 1.0f), 3.0f * layout.scale);
++        g.setColour (juce::Colour (0xff070a09).withAlpha (.88f));
+@@ -796 +832 @@
+-        g.setFont (juce::FontOptions (12.0f * layout.scale, juce::Font::bold));
++        g.setFont (meterFont (11.0f, "Medium", .015f));
+@@ -804,5 +840,10 @@
+-    auto tgt=visualHasPitch?visualTargetNote.retainCharacters("ABCDEFG#b0123456789"):juce::String("--");
+-    auto targetReadout=juce::Rectangle<float>(radius*1.02f,radius*.39f).withCentre({c.x,c.y+radius*.12f});
+-    g.setColour(juce::Colour(0xff020504).withAlpha(.78f)); g.fillRoundedRectangle(targetReadout, radius*.10f);
+-    g.setColour(juce::Colour(0xffb58a38).withAlpha(.20f)); g.drawRoundedRectangle(targetReadout, radius*.10f, .75f);
+-    g.setColour(ivory);g.setFont(juce::FontOptions(radius*.30f,juce::Font::bold));g.drawText(tgt.isEmpty()?"--":tgt,targetReadout.toNearestInt(),juce::Justification::centred);
++    auto tgt = visualHasPitch ? visualTargetNote.retainCharacters ("ABCDEFG#b0123456789") : juce::String ("--");
++    auto targetReadout = juce::Rectangle<float> (radius * 1.02f, radius * .39f).withCentre ({ c.x, c.y + radius * .12f });
++    g.setColour (juce::Colours::black.withAlpha (.46f));
++    g.fillRoundedRectangle (targetReadout.translated (0.0f, 1.4f), radius * .10f);
++    auto readoutFill = juce::ColourGradient (juce::Colour (0xff0a0d0b), targetReadout.getX(), targetReadout.getY(),
++                                             juce::Colour (0xff020403), targetReadout.getX(), targetReadout.getBottom(), false);
++    g.setGradientFill (readoutFill); g.fillRoundedRectangle (targetReadout, radius * .10f);
++    g.setColour (brass.withAlpha (.24f)); g.drawRoundedRectangle (targetReadout.reduced (.35f), radius * .095f, .75f);
++    g.setColour (ivory); g.setFont (meterFont (radius * .30f / layout.scale, "Demi Bold", .012f));
++    g.drawText (tgt.isEmpty() ? "--" : tgt, targetReadout.toNearestInt(), juce::Justification::centred);
+@@ -809 +850,26 @@
+-    auto correction=visualHasPitch?((visualCorrection>.05?"+":"")+juce::String(visualCorrection,1)+" ct"):"--";auto bottom=d.toNearestInt().withTrimmedTop((int)d.getHeight()-82).reduced(16,0);const auto sep1=bottom.getX()+juce::roundToInt(bottom.getWidth()*.376f);const auto sep2=bottom.getX()+juce::roundToInt(bottom.getWidth()*.722f);std::array<juce::Rectangle<int>,3> cols{{{bottom.getX(),bottom.getY(),sep1-bottom.getX(),bottom.getHeight()},{sep1,bottom.getY(),sep2-sep1,bottom.getHeight()},{sep2,bottom.getY(),bottom.getRight()-sep2,bottom.getHeight()}}};g.setColour(juce::Colour(0xff6f7878).withAlpha(.76f));g.drawVerticalLine(sep1,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.drawVerticalLine(sep2,(float)bottom.getY()+3,(float)bottom.getBottom()-3);g.setColour(champagne);g.setFont(juce::FontOptions(13.0f*layout.scale,juce::Font::bold));g.drawText("CORRECTION",cols[0].withHeight(20),juce::Justification::centred);g.drawText("CONFIDENCE",cols[1].withHeight(20),juce::Justification::centred);g.drawText("STATUS",cols[2].withHeight(20),juce::Justification::centred);g.setColour(ivory);g.setFont(juce::FontOptions(21.0f*layout.scale,juce::Font::bold));g.drawText(correction,cols[0].withTrimmedTop(25),juce::Justification::centred);g.setColour(smokeInk);g.drawText(visualHasPitch?juce::String(visualConfidence,2):"--",cols[1].withTrimmedTop(25),juce::Justification::centred);g.setColour(champagne);g.drawText(status,cols[2].withTrimmedTop(25),juce::Justification::centred);
++    const auto correction = visualHasPitch ? ((visualCorrection > .05f ? "+" : "") + juce::String (visualCorrection, 1) + " ct") : "--";
++    auto bottom = d.toNearestInt().withTrimmedTop ((int) d.getHeight() - 82).reduced (16, 0);
++    const auto sep1 = bottom.getX() + juce::roundToInt (bottom.getWidth() * .376f);
++    const auto sep2 = bottom.getX() + juce::roundToInt (bottom.getWidth() * .722f);
++    std::array<juce::Rectangle<int>, 3> cols {{
++        { bottom.getX(), bottom.getY(), sep1 - bottom.getX(), bottom.getHeight() },
++        { sep1, bottom.getY(), sep2 - sep1, bottom.getHeight() },
++        { sep2, bottom.getY(), bottom.getRight() - sep2, bottom.getHeight() }
++    }};
++    g.setColour (juce::Colours::black.withAlpha (.34f));
++    g.drawHorizontalLine (bottom.getY(), (float) bottom.getX() + 4.0f, (float) bottom.getRight() - 4.0f);
++    g.setColour (smokeInk.withAlpha (.46f));
++    g.drawVerticalLine (sep1, (float) bottom.getY() + 5.0f, (float) bottom.getBottom() - 5.0f);
++    g.drawVerticalLine (sep2, (float) bottom.getY() + 5.0f, (float) bottom.getBottom() - 5.0f);
++    g.setColour (champagne.withAlpha (.90f));
++    g.setFont (meterFont (11.5f, "Demi Bold", .025f));
++    g.drawText ("CORRECTION", cols[0].withHeight (20), juce::Justification::centred);
++    g.drawText ("CONFIDENCE", cols[1].withHeight (20), juce::Justification::centred);
++    g.drawText ("STATUS", cols[2].withHeight (20), juce::Justification::centred);
++    g.setFont (meterFont (19.0f, "Demi Bold", .008f));
++    g.setColour (ivory.withAlpha (.94f));
++    g.drawText (correction, cols[0].withTrimmedTop (27), juce::Justification::centred);
++    g.setColour (smokeInk.withAlpha (.92f));
++    g.drawText (visualHasPitch ? juce::String (visualConfidence, 2) : "--", cols[1].withTrimmedTop (27), juce::Justification::centred);
++    g.setColour (champagne.withAlpha (.96f));
++    g.drawText (status, cols[2].withTrimmedTop (27).reduced (3, 0), juce::Justification::centred, true);

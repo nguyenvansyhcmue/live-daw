@@ -1,0 +1,39 @@
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -1143,7 +1143,7 @@
+         const auto humanize = humanizeProcessor.process (humanizePercent, fastRetuneAmount,
+                                                           sustainRamp, humanizeVibratoRecognition,
+                                                           sampleRate, hopSamples)
+-                              * diagnosticHumanizeScale;
++                              * productionHumanizeScale * diagnosticHumanizeScale;
+         // Artist's neutral behaviour is level-dependent: a small natural
+         // vibrato remains almost intact, while a wide 30-cent vibrato is
+         // pulled firmly toward centre. Humanize progressively restores that
+@@ -2021,8 +2021,13 @@
+     static constexpr int targetMedianHistoryLength = 3;
+     static constexpr double transientRetuneMs = 55.0;
+     static constexpr double minimumContinuousRetuneMs = 8.0;
+-    static constexpr double artistRetune10MsTimeConstantMs = 53.333 / 2.302585092994046;
+-    static constexpr double artistRetune25MsTimeConstantMs = 96.0 / 2.302585092994046;
++    // Control-law calibration from the matched hook-2 Artist reference. These
++    // are T90 knots expressed as first-order time constants; UI labels and
++    // state schema remain unchanged.
++    static constexpr double artistRetune10MsTimeConstantMs = 20.0 / 2.302585092994046;
++    static constexpr double artistRetune25MsTimeConstantMs = 40.0 / 2.302585092994046;
++    static constexpr double productionFlexResidualScale = 0.75;
++    static constexpr double productionHumanizeScale = 1.25;
+     static constexpr double artistRetune50MsTimeConstantMs = 176.0 / 2.302585092994046;
+     static constexpr double transientReleaseSeconds = 0.018;
+     static constexpr double humanizeMinimumSustainMs = 80.0;
+@@ -2119,7 +2124,9 @@
+         const auto residualAtUpperFlex = residualFraction[flexLower + 1][errorLower]
+                                         + (residualFraction[flexLower + 1][errorLower + 1]
+                                            - residualFraction[flexLower + 1][errorLower]) * errorAmount;
+-        const auto residual = clamp01 ((residualAtLowerFlex
+-                                       + (residualAtUpperFlex - residualAtLowerFlex) * flexAmount) * diagnosticFlexResidualScale);
++        const auto residual = clamp01 (productionFlexResidualScale
++                                       * (residualAtLowerFlex
++                                          + (residualAtUpperFlex - residualAtLowerFlex) * flexAmount)
++                                       * diagnosticFlexResidualScale);
+         return 1.0 - residual;
+     }

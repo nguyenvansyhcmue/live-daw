@@ -1,0 +1,38 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -1465,6 +1465,8 @@
+                              && rawCandidate.valleyProminence >= requiredProminence
+                              && zeroCrossingRate <= maximumZeroCrossingRate
+                              && rawZeroCrossingRate <= maximumRawZeroCrossingRate
+-                             && lowBandEnergyRatio >= minimumLowBandEnergyRatio
++                             && (lowBandEnergyRatio >= minimumLowBandEnergyRatio
++                                 || (rawPeriodicity >= 0.95
++                                     && rawZeroCrossingRate <= maximumRawZeroCrossingRate))
+                              && rawPeriodicity >= minimumRawPeriodicity
+                              && rms >= certifiedRms;
+@@ -1473,7 +1475,12 @@
+ 
+     if (! voicedEvidence)
+     {
+-        noiseFloorRms = juce::jmax (1.0e-6, noiseFloorRms * 0.98 + rms * 0.02);
++        const auto likelyPeriodicVoice = lowBandEnergyRatio < minimumLowBandEnergyRatio
++                                      && rawPeriodicity >= 0.75
++                                      && rawCandidate.periodicity >= requiredPeriodicity
++                                      && rawCandidate.correlation >= requiredCorrelation;
++        if (! likelyPeriodicVoice)
++            noiseFloorRms = juce::jmax (1.0e-6, noiseFloorRms * 0.98 + rms * 0.02);
+         voicingAttackFrames = 0;
+         clearPitchContinuity();
+         ++voicingReleaseFrames;
+diff --git a/VibeAutotune/CausalTDPSOLARenderer.h b/VibeAutotune/CausalTDPSOLARenderer.h
+--- a/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -2210,6 +2210,6 @@
+     // Golden baseline profile: this is the renderer behaviour verified by
+     // VibeAutotune-Live-Preview-hook2-preset.wav for the 0/0/0 preset.
+-    static constexpr double safetyHoldSeconds = 0.0120;
++    static constexpr double safetyHoldSeconds = 0.0050;
+     static constexpr double rapidReversalThresholdCents = 40.0;
+     static constexpr int rapidTakeoverLeadSamples = 8;
+     static constexpr double rapidReturnMinimumF0Hz = 180.0;

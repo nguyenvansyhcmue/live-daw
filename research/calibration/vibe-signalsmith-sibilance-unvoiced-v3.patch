@@ -1,0 +1,56 @@
+--- a/VibeAutotune/SignalsmithPitchRenderer.h
++++ b/VibeAutotune/SignalsmithPitchRenderer.h
+@@ -98,8 +98,11 @@
+             const auto periodicCoherence = period > 0
+                 ? std::abs (correlation) / std::sqrt (std::max (sourceEnergy * delayedEnergy, 1.0e-18)) : 0.0;
+             const auto nonPeriodic = std::clamp ((0.74 - periodicCoherence) / 0.30, 0.0, 1.0);
+-            sibilanceTargetDelay[dryWrite] = voiced
+-                ? static_cast<float> (std::sqrt (highFrequencyEvidence * nonPeriodic)) : 0.0f;
++            // Fricatives are commonly marked unvoiced by F0 tracking.  Keep
++            // this detector independent of that flag so the dry fallback is
++            // also protected; otherwise an /s/ bypasses the guard entirely.
++            sibilanceTargetDelay[dryWrite] = static_cast<float> (
++                std::sqrt (highFrequencyEvidence * nonPeriodic));
+             const auto sibilanceTarget = sibilanceTargetDelay[read];
+             // A direct wet/dry switch can create a one-sample click because
+             // the spectral output and its latency-aligned dry counterpart
+@@ -120,9 +123,16 @@
+                 -2.0 * std::numbers::pi_v<double> * crossoverHz / sampleRate));
+             wetLowState += (destination[n] - wetLowState) * crossoverAlpha;
+             dryLowState += (dry - dryLowState) * crossoverAlpha;
++            const auto dryHigh = dry - dryLowState;
++            // A shallow local de-ess lets an unvoiced /s/ remain intelligible
++            // while preventing a dry handoff from making it jump in front of
++            // the corrected vowel. This is never active outside the delayed
++            // sibilance mask and is not a global vocal EQ.
++            const auto protectedDry = dryLowState
++                + dryHigh * (1.0f - sibilanceDeEssDepth * sibilanceResidualMix);
+             const auto hybridWet = destination[n]
+-                + ((dry - dryLowState) - (destination[n] - wetLowState)) * sibilanceResidualMix;
+-            destination[n] = dry + (hybridWet - dry) * wetGate;
++                + ((protectedDry - dryLowState) - (destination[n] - wetLowState)) * sibilanceResidualMix;
++            destination[n] = protectedDry + (hybridWet - protectedDry) * wetGate;
+             dryWrite = (dryWrite + 1) % dryDelay.size();
+         }
+     }
+@@ -149,6 +159,7 @@
+     static constexpr double crossoverHz = 2800.0;
+     static constexpr double sibilanceAttackSeconds = 0.0005;
+     static constexpr double sibilanceReleaseSeconds = 0.004;
++    static constexpr float sibilanceDeEssDepth = 0.18f;
+     static constexpr double sourceEvidenceSeconds = 128.0 / 48000.0;
+     static constexpr double sourceAnalysisCrossoverHz = 3500.0;
+     double sourceEvidenceAlpha = 1.0;
+--- a/tests/SignalsmithPitchRendererTest.cpp
++++ b/tests/SignalsmithPitchRendererTest.cpp
+@@ -84,7 +84,9 @@
+                                 && index < static_cast<int> (sampleRate * 0.95);
+             input[static_cast<size_t> (sample)] = static_cast<float> (vowel + (isSibilant ? noise * 0.30 : 0.0));
+         }
+-        renderer.process (input.data(), output.data(), blockSize, std::exp2 (100.0 / 1200.0), true, 220.0);
++        // An /s/ normally has no stable F0, so prove the dry fallback itself
++        // is protected rather than only testing the voiced/wet branch.
++        renderer.process (input.data(), output.data(), blockSize, std::exp2 (100.0 / 1200.0), false, 220.0);
+         for (const auto value : output)
+         {
+             finite = finite && std::isfinite (value);

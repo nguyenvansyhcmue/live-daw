@@ -1,0 +1,11 @@
+diff --git a/Source/AudioEngine/AudioDiagnosticTracer.cpp b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -57,7 +57,7 @@ void AudioDiagnosticTracer::run()
+             stream->writeText(juce::String(e.ms) + "," + juce::String(e.kind) + ","
+                               + juce::String(e.callbackFrames) + "," + juce::String(e.inputPeak) + ","
+                               + juce::String(e.secondaryInputPeak) + "," + juce::String(e.outputPeak) + ","
+-                              + juce::String(e.trackId) + "," + juce::String(e.input) + ","
++                              + juce::String(e.trackId) + ","
+                               + juce::String(e.trackPostFxPeak) + "," + juce::String(e.input) + ","
+                               + juce::String(e.mode) + "," + juce::String(e.panic) + ","

@@ -1,0 +1,17 @@
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -10,7 +10,13 @@
+ constexpr double yinThreshold = 0.15;
+ constexpr float silenceThreshold = 0.0001f;
+ constexpr int maximumPitchAnalysisFrameSize = 2048;
+-constexpr int rendererControlIntervalSamples = 128;
++// The shipped renderer keeps its 128-sample cadence. A separate offline
++// build may override this compile-time value to measure control bandwidth;
++// it is not a public parameter and it never changes the released binary.
++#ifndef VIBE_RENDERER_CONTROL_INTERVAL_SAMPLES
++ #define VIBE_RENDERER_CONTROL_INTERVAL_SAMPLES 128
++#endif
++constexpr int rendererControlIntervalSamples = VIBE_RENDERER_CONTROL_INTERVAL_SAMPLES;
+ constexpr double rendererControlDezipperFastSeconds = 0.006;
+ constexpr double rendererControlDezipperSlowSeconds = 0.032;
+ // Measured against the Artist F#4 control fixture. The spectral renderer

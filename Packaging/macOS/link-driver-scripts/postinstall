@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+target="/Library/Audio/Plug-Ins/HAL/StudioForgeLinkHAL.driver"
+test -f "$target/Contents/Info.plist"
+test -x "$target/Contents/MacOS/StudioForgeLinkHAL"
+
+# Do not kill coreaudiod behind an active DAW. Apple documents a reboot after
+# installing an Audio Server Plug-in; the installer UI/release notes tell the
+# user explicitly and preserve all current audio sessions until then.
+echo "StudioForge Link installed. Reboot macOS before selecting the device."
+exit 0

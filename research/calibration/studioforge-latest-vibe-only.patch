@@ -1,0 +1,50 @@
+diff --git a/Source/Control/PitchCorrectionIntegrationService.cpp b/Source/Control/PitchCorrectionIntegrationService.cpp
+--- a/Source/Control/PitchCorrectionIntegrationService.cpp
++++ b/Source/Control/PitchCorrectionIntegrationService.cpp
+@@ -40,7 +40,18 @@ bool PitchCorrectionIntegrationService::isVibeAutotune(const juce::PluginDescrip
+ std::optional<juce::PluginDescription> PitchCorrectionIntegrationService::findVibeAutotune() const
+ {
+     const auto plugins = host.getKnownPlugins();
++    std::optional<juce::PluginDescription> fallback;
+     for (const auto& plugin : plugins)
+-        if (isVibeAutotune(plugin)) return plugin;
+-    return std::nullopt;
++    {
++        if (! isVibeAutotune(plugin))
++            continue;
++        if (plugin.pluginFormatName.equalsIgnoreCase("VST3")
++            && juce::File { plugin.fileOrIdentifier }.exists())
++            return plugin;
++        if (! fallback.has_value())
++            fallback = plugin;
++    }
++    // AU remains a compatibility fallback for Logic, but StudioForge always
++    // chooses the one canonical VST3 when it is installed.
++    return fallback;
+ }
+@@ -108,7 +119,24 @@ PitchCorrectionIntegrationService::Status PitchCorrectionIntegrationService::en
+         const auto* rack = model.getFxRackSnapshot(static_cast<size_t>(track));
+         auto existing = rack != nullptr ? rack->processors[static_cast<size_t>(route->fxSlot)] : nullptr;
+         if (existing != nullptr && existing->getPersistentIdentifier() != vibe->createIdentifierString())
+-            return { PitchCorrectionIntegrationState::wrongPluginInSlot, stateMessage(PitchCorrectionIntegrationState::wrongPluginInSlot) };
++        {
++            if (normalized(existing->getName()) != "vibeautotune")
++                return { PitchCorrectionIntegrationState::wrongPluginInSlot, stateMessage(PitchCorrectionIntegrationState::wrongPluginInSlot) };
++
++            // Transparently replace a legacy AU/VST3 instance with the single
++            // current StudioForge VST3, preserving compatible parameter state.
++            juce::MemoryBlock previousState;
++            existing->getState(previousState);
++            juce::String error;
++            auto replacement = host.createEffect(*vibe, juce::jmax(44100.0, model.getSampleRate()), 512, error);
++            if (replacement == nullptr)
++                return { PitchCorrectionIntegrationState::pluginNotInserted, error };
++            if (! previousState.isEmpty())
++                replacement->setState(previousState.getData(), previousState.getSize());
++            model.setFxProcessor(static_cast<size_t>(track), static_cast<size_t>(route->fxSlot), std::move(replacement));
++            rack = model.getFxRackSnapshot(static_cast<size_t>(track));
++            existing = rack->processors[static_cast<size_t>(route->fxSlot)];
++        }
+         if (existing == nullptr)
+         {
+             juce::String error;

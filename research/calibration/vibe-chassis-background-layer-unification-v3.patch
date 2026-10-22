@@ -1,0 +1,94 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -441,42 +441,47 @@
+     // The last physical surface is the Note Map / keyboard tray.  Do not add
+     // a second decorative lower deck: it makes the UI look like it has an
+     // unfinished black footer.
+-    auto chassis = D (5, 42, 1438, 954);
++    // One continuous outer shell.  Every later layer is inset from this
++    // rectangle, so no child surface can visually cut through its edge.
++    auto chassis = D (7, 44, 1434, 950);
+     auto chassisFill = juce::ColourGradient (juce::Colour (0xff242622), chassis.getX(), chassis.getY(), juce::Colour (0xff080908), chassis.getX(), chassis.getBottom(), false);
+-    g.setGradientFill (chassisFill); g.fillRoundedRectangle (chassis, 15.0f);
+-    g.setColour (juce::Colour (0xffe3d7c0).withAlpha (.72f)); g.drawRoundedRectangle (chassis.reduced (.5f), 15.0f, 1.3f);
+-    g.setColour (juce::Colour (0xff504b40)); g.drawRoundedRectangle (chassis.reduced (3.0f), 12.0f, 1.0f);
++    g.setGradientFill (chassisFill); g.fillRoundedRectangle (chassis, 13.0f);
++    g.setColour (juce::Colour (0xffe3d7c0).withAlpha (.62f)); g.drawRoundedRectangle (chassis.reduced (.7f), 12.5f, 1.1f);
++    g.setColour (juce::Colour (0xff504b40).withAlpha (.74f)); g.drawRoundedRectangle (chassis.reduced (3.2f), 10.0f, .8f);
+     // All visible surfaces use this one inset bay. The former rail geometry
+     // began outside it, so the metal slabs could visually sit on top of the
+     // header and Note Map at the chassis edges.
+-    auto workSurface = chassis.reduced (9.0f);
+-    auto bg=juce::ColourGradient(juce::Colour(0xffd5c9b2),workSurface.getX(),workSurface.getY(),juce::Colour(0xffa89c87),workSurface.getX(),workSurface.getBottom(),false);g.setGradientFill(bg);g.fillRoundedRectangle(workSurface,10.0f);
+-    g.saveState(); juce::Path workClip; workClip.addRoundedRectangle (workSurface, 10.0f); g.reduceClipRegion (workClip);
++    auto workSurface = chassis.reduced (10.0f);
++    auto bg=juce::ColourGradient(juce::Colour(0xffd5c9b2),workSurface.getX(),workSurface.getY(),juce::Colour(0xffa89c87),workSurface.getX(),workSurface.getBottom(),false);g.setGradientFill(bg);g.fillRoundedRectangle(workSurface,8.0f);
++    g.setColour (juce::Colour (0xff4d473d).withAlpha (.66f)); g.drawRoundedRectangle (workSurface.reduced (.5f), 8.0f, .8f);
++    g.saveState(); juce::Path workClip; workClip.addRoundedRectangle (workSurface, 8.0f); g.reduceClipRegion (workClip);
+     for (int y = juce::roundToInt (workSurface.getY()); y < juce::roundToInt (workSurface.getBottom()); y += 4) { g.setColour ((y % 19 == 0 ? juce::Colours::white : juce::Colours::black).withAlpha (0.008f)); g.drawHorizontalLine (y, workSurface.getX(), workSurface.getRight()); }
+     g.restoreState();
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+     // Narrow side cheeks sit inside the same work-surface clip as every
+     // other layer. They frame the contents instead of obscuring their edges.
+-    auto leftRail = D (15, 51, 19, 936), rightRail = D (1414, 51, 19, 936);
++    // Rails are short inner cheeks, not full-height slabs.  Their ends stay
++    // clear of the corner fasteners and the outer chassis border.
++    auto leftRail = D (18, 73, 16, 892), rightRail = D (1414, 73, 16, 892);
+     auto railFill = juce::ColourGradient (juce::Colour (0xffeadbca), leftRail.getX(), leftRail.getY(), juce::Colour (0xff8b7765), leftRail.getRight(), leftRail.getY(), false);
+     g.saveState();
+-    juce::Path railClip; railClip.addRoundedRectangle (workSurface, 10.0f); g.reduceClipRegion (railClip);
++    juce::Path railClip; railClip.addRoundedRectangle (workSurface, 8.0f); g.reduceClipRegion (railClip);
+     g.setGradientFill (railFill); g.fillRoundedRectangle (leftRail, 2.0f); g.fillRoundedRectangle (rightRail, 2.0f);
+-    g.setColour (juce::Colour (0xff171713)); g.drawRoundedRectangle (leftRail, 2.0f, 1.0f); g.drawRoundedRectangle (rightRail, 2.0f, 1.0f);
++    g.setColour (juce::Colour (0xff171713).withAlpha (.60f)); g.drawRoundedRectangle (leftRail, 2.0f, .7f); g.drawRoundedRectangle (rightRail, 2.0f, .7f);
+     g.restoreState();
+     // Hardware fasteners are the topmost chassis detail, never hidden by a rail.
+-    screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
+-    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
++    screw (D (25, 62, 1, 1).getPosition()); screw (D (1423, 62, 1, 1).getPosition());
++    screw (D (25, 982, 1, 1).getPosition()); screw (D (1423, 982, 1, 1).getPosition());
+     // Header is a separate recessed faceplate, not a black shadow bleeding
+     // into the champagne surface below it.
+     auto header = headerBounds.toFloat();
+     auto headerFill = juce::ColourGradient (juce::Colour (0xff1b1c1a), header.getX(), header.getY(), juce::Colour (0xff080a09), header.getX(), header.getBottom(), false);
++    g.setColour (juce::Colours::black.withAlpha (.40f)); g.fillRoundedRectangle (header.translated (0.0f, 2.0f), 5.0f);
+     g.setGradientFill (headerFill); g.fillRoundedRectangle (header, 4.0f);
+-    g.setColour (juce::Colours::black.withAlpha (.58f)); g.drawRoundedRectangle (header.expanded (1.0f), 5.0f, 1.5f);
++    g.setColour (juce::Colours::black.withAlpha (.46f)); g.drawRoundedRectangle (header.reduced (.2f), 4.0f, 1.0f);
+     g.setColour (champagne.withAlpha (.56f)); g.drawRoundedRectangle (header.reduced (.5f), 3.5f, 1.0f);
+     g.setColour (juce::Colours::white.withAlpha (.10f)); g.drawHorizontalLine (juce::roundToInt (header.getY() + 2), header.getX() + 10, header.getRight() - 10);
+-    g.setColour (juce::Colours::black.withAlpha (.72f)); g.drawHorizontalLine (juce::roundToInt (header.getBottom() + 1.0f), header.getX() + 5, header.getRight() - 5);
+-    auto logoArea = layout.rect (62, 51, 365, 65);
++    auto logoArea = layout.rect (62, 58, 365, 58);
+     auto logoFont = juce::Font (juce::FontOptions (46.0f * layout.scale, juce::Font::bold)).withHorizontalScale (1.42f);
+     g.setFont (logoFont);
+     g.setColour (juce::Colours::black.withAlpha (.72f)); g.drawText ("LIVE TUNE", logoArea.translated (0, 2), juce::Justification::centredLeft);
+@@ -486,5 +491,5 @@
+     // refined rather than the former oversized, highly-spaced treatment.
+     auto subtitleFont = juce::Font (juce::FontOptions (12.5f * layout.scale, juce::Font::bold)).withExtraKerningFactor (.26f);
+     g.setFont (subtitleFont); g.setColour (champagne.withAlpha (.76f));
+-    g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 54, 445, 60), juce::Justification::centredLeft);
++    g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 59, 445, 54), juce::Justification::centredLeft);
+     drawPanel(g,correctionBounds.toFloat(),"CORRECTION"); drawPanel(g,monitorBounds.toFloat(),"LIVE PITCH"); drawPanel(g,setupBounds.toFloat(),"UTILITY");
+@@ -766,16 +771,18 @@
+     // The hardware rails occupy x=7..38 and x=1410..1441. Everything the
+     // user reads as the control surface must sit inside this same inner bay.
+     // Previously the panel grid began at x=20 and visibly overran the rails.
+-    headerBounds = D (43, 43, 1362, 80);
++    // Header sits fully inside the champagne bay instead of sharing the
++    // chassis' top edge.  This removes the black seam and corner collisions.
++    headerBounds = D (43, 56, 1362, 68);
+     correctionBounds = D (43, 139, 492, 569);
+     monitorBounds = D (543, 139, 433, 569);
+     setupBounds = D (984, 139, 421, 569);
+     pianoBounds = D (43, 722, 1362, 259);
+ 
+     // Small, deliberate hardware controls; the previous oversized power
+     // glyph competed with the header instead of reading as a switch.
+-    bypassButton.setBounds (D (1273, 56, 52, 52));
+-    settingsButton.setBounds (D (1348, 62, 40, 40));
++    bypassButton.setBounds (D (1275, 63, 48, 48));
++    settingsButton.setBounds (D (1350, 67, 36, 36));
+ 
+     // Correction column: dominant, but no longer so oversized that it
+     // overwhelms the monitor and makes the three-panel composition lopsided.

@@ -1,0 +1,188 @@
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -455,8 +455,6 @@
+     for (int y = juce::roundToInt (workSurface.getY()); y < juce::roundToInt (workSurface.getBottom()); y += 4) { g.setColour ((y % 19 == 0 ? juce::Colours::white : juce::Colours::black).withAlpha (0.008f)); g.drawHorizontalLine (y, workSurface.getX(), workSurface.getRight()); }
+     g.restoreState();
+     auto screw = [&] (juce::Point<float> p) { g.setColour (juce::Colours::black.withAlpha (.65f)); g.fillEllipse (p.x - 6, p.y - 6, 12, 12); g.setColour (champagne.withAlpha (.75f)); g.drawEllipse (p.x - 4.5f, p.y - 4.5f, 9, 9, .8f); g.setColour (juce::Colour (0xff0c0d0c)); g.drawLine (p.x - 2.5f, p.y, p.x + 2.5f, p.y, 1.0f); };
+-    screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
+-    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+     // Narrow side cheeks sit inside the same work-surface clip as every
+     // other layer. They frame the contents instead of obscuring their edges.
+     auto leftRail = D (15, 51, 19, 936), rightRail = D (1414, 51, 19, 936);
+@@ -466,6 +464,9 @@
+     g.setGradientFill (railFill); g.fillRoundedRectangle (leftRail, 2.0f); g.fillRoundedRectangle (rightRail, 2.0f);
+     g.setColour (juce::Colour (0xff171713)); g.drawRoundedRectangle (leftRail, 2.0f, 1.0f); g.drawRoundedRectangle (rightRail, 2.0f, 1.0f);
+     g.restoreState();
++    // Hardware fasteners are the topmost chassis detail, never hidden by a rail.
++    screw (D (23, 60, 1, 1).getPosition()); screw (D (1426, 60, 1, 1).getPosition());
++    screw (D (24, 987, 1, 1).getPosition()); screw (D (1424, 987, 1, 1).getPosition());
+     // Header is a separate recessed faceplate, not a black shadow bleeding
+     // into the champagne surface below it.
+     auto header = headerBounds.toFloat();
+@@ -662,21 +663,41 @@
+ 
+ void VibeAutotuneEditor::drawRuleMarker (juce::Graphics& g, juce::Rectangle<float> b, NoteRule rule) const
+ {
+-    b = b.reduced (1.0f);
+-    const auto colour = rule == NoteRule::Legal         ? brass
+-                      : rule == NoteRule::IllegalNearest ? juce::Colour (0xffdc655e)
+-                      : rule == NoteRule::IllegalUp      ? ice
+-                      : rule == NoteRule::IllegalDown    ? juce::Colour (0xffb68ae3)
+-                                                           : muted;
+-    const auto glyph = rule == NoteRule::Legal ? juce::String ("•")
+-                                                : juce::String (noteRuleGlyph (rule));
+-    g.setColour (juce::Colours::black.withAlpha (.52f));
+-    g.fillRoundedRectangle (b, 2.5f);
+-    g.setColour (colour.withAlpha (.76f));
+-    g.drawRoundedRectangle (b, 2.5f, .8f);
+-    g.setColour (colour);
+-    g.setFont (juce::FontOptions (juce::jmax (10.0f, b.getHeight() * .80f), juce::Font::bold));
+-    g.drawText (glyph, b.toNearestInt(), juce::Justification::centred);
++    // Purple is a legal target; magenta with a white dash is excluded.
++    // Expert rules use vector marks so they cannot suffer font-glyph fallback.
++    b = b.reduced (0.75f);
++    const auto fill = rule == NoteRule::Legal          ? juce::Colour (0xff3b1c50)
++                    : rule == NoteRule::IllegalNearest ? juce::Colour (0xffff00ff)
++                    : rule == NoteRule::IllegalUp      ? juce::Colour (0xff8d43ac)
++                    : rule == NoteRule::IllegalDown    ? juce::Colour (0xff73359a)
++                                                        : juce::Colour (0xff6c4a73);
++    g.setColour (juce::Colours::black.withAlpha (.62f));
++    g.fillRoundedRectangle (b.translated (0.0f, 1.0f), 2.2f);
++    g.setColour (fill); g.fillRoundedRectangle (b, 2.2f);
++    g.setColour (juce::Colours::white.withAlpha (.18f));
++    g.drawRoundedRectangle (b.reduced (.35f), 1.9f, .65f);
++
++    const auto midX = b.getCentreX(), midY = b.getCentreY();
++    const auto white = juce::Colours::white.withAlpha (.94f);
++    if (rule == NoteRule::IllegalNearest)
++    {
++        g.setColour (white);
++        g.drawLine (b.getX() + b.getWidth() * .25f, midY, b.getRight() - b.getWidth() * .25f, midY, 1.5f);
++    }
++    else if (rule == NoteRule::IllegalUp || rule == NoteRule::IllegalDown)
++    {
++        juce::Path triangle; const auto top = rule == NoteRule::IllegalUp;
++        triangle.addTriangle (midX, top ? b.getY() + 3.0f : b.getBottom() - 3.0f,
++                              b.getX() + 3.0f, top ? b.getBottom() - 3.0f : b.getY() + 3.0f,
++                              b.getRight() - 3.0f, top ? b.getBottom() - 3.0f : b.getY() + 3.0f);
++        g.setColour (white); g.fillPath (triangle);
++    }
++    else if (rule == NoteRule::BypassLegal)
++    {
++        g.setColour (white.withAlpha (.82f));
++        g.drawLine (b.getX()+3.0f,b.getY()+3.0f,b.getRight()-3.0f,b.getBottom()-3.0f,1.2f);
++        g.drawLine (b.getRight()-3.0f,b.getY()+3.0f,b.getX()+3.0f,b.getBottom()-3.0f,1.2f);
++    }
+ }
+ void VibeAutotuneEditor::drawPianoKeyboard (juce::Graphics& g) const
+ {
+@@ -693,16 +717,16 @@
+         if (pressed) b = b.translated (0.0f, 4.0f);
+         auto key = juce::ColourGradient (juce::Colour (0xfff5eee1), b.getX(), b.getY(), juce::Colour (0xffc1b7a4), b.getX(), b.getBottom(), false);
+         if (! inRange) key = juce::ColourGradient (juce::Colour (0xff706b60), b.getX(), b.getY(), juce::Colour (0xff393a35), b.getX(), b.getBottom(), false);
+-        if (pressed) key = juce::ColourGradient (juce::Colour (0xffffd682), b.getX(), b.getY(), juce::Colour (0xffa96b18), b.getX(), b.getBottom(), false);
++        if (pressed) key = juce::ColourGradient (juce::Colour (0xffff63ef), b.getX(), b.getY(), juce::Colour (0xffff00ff), b.getX(), b.getBottom(), false);
+         g.setGradientFill (key); g.fillRoundedRectangle (b, 1.6f);
+         g.setColour (juce::Colours::white.withAlpha (inRange ? .62f : .14f)); g.drawLine (b.getX()+1,b.getY()+1,b.getRight()-1,b.getY()+1,.8f);
+-        g.setColour (pressed ? brass : juce::Colour (0xff373832)); g.drawRoundedRectangle (b, 1.6f, pressed ? 1.8f : .85f);
++        g.setColour (pressed ? juce::Colour (0xffffb5fa) : juce::Colour (0xff373832)); g.drawRoundedRectangle (b, 1.6f, pressed ? 1.8f : .85f);
+         if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (2.5f), 1.0f, 1.4f); }
+         if (note % 12 == 0)
+         {
+             g.setColour (inRange ? champagne : champagne.withAlpha (.28f)); g.setFont (juce::FontOptions (9, juce::Font::bold));
+-            auto band = juce::Rectangle<float> (b.getX(), (float) pianoBounds.getBottom()-38.0f, b.getWidth(), 22.0f);
+-            g.drawText ("C"+juce::String(note/12-1), band.toNearestInt(), juce::Justification::centred);
++            auto band = juce::Rectangle<float> (b.getX()+3.0f, (float)pianoBounds.getBottom()-38.0f, b.getWidth()-4.0f, 19.0f);
++            g.drawText ("C"+juce::String(note/12-1), band.toNearestInt(), juce::Justification::bottomLeft);
+         }
+     }
+     for (int note = firstKey; note <= lastKey; ++note)
+@@ -715,15 +739,13 @@
+         g.setColour (juce::Colours::black.withAlpha (inRange ? .62f : .28f)); g.fillRoundedRectangle (b.translated (0, 3), 2.0f);
+         auto key = juce::ColourGradient (juce::Colour (0xff292a28), b.getX(), b.getY(), juce::Colour (0xff050606), b.getX(), b.getBottom(), false);
+         if (! inRange) key = juce::ColourGradient (juce::Colour (0xff242522), b.getX(), b.getY(), juce::Colour (0xff121311), b.getX(), b.getBottom(), false);
+-        if (pressed) key = juce::ColourGradient (juce::Colour (0xffd28c21), b.getX(), b.getY(), juce::Colour (0xff51310a), b.getX(), b.getBottom(), false);
++        if (pressed) key = juce::ColourGradient (juce::Colour (0xffff2ce7), b.getX(), b.getY(), juce::Colour (0xff860076), b.getX(), b.getBottom(), false);
+         g.setGradientFill (key); g.fillRoundedRectangle (b, 2.0f);
+         g.setColour (juce::Colours::white.withAlpha (inRange ? .14f : .04f)); g.drawLine (b.getX()+2,b.getY()+1,b.getRight()-2,b.getY()+1,.8f);
+-        g.setColour (pressed ? brass : champagne.withAlpha (inRange ? .22f : .07f)); g.drawRoundedRectangle (b, 2.0f, pressed ? 1.6f : .7f);
++        g.setColour (pressed ? juce::Colour (0xffffb5fa) : champagne.withAlpha (inRange ? .22f : .07f)); g.drawRoundedRectangle (b, 2.0f, pressed ? 1.6f : .7f);
+         if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (1.6f), 1.0f, 1.2f); }
+     }
+-    // Entering edit mode reveals every status directly above its key. The
+-    // keyboard grid is the sole rule selector; no floating tool palette.
+-    if (editNotesEnabled)
+-        for (int note = firstKey; note <= lastKey; ++note)
+-            drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
++    // Always show the scale ruler. Pencil mode only enables editing.
++    for (int note = firstKey; note <= lastKey; ++note)
++        drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
+ }
+@@ -823,7 +846,7 @@
+     for (int note = firstKey; note <= lastKey; ++note)
+     {
+         const auto key = pianoKeyBounds[(size_t) (note - firstKey)];
+-        const auto markerWidth = juce::jmax (7, juce::jmin (14, key.getWidth() - 2));
+-        noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY() + 4, markerWidth, juce::jmax (9, statusStrip.getHeight() - 5) };
++        const auto markerWidth = juce::jmax (8, juce::jmin (15, key.getWidth() - 2));
++        noteStatusBounds[(size_t) (note - firstKey)] = { key.getCentreX() - markerWidth / 2, statusStrip.getY() + 2, markerWidth, juce::jmax (11, statusStrip.getHeight() - 3) };
+     }
+ }
+@@ -914,14 +937,10 @@
+     if (processor.getGroupOctaves())
+     {
+         processor.setNoteRuleForPitchClass (midiNote % 12, rule);
+-        for (int note = firstKey; note <= lastKey; ++note)
+-            if (note % 12 == midiNote % 12)
+-                noteRuleIndicatorVisible[(size_t) (note - firstKey)] = true;
+     }
+     else
+     {
+         processor.setNoteRuleForMidiNote (midiNote, rule);
+-        noteRuleIndicatorVisible[(size_t) (midiNote - firstKey)] = true;
+     }
+     repaint (pianoBounds);
+ }
+@@ -959,21 +978,16 @@
+                                 if (editor->processor.getGroupOctaves())
+                                 {
+                                     editor->processor.resetNoteRuleForPitchClass (midiNote % 12);
+-                                    for (int note = firstKey; note <= lastKey; ++note)
+-                                        if (note % 12 == midiNote % 12)
+-                                            editor->noteRuleIndicatorVisible[(size_t) (note - firstKey)] = false;
+                                 }
+                                 else
+                                 {
+                                     editor->processor.resetNoteRuleForMidiNote (midiNote);
+-                                    editor->noteRuleIndicatorVisible[(size_t) (midiNote - firstKey)] = false;
+                                 }
+                                 editor->repaint (editor->pianoBounds);
+                             }
+                             else if (result == 7)
+                             {
+                                 editor->processor.resetNotePolicyToCurrentScale();
+-                                editor->noteRuleIndicatorVisible.fill (false);
+                                 editor->repaint (editor->pianoBounds);
+                             }
+                         });
+@@ -996,5 +1010,7 @@
+     const auto current = processor.getGroupOctaves()
+                        ? processor.getNoteRuleForPitchClass (midiNote % 12)
+                        : processor.getNoteRuleForMidiNote (midiNote);
+-    applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + 1) % 5));
++    // Everyday interaction: allowed <-> excluded. Expert states stay in
++    // the contextual menu and never clutter this compact note-filter strip.
++    applyNoteRule (midiNote, current == NoteRule::Legal ? NoteRule::IllegalNearest : NoteRule::Legal);
+ }
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -102,9 +102,6 @@
+     // supported input profile without turning the keyboard into a scroll view.
+     std::array<juce::Rectangle<int>, 60> pianoKeyBounds;
+     std::array<juce::Rectangle<int>, 60> noteStatusBounds;
+-    // UI-only visibility state: an edit marker appears only after the user
+-    // changes that note, rather than filling the keyboard with default rules.
+-    std::array<bool, 60> noteRuleIndicatorVisible {};
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;

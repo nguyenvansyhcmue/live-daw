@@ -1,0 +1,137 @@
+diff --git a/VibeAutotune/PluginEditor.h b/VibeAutotune/PluginEditor.h
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -72,8 +72,11 @@
+     AnalogTextButton settingsButton { "SETTINGS" };
+     AnalogTextButton editNotesButton { "EDIT NOTES" };
+     AnalogToggleButton groupOctavesButton { "GROUP OCTAVES" };
++    // Primary selectors remain in the utility section.  The Note Map owns
++    // compact mirrored controls so musical context is visible where notes are
++    // edited without relocating the main controls.
+     juce::ComboBox inputTypeSelector, keySelector, scaleSelector;
+-    juce::ComboBox noteMapScaleSelector;
++    juce::ComboBox noteMapVoiceSelector, noteMapKeySelector, noteMapScaleSelector;
+     juce::Label inputTypeLabel, keyLabel, scaleLabel;
+ 
+     RetuneRotarySlider retuneSpeedSlider;
+
+diff --git a/VibeAutotune/PluginEditor.cpp b/VibeAutotune/PluginEditor.cpp
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -339,6 +339,21 @@
+     configureSelector (inputTypeSelector, inputTypeLabel, "VOICE", { "Soprano", "Alto", "Tenor", "Low" });
+     configureSelector (keySelector, keyLabel, "KEY", { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
+     configureSelector (scaleSelector, scaleLabel, "SCALE", { "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" });
++    // The lower strip mirrors the real utility controls.  It is not a second
++    // parameter set: every gesture forwards to the authoritative selector.
++    const auto configureContextSelector = [this] (juce::ComboBox& selector, const juce::StringArray& choices)
++    {
++        selector.addItemList (choices, 1);
++        selector.setLookAndFeel (&hardware);
++        selector.setColour (juce::ComboBox::backgroundColourId, graphite);
++        selector.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f));
++        selector.setColour (juce::ComboBox::textColourId, ivory);
++        selector.setColour (juce::ComboBox::arrowColourId, brass);
++        addAndMakeVisible (selector);
++    };
++    configureContextSelector (noteMapVoiceSelector, { "Soprano", "Alto", "Tenor", "Low" });
++    configureContextSelector (noteMapKeySelector, { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" });
++    configureContextSelector (noteMapScaleSelector, { "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic", "Harmonic Minor", "Melodic Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Minor Blues", "Whole Tone", "User Scale" });
+     configureKnob (retuneSpeedSlider, retuneSpeedLabel, "RETUNE", " ms", 100); configureKnob (pitchFlexibleSlider, pitchFlexibleLabel, "FLEX TUNE", " %", 0);
+     configureKnob (humanizeSlider, humanizeLabel, "HUMANIZE", " %", 0); configureKnob (naturalVibratoSlider, naturalVibratoLabel, "NATURAL VIBRATO", "", 0);
+     configureKnob (transposeSlider, transposeLabel, "TRANSPOSE", " st", 0); configureKnob (referencePitchSlider, referencePitchLabel, "REFERENCE", " Hz", 440);
+@@ -359,6 +374,15 @@
+     groupOctavesButton.setLookAndFeel (&hardware); groupOctavesButton.setToggleState (processor.getGroupOctaves(), juce::dontSendNotification); groupOctavesButton.setColour (juce::ToggleButton::textColourId, champagne); groupOctavesButton.setColour (juce::ToggleButton::tickColourId, brass); groupOctavesButton.onClick = [this] { processor.setGroupOctaves (groupOctavesButton.getToggleState()); repaint (pianoBounds); }; addAndMakeVisible (groupOctavesButton);
+     bypassAttachment = std::make_unique<ButtonAttachment> (processor.parameters, "bypass", bypassButton);
+     inputTypeAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "inputType", inputTypeSelector); keyAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "key", keySelector); scaleAttachment = std::make_unique<ComboBoxAttachment> (processor.parameters, "scale", scaleSelector);
++    noteMapVoiceSelector.onChange = [this] { inputTypeSelector.setSelectedItemIndex (noteMapVoiceSelector.getSelectedItemIndex(), juce::sendNotification); };
++    noteMapKeySelector.onChange = [this] { keySelector.setSelectedItemIndex (noteMapKeySelector.getSelectedItemIndex(), juce::sendNotification); };
++    noteMapScaleSelector.onChange = [this] { scaleSelector.setSelectedItemIndex (noteMapScaleSelector.getSelectedItemIndex(), juce::sendNotification); };
++    inputTypeSelector.onChange = [this] { noteMapVoiceSelector.setSelectedItemIndex (inputTypeSelector.getSelectedItemIndex(), juce::dontSendNotification); };
++    keySelector.onChange = [this] { noteMapKeySelector.setSelectedItemIndex (keySelector.getSelectedItemIndex(), juce::dontSendNotification); };
++    scaleSelector.onChange = [this] { noteMapScaleSelector.setSelectedItemIndex (scaleSelector.getSelectedItemIndex(), juce::dontSendNotification); };
++    noteMapVoiceSelector.setSelectedItemIndex (inputTypeSelector.getSelectedItemIndex(), juce::dontSendNotification);
++    noteMapKeySelector.setSelectedItemIndex (keySelector.getSelectedItemIndex(), juce::dontSendNotification);
++    noteMapScaleSelector.setSelectedItemIndex (scaleSelector.getSelectedItemIndex(), juce::dontSendNotification);
+     retuneSpeedAttachment = std::make_unique<SliderAttachment> (processor.parameters, "retuneSpeed", retuneSpeedSlider); flexTuneAttachment = std::make_unique<SliderAttachment> (processor.parameters, "flexTune", pitchFlexibleSlider); humanizeAttachment = std::make_unique<SliderAttachment> (processor.parameters, "humanize", humanizeSlider); naturalVibratoAttachment = std::make_unique<SliderAttachment> (processor.parameters, "naturalVibrato", naturalVibratoSlider);
+     transposeAttachment = std::make_unique<SliderAttachment> (processor.parameters, "transpose", transposeSlider); referencePitchAttachment = std::make_unique<SliderAttachment> (processor.parameters, "referencePitch", referencePitchSlider); trackingAttachment = std::make_unique<SliderAttachment> (processor.parameters, "tracking", trackingSlider); voicedColourAttachment = std::make_unique<SliderAttachment> (processor.parameters, "voicedColour", voicedColourSlider);
+     // APVTS installs its own display converters when attachments are created.
+@@ -376,7 +400,7 @@
+     if (auto* constrainer = getConstrainer()) constrainer->setFixedAspectRatio (LiveTuneLayoutMetrics::designWidth / LiveTuneLayoutMetrics::designHeight);
+     setSize (1024, 713); startTimerHz (30);
+ }
+-VibeAutotuneEditor::~VibeAutotuneEditor() { stopTimer(); bypassButton.setLookAndFeel (nullptr); settingsButton.setLookAndFeel (nullptr); editNotesButton.setLookAndFeel (nullptr); groupOctavesButton.setLookAndFeel (nullptr); inputTypeSelector.setLookAndFeel (nullptr); keySelector.setLookAndFeel (nullptr); scaleSelector.setLookAndFeel (nullptr); noteMapScaleSelector.setLookAndFeel (nullptr); for (auto* s : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) }) s->setLookAndFeel (nullptr); }
++VibeAutotuneEditor::~VibeAutotuneEditor() { stopTimer(); bypassButton.setLookAndFeel (nullptr); settingsButton.setLookAndFeel (nullptr); editNotesButton.setLookAndFeel (nullptr); groupOctavesButton.setLookAndFeel (nullptr); inputTypeSelector.setLookAndFeel (nullptr); keySelector.setLookAndFeel (nullptr); scaleSelector.setLookAndFeel (nullptr); noteMapVoiceSelector.setLookAndFeel (nullptr); noteMapKeySelector.setLookAndFeel (nullptr); noteMapScaleSelector.setLookAndFeel (nullptr); for (auto* s : { static_cast<juce::Slider*> (&retuneSpeedSlider), static_cast<juce::Slider*> (&pitchFlexibleSlider), static_cast<juce::Slider*> (&humanizeSlider), static_cast<juce::Slider*> (&naturalVibratoSlider), static_cast<juce::Slider*> (&transposeSlider), static_cast<juce::Slider*> (&referencePitchSlider), static_cast<juce::Slider*> (&trackingSlider), static_cast<juce::Slider*> (&voicedColourSlider) }) s->setLookAndFeel (nullptr); }
+ void VibeAutotuneEditor::configureSelector (juce::ComboBox& s, juce::Label& l, const juce::String& t, const juce::StringArray& c) { s.addItemList (c, 1); s.setLookAndFeel (&hardware); s.setColour (juce::ComboBox::backgroundColourId, graphite); s.setColour (juce::ComboBox::outlineColourId, champagne.withAlpha (.5f)); s.setColour (juce::ComboBox::textColourId, ivory); s.setColour (juce::ComboBox::arrowColourId, brass); addAndMakeVisible (s); l.setText (t, juce::dontSendNotification); l.setFont (juce::FontOptions (10, juce::Font::bold)); l.setColour (juce::Label::textColourId, graphite); addAndMakeVisible (l); }
+ void VibeAutotuneEditor::configureKnob (juce::Slider& s, juce::Label& l, const juce::String& t, const juce::String& suffix, double d) { s.setName (t); s.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag); s.setLookAndFeel (&hardware); s.setRotaryParameters (juce::degreesToRadians (225.f), juce::degreesToRadians (495.f), true); s.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 82, 20); s.setTextValueSuffix (suffix); s.setDoubleClickReturnValue (true, d); s.setColour (juce::Slider::textBoxTextColourId, ivory); s.setColour (juce::Slider::textBoxBackgroundColourId, glass); s.setColour (juce::Slider::textBoxOutlineColourId, champagne.withAlpha (.3f)); addAndMakeVisible (s); l.setText (t, juce::dontSendNotification); l.setFont (juce::FontOptions (10, juce::Font::bold)); l.setColour (juce::Label::textColourId, graphite); l.setJustificationType (juce::Justification::centred); addAndMakeVisible (l); }
+ 
+@@ -435,7 +459,15 @@
+     auto railFill = juce::ColourGradient (juce::Colour (0xffeadbca), leftRail.getX(), leftRail.getY(), juce::Colour (0xff8b7765), leftRail.getRight(), leftRail.getY(), false);
+     g.setGradientFill (railFill); g.fillRect (leftRail); g.fillRect (rightRail);
+     g.setColour (juce::Colour (0xff171713)); g.drawRect (leftRail, 1.1f); g.drawRect (rightRail, 1.1f);
+-    auto header = headerBounds.toFloat(); g.setColour (juce::Colours::black.withAlpha (.55f)); g.fillRect (header.translated (0, 3)); auto headerFill = juce::ColourGradient (juce::Colour (0xff171817), header.getX(), header.getY(), juce::Colour (0xff080a09), header.getX(), header.getBottom(), false); g.setGradientFill (headerFill); g.fillRect (header);g.setColour(champagne.withAlpha(.62f));g.drawRect(header.reduced(.5f),1); g.setColour (juce::Colours::white.withAlpha (.10f)); g.drawHorizontalLine (juce::roundToInt (header.getY() + 2), header.getX() + 10, header.getRight() - 10);
++    // Header is a separate recessed faceplate, not a black shadow bleeding
++    // into the champagne surface below it.
++    auto header = headerBounds.toFloat();
++    auto headerFill = juce::ColourGradient (juce::Colour (0xff1b1c1a), header.getX(), header.getY(), juce::Colour (0xff080a09), header.getX(), header.getBottom(), false);
++    g.setGradientFill (headerFill); g.fillRoundedRectangle (header, 4.0f);
++    g.setColour (juce::Colours::black.withAlpha (.58f)); g.drawRoundedRectangle (header.expanded (1.0f), 5.0f, 1.5f);
++    g.setColour (champagne.withAlpha (.56f)); g.drawRoundedRectangle (header.reduced (.5f), 3.5f, 1.0f);
++    g.setColour (juce::Colours::white.withAlpha (.10f)); g.drawHorizontalLine (juce::roundToInt (header.getY() + 2), header.getX() + 10, header.getRight() - 10);
++    g.setColour (juce::Colours::black.withAlpha (.72f)); g.drawHorizontalLine (juce::roundToInt (header.getBottom() + 1.0f), header.getX() + 5, header.getRight() - 5);
+     auto logoArea = layout.rect (62, 51, 365, 65);
+     auto logoFont = juce::Font (juce::FontOptions (46.0f * layout.scale, juce::Font::bold)).withHorizontalScale (1.42f);
+     g.setFont (logoFont);
+@@ -448,6 +480,8 @@
+     g.setFont (subtitleFont); g.setColour (champagne.withAlpha (.76f));
+     g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 54, 445, 60), juce::Justification::centredLeft);
+     drawPanel(g,correctionBounds.toFloat(),"CORRECTION"); drawPanel(g,monitorBounds.toFloat(),"LIVE PITCH"); drawPanel(g,setupBounds.toFloat(),"UTILITY");
++    g.setColour (graphite.withAlpha (.58f));
++    g.drawHorizontalLine (juce::roundToInt (layout.originY + 220.0f * layout.scale), layout.originX + 1008.0f * layout.scale, layout.originX + 1382.0f * layout.scale);
+     g.setColour(graphite);g.fillRoundedRectangle(pianoBounds.toFloat(),10);g.setColour(champagne.withAlpha(.45f));g.drawRoundedRectangle(pianoBounds.toFloat().reduced(.5f),10,1);
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+     g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,728,130,24).toNearestInt(),juce::Justification::centredLeft);
+@@ -704,12 +738,14 @@
+     character (3, 524, naturalVibratoLabel, naturalVibratoSlider);
+ 
+     // One contiguous musical-context strip; these are the real APVTS controls.
+-    inputTypeLabel.setBounds (D (182, 722, 106, 14));
+-    inputTypeSelector.setBounds (D (182, 739, 116, 34));
+-    keyLabel.setBounds (D (311, 722, 68, 14));
+-    keySelector.setBounds (D (311, 739, 74, 34));
+-    scaleLabel.setBounds (D (398, 722, 118, 14));
+-    scaleSelector.setBounds (D (398, 739, 154, 34));
++    // Primary musical setup stays above the utility knobs, as on hardware
++    // units. The mirrored controls below are only a local Note Map context.
++    inputTypeLabel.setBounds (D (1015, 151, 145, 16));
++    inputTypeSelector.setBounds (D (1015, 171, 145, 40));
++    keyLabel.setBounds (D (1172, 151, 78, 16));
++    keySelector.setBounds (D (1172, 171, 78, 40));
++    scaleLabel.setBounds (D (1262, 151, 122, 16));
++    scaleSelector.setBounds (D (1262, 171, 122, 40));
+ 
+     const auto utility = [&] (int index, float x, float y, juce::Label& label, juce::Slider& slider)
+     {
+@@ -718,12 +754,17 @@
+     };
+     // Utility controls start high enough to balance the monitor instead of
+     // leaving an accidental, empty upper third of the right-hand panel.
+-    utility (4, 1032, 226, transposeLabel, transposeSlider);
+-    utility (5, 1228, 226, referencePitchLabel, referencePitchSlider);
+-    utility (6, 1032, 431, trackingLabel, trackingSlider);
+-    utility (7, 1228, 431, voicedColourLabel, voicedColourSlider);
++    utility (4, 1032, 251, transposeLabel, transposeSlider);
++    utility (5, 1228, 251, referencePitchLabel, referencePitchSlider);
++    utility (6, 1032, 456, trackingLabel, trackingSlider);
++    utility (7, 1228, 456, voicedColourLabel, voicedColourSlider);
+ 
+-    editNotesButton.setBounds (D (696, 724, 43, 40));
++    noteMapVoiceSelector.setBounds (D (182, 739, 116, 34));
++    noteMapKeySelector.setBounds (D (311, 739, 74, 34));
++    noteMapScaleSelector.setBounds (D (398, 739, 154, 34));
++    // Pencil stays with the three context fields; centred placement made it
++    // look detached from both the Note Map and the keys it edits.
++    editNotesButton.setBounds (D (566, 739, 34, 34));
+     groupOctavesButton.setBounds (D (1100, 727, 267, 49));
+     for (size_t i = 0; i < editRuleBounds.size(); ++i)
+         editRuleBounds[i] = D (750.0f + static_cast<float> (i) * 68.0f, 727, 64, 34);

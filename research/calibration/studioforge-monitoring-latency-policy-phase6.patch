@@ -1,0 +1,356 @@
+--- a/Source/AudioEngine/AudioEngine.h	2026-10-11 18:14:18
++++ b/Source/AudioEngine/AudioEngine.h	2026-10-11 19:33:23
+@@ -104,6 +104,15 @@
+     void setLivePerformanceEnabled(bool enabled) noexcept;
+     bool isLivePerformanceEnabled() const noexcept;
+     bool isLiveLowLatencyProtectionEnabled() const noexcept;
++    // Global monitor policy is deliberately independent from each track's
++    // In/Auto/Off state. The audio callback reads only atomics here.
++    void setSoftwareMonitoringEnabled(bool enabled) noexcept;
++    bool isSoftwareMonitoringEnabled() const noexcept;
++    void setFocusedInputMonitoringEnabled(bool enabled) noexcept;
++    bool isFocusedInputMonitoringEnabled() const noexcept;
++    void setLiveLowLatencyProtectionEnabled(bool enabled) noexcept;
++    void setStudioPluginDelayCompensationEnabled(bool enabled) noexcept;
++    bool isStudioPluginDelayCompensationEnabled() const noexcept;
+     // The UI selection is also the tie-breaker when several live tracks are
+     // routed from the same physical input. It prevents accidental summing of
+     // one microphone into the master output while retaining every input meter.
+@@ -314,6 +323,10 @@
+     std::atomic<bool> countInMetronomeActive { false };
+     std::atomic<WorkspaceMode> workspaceMode { WorkspaceMode::studio };
+     std::atomic<bool> liveLowLatencyProtectionEnabled { false };
++    std::atomic<bool> liveLowLatencyMonitoringPreferred { true };
++    std::atomic<bool> softwareMonitoringEnabled { true };
++    std::atomic<bool> focusedInputMonitoringEnabled { false };
++    std::atomic<bool> studioPluginDelayCompensationEnabled { true };
+     // Final-output safety gate. It deliberately does not touch track mutes,
+     // faders or project state, so releasing PANIC restores the exact mix.
+     std::atomic<bool> panicMuteEnabled { false };
+--- a/Source/AudioEngine/AudioEngine.cpp	2026-10-11 19:13:13
++++ b/Source/AudioEngine/AudioEngine.cpp	2026-10-11 19:34:06
+@@ -214,7 +214,13 @@
+     deviceManager.addMidiInputDeviceCallback({}, this);
+     refreshMidiInputDevices();
+     if (savedState != nullptr)
++    {
+         setMidiOutputDevice(savedState->getStringAttribute("midiOutputDeviceIdentifier"));
++        softwareMonitoringEnabled.store(savedState->getBoolAttribute("softwareMonitoringEnabled", true), std::memory_order_release);
++        focusedInputMonitoringEnabled.store(savedState->getBoolAttribute("focusedInputMonitoringEnabled", false), std::memory_order_release);
++        liveLowLatencyMonitoringPreferred.store(savedState->getBoolAttribute("liveLowLatencyMonitoringPreferred", true), std::memory_order_release);
++        studioPluginDelayCompensationEnabled.store(savedState->getBoolAttribute("studioPluginDelayCompensationEnabled", true), std::memory_order_release);
++    }
+     setMasterGain(1.0f);
+     if (juce::SystemStats::getEnvironmentVariable("STUDIOFORGE_AUDIO_TRACE", {}).isNotEmpty())
+         startAudioTrace();
+@@ -303,6 +309,10 @@
+     if (state != nullptr)
+     {
+         state->setAttribute("midiOutputDeviceIdentifier", midiOutputDeviceIdentifier);
++        state->setAttribute("softwareMonitoringEnabled", isSoftwareMonitoringEnabled());
++        state->setAttribute("focusedInputMonitoringEnabled", isFocusedInputMonitoringEnabled());
++        state->setAttribute("liveLowLatencyMonitoringPreferred", liveLowLatencyMonitoringPreferred.load(std::memory_order_acquire));
++        state->setAttribute("studioPluginDelayCompensationEnabled", isStudioPluginDelayCompensationEnabled());
+         state->writeTo(getAudioDeviceStateFile());
+     }
+ }
+@@ -353,14 +363,50 @@
+     workspaceMode.store(enabled ? WorkspaceMode::stage : WorkspaceMode::studio, std::memory_order_release);
+     // LIVE is intended for performers first. Keep normal mixing intact outside
+     // this mode, but avoid reported look-ahead/linear-phase delays while live.
+-    liveLowLatencyProtectionEnabled.store(enabled, std::memory_order_release);
++    liveLowLatencyProtectionEnabled.store(enabled && liveLowLatencyMonitoringPreferred.load(std::memory_order_acquire), std::memory_order_release);
+ }
+ 
+ bool AudioEngine::isLivePerformanceEnabled() const noexcept
+ {
+     return getWorkspaceMode() != WorkspaceMode::studio;
++}
++
++void AudioEngine::setSoftwareMonitoringEnabled(bool enabled) noexcept
++{
++    softwareMonitoringEnabled.store(enabled, std::memory_order_release);
++}
++
++bool AudioEngine::isSoftwareMonitoringEnabled() const noexcept
++{
++    return softwareMonitoringEnabled.load(std::memory_order_acquire);
++}
++
++void AudioEngine::setFocusedInputMonitoringEnabled(bool enabled) noexcept
++{
++    focusedInputMonitoringEnabled.store(enabled, std::memory_order_release);
++}
++
++bool AudioEngine::isFocusedInputMonitoringEnabled() const noexcept
++{
++    return focusedInputMonitoringEnabled.load(std::memory_order_acquire);
++}
++
++void AudioEngine::setLiveLowLatencyProtectionEnabled(bool enabled) noexcept
++{
++    liveLowLatencyMonitoringPreferred.store(enabled, std::memory_order_release);
++    liveLowLatencyProtectionEnabled.store(isLivePerformanceEnabled() && enabled, std::memory_order_release);
+ }
+ 
++void AudioEngine::setStudioPluginDelayCompensationEnabled(bool enabled) noexcept
++{
++    studioPluginDelayCompensationEnabled.store(enabled, std::memory_order_release);
++}
++
++bool AudioEngine::isStudioPluginDelayCompensationEnabled() const noexcept
++{
++    return studioPluginDelayCompensationEnabled.load(std::memory_order_acquire);
++}
++
+ WorkspaceMode AudioEngine::getWorkspaceMode() const noexcept
+ {
+     return workspaceMode.load(std::memory_order_acquire);
+@@ -404,7 +450,9 @@
+         if (auto* device = deviceManager.getCurrentAudioDevice(); device != nullptr)
+             studioBufferSizeBeforeLive = device->getCurrentBufferSizeSamples();
+ 
+-    liveLowLatencyProtectionEnabled.store(profile.protectsLivePluginLatency(), std::memory_order_release);
++    liveLowLatencyProtectionEnabled.store(profile.protectsLivePluginLatency()
++                                              && liveLowLatencyMonitoringPreferred.load(std::memory_order_acquire),
++                                          std::memory_order_release);
+     if (profile.mode == WorkspaceMode::studio && studioBufferSizeBeforeLive > 0)
+     {
+         auto setup = deviceManager.getAudioDeviceSetup();
+@@ -1481,7 +1529,7 @@
+     // Studio mixes must align dry/direct paths to active AUX returns. Live
+     // monitoring intentionally avoids this extra PDC: the performer hears
+     // only intrinsic plug-in latency, never the longest unrelated return.
+-    if (! isLivePerformanceEnabled())
++    if (! isLivePerformanceEnabled() && isStudioPluginDelayCompensationEnabled())
+         applyDirectPathLatencyCompensation(maximumActiveBusRackLatency(*structure), numSamples);
+ }
+ 
+@@ -2041,7 +2089,8 @@
+     // PDC is essential while mixing/printing. In a live workspace it must not
+     // make a monitored singer wait for an unrelated high-latency track; the
+     // monitored path retains only the selected insert chain's own latency.
+-    const auto longestTrackLatency = isLivePerformanceEnabled() ? 0 : maximumTrackRackLatency(*structure);
++    const auto longestTrackLatency = isLivePerformanceEnabled() || ! isStudioPluginDelayCompensationEnabled()
++        ? 0 : maximumTrackRackLatency(*structure);
+     for (size_t trackIndex = 0; trackIndex < structure->trackCount; ++trackIndex)
+     {
+         auto& trackBuffer = trackBuffers[trackIndex];
+@@ -2095,7 +2144,8 @@
+ void AudioEngine::processBusReturns(const TrackDataModel::RenderStructureSnapshot* structure, int numSamples) noexcept
+ {
+     if (structure == nullptr) return;
+-    const auto longestBusLatency = isLivePerformanceEnabled() ? 0 : maximumActiveBusRackLatency(*structure);
++    const auto longestBusLatency = isLivePerformanceEnabled() || ! isStudioPluginDelayCompensationEnabled()
++        ? 0 : maximumActiveBusRackLatency(*structure);
+     for (size_t busIndex = 0; busIndex < structure->busCount; ++busIndex)
+     {
+         const auto& bus = structure->buses[busIndex];
+@@ -2204,7 +2254,8 @@
+ {
+     const auto eligible = track.type == TrackType::audio
+         && (track.inputMonitoring || (track.autoInputMonitoring && track.armed));
+-    if (! eligible || ! track.monitorPermitted || track.monitorDestination == MonitorDestination::off)
++    if (! isSoftwareMonitoringEnabled() || ! eligible || ! track.monitorPermitted
++        || track.monitorDestination == MonitorDestination::off)
+         return {};
+ 
+     return { true, track.monitorDestination };
+@@ -2256,7 +2307,9 @@
+     for (size_t trackIndex = 0; trackIndex < structure->trackCount; ++trackIndex)
+     {
+         const auto& track = structure->tracks[trackIndex];
+-        if (! isInputMonitoringEligible(track) || track.inputChannel < 0
++        if (! isInputMonitoringEligible(track)
++            || (isFocusedInputMonitoringEnabled() && focusedTrack != 0 && track.id.value != focusedTrack)
++            || track.inputChannel < 0
+             || track.inputChannel >= static_cast<int>(maximumSafeInputChannels))
+             continue;
+ 
+@@ -2271,7 +2324,8 @@
+     for (size_t trackIndex = 0; trackIndex < structure->trackCount; ++trackIndex)
+     {
+         const auto& track = structure->tracks[trackIndex];
+-        if (! isInputMonitoringEligible(track))
++        if (! isInputMonitoringEligible(track)
++            || (isFocusedInputMonitoringEnabled() && focusedTrack != 0 && track.id.value != focusedTrack))
+             continue;
+         if (track.inputChannel < 0
+             || track.inputChannel >= static_cast<int>(maximumSafeInputChannels)
+--- a/Source/UI/DeviceSettingsPanel.h	2026-10-06 11:46:52
++++ b/Source/UI/DeviceSettingsPanel.h	2026-10-11 19:24:34
+@@ -37,6 +37,7 @@
+     juce::Label autoKeyStatus;
+     juce::TabbedComponent settingsTabs { juce::TabbedButtonBar::TabsAtTop };
+     juce::Component devicePage;
++    juce::Component monitoringPage;
+     juce::Component routingPage;
+     juce::AudioDeviceSelectorComponent selector;
+     juce::Label midiOutputLabel { {}, "MIDI OUTPUT" };
+@@ -44,6 +45,14 @@
+     juce::Label streamOutputLabel { {}, "STREAM OUTPUT" };
+     juce::ComboBox streamOutputSelector;
+     juce::Label streamOutputStatus;
++    juce::Label monitoringHeading { {}, "MONITORING & LATENCY" };
++    juce::Label monitoringHint;
++    juce::ToggleButton softwareMonitoring { "Software monitoring" };
++    juce::ToggleButton focusedInputMonitoring { "Monitor only the focused input track" };
++    juce::ToggleButton lowLatencyMonitoring { "Low Latency Monitoring" };
++    juce::ComboBox pluginDelayCompensation;
++    juce::Label pdcLabel { {}, "Plug-in Delay Compensation" };
++    juce::Label pdcHint;
+     juce::Label routingHeading { {}, "TRACK INPUT ROUTING" };
+     juce::Label routingHint;
+     juce::Viewport routingViewport;
+--- a/Source/UI/DeviceSettingsPanel.cpp	2026-10-08 22:22:46
++++ b/Source/UI/DeviceSettingsPanel.cpp	2026-10-11 19:34:27
+@@ -74,6 +74,7 @@
+ 
+     settingsTabs.setTabBarDepth(tabBarHeight);
+     settingsTabs.addTab("Device", juce::Colour(0xff2a2d31), &devicePage, false);
++    settingsTabs.addTab("Monitoring", juce::Colour(0xff2a2d31), &monitoringPage, false);
+     settingsTabs.addTab("Track Inputs", juce::Colour(0xff2a2d31), &routingPage, false);
+     addAndMakeVisible(settingsTabs);
+     devicePage.addAndMakeVisible(selector);
+@@ -113,6 +114,55 @@
+     devicePage.addAndMakeVisible(streamOutputLabel);
+     devicePage.addAndMakeVisible(streamOutputSelector);
+     devicePage.addAndMakeVisible(streamOutputStatus);
++
++    monitoringHeading.setColour(juce::Label::textColourId, StudioForgeTheme::accentCyan);
++    monitoringHeading.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
++    monitoringHeading.setJustificationType(juce::Justification::centredLeft);
++    monitoringPage.addAndMakeVisible(monitoringHeading);
++    monitoringHint.setText("Track In/Auto states still decide which microphone routes are audible.", juce::dontSendNotification);
++    monitoringHint.setColour(juce::Label::textColourId, StudioForgeTheme::secondaryText);
++    monitoringHint.setFont(juce::Font(juce::FontOptions(10.0f, juce::Font::plain)));
++    monitoringHint.setJustificationType(juce::Justification::centredLeft);
++    monitoringPage.addAndMakeVisible(monitoringHint);
++    softwareMonitoring.setTooltip("Global safety gate for all software-monitored microphone routes. Recording and input meters remain available.");
++    softwareMonitoring.onClick = [this]
++    {
++        audioEngine.setSoftwareMonitoringEnabled(softwareMonitoring.getToggleState());
++        audioEngine.saveAudioDeviceState();
++    };
++    monitoringPage.addAndMakeVisible(softwareMonitoring);
++    focusedInputMonitoring.setTooltip("When enabled, only the selected audio track can monitor. Prevents accidental duplicate monitor paths.");
++    focusedInputMonitoring.onClick = [this]
++    {
++        audioEngine.setFocusedInputMonitoringEnabled(focusedInputMonitoring.getToggleState());
++        audioEngine.saveAudioDeviceState();
++    };
++    monitoringPage.addAndMakeVisible(focusedInputMonitoring);
++    lowLatencyMonitoring.setTooltip("LIVE only: protects the monitor path from non-essential plug-ins above its latency budget. Live-essential processors stay active.");
++    lowLatencyMonitoring.onClick = [this]
++    {
++        audioEngine.setLiveLowLatencyProtectionEnabled(lowLatencyMonitoring.getToggleState());
++        audioEngine.saveAudioDeviceState();
++    };
++    monitoringPage.addAndMakeVisible(lowLatencyMonitoring);
++    pdcLabel.setColour(juce::Label::textColourId, StudioForgeTheme::primaryText);
++    pdcLabel.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
++    pdcLabel.setJustificationType(juce::Justification::centredLeft);
++    monitoringPage.addAndMakeVisible(pdcLabel);
++    pluginDelayCompensation.addItem("All paths (Studio)", 1);
++    pluginDelayCompensation.addItem("Off (diagnostic only)", 2);
++    pluginDelayCompensation.setTooltip("Studio PDC aligns direct tracks and active AUX returns. Keep All paths selected for normal mixing.");
++    pluginDelayCompensation.onChange = [this]
++    {
++        audioEngine.setStudioPluginDelayCompensationEnabled(pluginDelayCompensation.getSelectedId() != 2);
++        audioEngine.saveAudioDeviceState();
++    };
++    monitoringPage.addAndMakeVisible(pluginDelayCompensation);
++    pdcHint.setText("LIVE avoids unrelated PDC delay; use Stage/Stream plus Low Latency Monitoring for performance.", juce::dontSendNotification);
++    pdcHint.setColour(juce::Label::textColourId, StudioForgeTheme::secondaryText);
++    pdcHint.setFont(juce::Font(juce::FontOptions(10.0f, juce::Font::plain)));
++    pdcHint.setJustificationType(juce::Justification::centredLeft);
++    monitoringPage.addAndMakeVisible(pdcHint);
+ 
+     routingHeading.setText("AUDIO TRACK INPUTS", juce::dontSendNotification);
+     routingHeading.setColour(juce::Label::textColourId, StudioForgeTheme::accentCyan);
+@@ -189,6 +239,19 @@
+     streamOutputStatus.setBounds(streamOutputArea.removeFromRight(92));
+     streamOutputSelector.setBounds(streamOutputArea.reduced(0, 2));
+     selector.setBounds(deviceArea);
++
++    auto monitoringArea = monitoringPage.getLocalBounds().reduced(16);
++    monitoringHeading.setBounds(monitoringArea.removeFromTop(24));
++    monitoringHint.setBounds(monitoringArea.removeFromTop(28));
++    monitoringArea.removeFromTop(8);
++    softwareMonitoring.setBounds(monitoringArea.removeFromTop(28));
++    focusedInputMonitoring.setBounds(monitoringArea.removeFromTop(28));
++    lowLatencyMonitoring.setBounds(monitoringArea.removeFromTop(28));
++    monitoringArea.removeFromTop(12);
++    auto pdcRow = monitoringArea.removeFromTop(32);
++    pdcLabel.setBounds(pdcRow.removeFromLeft(220));
++    pluginDelayCompensation.setBounds(pdcRow.reduced(0, 2));
++    pdcHint.setBounds(monitoringArea.removeFromTop(34));
+ 
+     auto routingArea = routingPage.getLocalBounds().reduced(12);
+     routingHeading.setBounds(routingArea.removeFromTop(22));
+@@ -245,6 +308,13 @@
+     audioDeviceListInitialised = true;
+ 
+     const auto diagnostics = audioEngine.getRealtimeDiagnostics();
++    softwareMonitoring.setToggleState(audioEngine.isSoftwareMonitoringEnabled(), juce::dontSendNotification);
++    focusedInputMonitoring.setToggleState(audioEngine.isFocusedInputMonitoringEnabled(), juce::dontSendNotification);
++    lowLatencyMonitoring.setToggleState(audioEngine.isLiveLowLatencyProtectionEnabled(), juce::dontSendNotification);
++    lowLatencyMonitoring.setEnabled(audioEngine.isLivePerformanceEnabled());
++    pluginDelayCompensation.setSelectedId(audioEngine.isStudioPluginDelayCompensationEnabled() ? 1 : 2,
++                                          juce::dontSendNotification);
++    pluginDelayCompensation.setEnabled(! audioEngine.isLivePerformanceEnabled());
+     const auto currentSummary = "Active: " + juce::String(juce::roundToInt(diagnostics.sampleRate)) + " Hz, "
+                               + juce::String(diagnostics.bufferSize) + " samples, "
+                               + "input latency " + juce::String(diagnostics.inputLatencySamples) + " samples, "
+--- a/tests/CorePlaybackMixerTests.cpp	2026-10-11 19:13:13
++++ b/tests/CorePlaybackMixerTests.cpp	2026-10-11 19:26:11
+@@ -1470,6 +1470,40 @@
+                   "Studio PDC aligns a direct track with an AUX-output track that owns latency");
+ }
+ 
++bool testMonitoringPolicyGates()
++{
++    TrackDataModel model;
++    model.addTrack(TrackType::audio);
++    model.addTrack(TrackType::audio);
++    OfflineAudioDevice device;
++    AudioEngine engine(&model);
++    engine.audioDeviceAboutToStart(&device);
++    engine.setLivePerformanceEnabled(true);
++    model.setTrackInputConfiguration(0, false, true, 0, 1);
++    model.setTrackInputConfiguration(1, false, true, 1, 1);
++    model.setTrackMonitorDestination(0, MonitorDestination::master);
++    model.setTrackMonitorDestination(1, MonitorDestination::master);
++    model.setTrackMonitorPermission(0, true);
++    model.setTrackMonitorPermission(1, true);
++    const float inputA[4] { 0.2f, 0.2f, 0.2f, 0.2f };
++    const float inputB[4] { 0.4f, 0.4f, 0.4f, 0.4f };
++    const float* inputs[] { inputA, inputB };
++    float left[4] {}, right[4] {};
++    float* outputs[] { left, right };
++
++    engine.setSoftwareMonitoringEnabled(false);
++    engine.audioDeviceIOCallbackWithContext(inputs, 2, outputs, 2, 4, {});
++    if (! expect(approximatelyEqual(left[0], 0.0f),
++                 "global software-monitor gate silences monitor output without changing track state")) return false;
++    engine.setSoftwareMonitoringEnabled(true);
++    engine.setFocusedMonitorTrack(model.getTrackId(0));
++    engine.setFocusedInputMonitoringEnabled(true);
++    engine.audioDeviceIOCallbackWithContext(inputs, 2, outputs, 2, 4, {});
++    engine.audioDeviceStopped();
++    return expect(approximatelyEqual(left[0], 0.2f * 0.70710678f),
++                  "focused-monitor policy emits only the selected track input");
++}
++
+ bool testPluginReceivesExactDeviceCallbackSpan()
+ {
+     TrackDataModel model;
+@@ -2503,6 +2537,7 @@
+         && testMarqueeRangeDeletion()
+         && testTrackPluginDelayCompensation()
+         && testAuxOutputLatencyCompensation()
++        && testMonitoringPolicyGates()
+         && testPluginReceivesExactDeviceCallbackSpan()
+         && testInputMonitoring()
+         && testLiveInputRunsThroughTrackFx()
+

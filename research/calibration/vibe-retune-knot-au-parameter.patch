@@ -1,0 +1,77 @@
+--- a/autotune/VibeAutotune/PluginProcessor.cpp
++++ b/autotune/VibeAutotune/PluginProcessor.cpp
+@@ -131,6 +131,11 @@
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "flexTune", 1 }, "Flex-Tune", Range (0.0f, 100.0f, 0.1f), 0.0f));
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "humanize", 1 }, "Humanize", Range (0.0f, 100.0f, 0.1f), 0.0f, FloatAttributes().withLabel ("%")));
+     layout.add (std::make_unique<Parameter> (juce::ParameterID { "naturalVibrato", 1 }, "Natural Vibrato", Range (-12.0f, 12.0f, 0.1f), 0.0f, FloatAttributes().withLabel (" ms")));
++    // Hidden calibration-only controls. -1 restores the immutable production
++    // knots; StudioForge uses these rather than environment propagation
++    // through the AU host process.
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticRetune10T90Ms", 1 }, "Diagnostic Retune 10 T90", Range (-1.0f, 80.0f, 0.1f), -1.0f));
++    layout.add (std::make_unique<Parameter> (juce::ParameterID { "diagnosticRetune25T90Ms", 1 }, "Diagnostic Retune 25 T90", Range (-1.0f, 140.0f, 0.1f), -1.0f));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "key", 1 }, "Key", juce::StringArray { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 6));
+     layout.add (std::make_unique<Choice> (juce::ParameterID { "scale", 1 }, "Scale", juce::StringArray {
+         "Chromatic", "Major", "Natural Minor", "Major Pentatonic", "Minor Pentatonic",
+@@ -153,16 +158,7 @@
+     activeSourceSchedulerQuantumSamples = diagnosticQuantum != nullptr && std::atoi (diagnosticQuantum) == 64 ? 64 : 32;
+     const auto* retimingOverride = std::getenv ("VIBE_RETIMABLE_EPOCHS");
+     const auto productionRetimingEnabled = retimingOverride == nullptr || std::atoi (retimingOverride) != 0;
+-    // Diagnostic-only Retune knot overrides are read once during prepare;
+-    // no environment lookup occurs in the realtime path.
+-    const auto diagnosticDouble = [] (const char* name)
+-    {
+-        const auto* text = std::getenv (name);
+-        return text != nullptr ? std::strtod (text, nullptr) : -1.0;
+-    };
+-    correctionTrajectory.setDiagnosticRetuneT90Overrides (
+-        diagnosticDouble ("VIBE_DIAG_RETUNE10_T90_MS"),
+-        diagnosticDouble ("VIBE_DIAG_RETUNE25_T90_MS"));
++    correctionTrajectory.setDiagnosticRetuneT90Overrides (-1.0, -1.0);
+     const auto maximumLag = maximumPitchAnalysisFrameSize / 2 + 2;
+     yinDifference.resize (static_cast<size_t> (maximumLag + 1), 0.0);
+     yinCumulativeMean.resize (static_cast<size_t> (maximumLag + 1), 0.0);
+@@ -1643,6 +1639,10 @@
+         // the DAW block boundary. This preserves the calibrated 0–400 ms
+         // semantics for every supported host block size.
+         const auto currentRetuneMs = parameters.getRawParameterValue ("retuneSpeed")->load (std::memory_order_relaxed);
++        const auto diagnosticRetune10T90Ms = parameters.getRawParameterValue ("diagnosticRetune10T90Ms")->load (std::memory_order_relaxed);
++        const auto diagnosticRetune25T90Ms = parameters.getRawParameterValue ("diagnosticRetune25T90Ms")->load (std::memory_order_relaxed);
++        correctionTrajectory.setDiagnosticRetuneT90Overrides (diagnosticRetune10T90Ms,
++                                                               diagnosticRetune25T90Ms);
+         const auto voicedColourPercent = parameters.getRawParameterValue ("voicedColour")->load (std::memory_order_relaxed);
+         for (auto& renderer : tdpsolaRenderers)
+             renderer.setVoicedColourAmountPercent (voicedColourPercent);
+--- a/Source/Services/StudioForgeCalibrationRunner.cpp
++++ b/Source/Services/StudioForgeCalibrationRunner.cpp
+@@ -5,6 +5,8 @@
+ #include "../Models/TrackDataModel.h"
+ #include "../Plugins/PluginHostService.h"
+ 
++#include <cstdlib>
++
+ namespace
+ {
+ juce::Result configure(AudioEffectProcessor& effect, const StudioForgeCalibrationRunner::Settings& settings)
+@@ -54,6 +56,22 @@
+     {
+         return juce::Result::fail("VibeAutotune could not lock Alto / F# / Natural Minor");
+     }
++
++    // AU instances do not reliably inherit the runner environment. The
++    // Vibe-only diagnostic parameters make the calibration candidate explicit
++    // at the hosted instance while defaults remain -1 in production.
++    if (effect.getName().containsIgnoreCase("VibeAutotune"))
++    {
++        const auto setDiagnosticFromEnvironment = [&effect] (const char* environment,
++                                                               const char* parameter)
++        {
++            const auto* value = std::getenv (environment);
++            return value == nullptr || effect.setParameterText (parameter, value);
++        };
++        if (! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE10_T90_MS", "Diagnostic Retune 10 T90")
++            || ! setDiagnosticFromEnvironment ("VIBE_DIAG_RETUNE25_T90_MS", "Diagnostic Retune 25 T90"))
++            return juce::Result::fail("VibeAutotune does not expose Retune-knot diagnostic parameters");
++    }
+     return juce::Result::ok();
+ }
+ 

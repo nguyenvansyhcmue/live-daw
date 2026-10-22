@@ -1,0 +1,70 @@
+diff --git a/VibeAutotune/CausalTDPSOLARenderer.h b/VibeAutotune/CausalTDPSOLARenderer.h
+--- a/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -375,6 +375,7 @@ public:
+         maximumBlock = newMaximumBlock;
+         latency = std::max (1, newLatencySamples);
+         ringLength = std::max (16384, latency * 8 + maximumBlock * 8);
++        sourceHighFrequencyEvidenceRing.assign (static_cast<size_t> (ringLength), 0.0f);
+         input.assign (static_cast<size_t> (ringLength), 0.0f);
+         outputSum.assign (static_cast<size_t> (ringLength), 0.0f);
+         outputWeight.assign (static_cast<size_t> (ringLength), 0.0f);
+@@ -425,5 +426,6 @@ public:
+     void reset() noexcept
+     {
++        std::fill (sourceHighFrequencyEvidenceRing.begin(), sourceHighFrequencyEvidenceRing.end(), 0.0f);
+         std::fill (input.begin(), input.end(), 0.0f);
+         std::fill (outputSum.begin(), outputSum.end(), 0.0f);
+         std::fill (outputWeight.begin(), outputWeight.end(), 0.0f);
+@@ -562,7 +564,12 @@ public:
+                                                     * highpassCutoffHz / sampleRate);
+         const auto highEnergyAlpha = 1.0 - std::exp (-1.0 / (highEnergyTimeSeconds * sampleRate));
+         auto previous = readInput (static_cast<int64_t> (outputReadSample) - 1);
+-        for (int n=0; n<samples; ++n) { const auto x=static_cast<double>(source[n]); const auto d=x-previous; totalEnergy+=x*x; differenceEnergy+=d*d; previous=source[n]; sourceHighpassLowState+=(x-sourceHighpassLowState)*highpassAlpha; const auto high=x-sourceHighpassLowState; sourceHighEnergy+=(high*high-sourceHighEnergy)*highEnergyAlpha; sourceWidebandEnergy+=(x*x-sourceWidebandEnergy)*highEnergyAlpha; if (period>0) { const auto delayed=static_cast<double>(n>=period ? source[n-period] : readInput(static_cast<int64_t>(outputReadSample)+n-period)); correlation+=x*delayed; delayedEnergy+=delayed*delayed; } }
++        for (int n=0; n<samples; ++n) { const auto x=static_cast<double>(source[n]); const auto d=x-previous; totalEnergy+=x*x; differenceEnergy+=d*d; previous=source[n]; sourceHighpassLowState+=(x-sourceHighpassLowState)*highpassAlpha; const auto high=x-sourceHighpassLowState; sourceHighEnergy+=(high*high-sourceHighEnergy)*highEnergyAlpha; sourceWidebandEnergy+=(x*x-sourceWidebandEnergy)*highEnergyAlpha;
++            const auto alignedHighRatio = sourceHighEnergy / std::max (sourceWidebandEnergy, 1.0e-12);
++            const auto alignedHighEvidence = std::clamp ((alignedHighRatio - 0.040) / 0.200, 0.0, 1.0);
++            sourceHighFrequencyEvidenceRing[index (sourceScheduleSample + static_cast<uint64_t> (n))]
++                = static_cast<float> (alignedHighEvidence);
++            if (period>0) { const auto delayed=static_cast<double>(n>=period ? source[n-period] : readInput(static_cast<int64_t>(outputReadSample)+n-period)); correlation+=x*delayed; delayedEnergy+=delayed*delayed; } }
+         const auto hfRatio=std::clamp(differenceEnergy/totalEnergy,0.0,4.0);
+         state.periodicCoherence=period>0 ? std::abs(correlation)/std::sqrt(totalEnergy*delayedEnergy) : 0.0;
+ #if VIBE_TDPSOLA_CAUSAL_SIBILANCE_ENVELOPE
+@@ -1249,6 +1256,9 @@ public:
+             // A transient may remain formally voiced for a few milliseconds.
+             // Do not let its PSOLA grain become audible as a false bright
+             // consonant: leave through the existing equal-power dry handoff.
+-            const auto sibilanceForcesDry = outputState.highFrequencyEvidence
++            const auto alignedSibilanceEvidence = readSourceHighFrequencyEvidence (
++                static_cast<int64_t> (outputReadSample) - latency);
++            diagnosticState.highFrequencyEvidence = alignedSibilanceEvidence;
++            const auto sibilanceForcesDry = alignedSibilanceEvidence
+                                          >= static_cast<double> (VIBE_TDPSOLA_SIBILANCE_WET_GATE_THRESHOLD);
+             auto shouldRenderWet = valid && ! forceDry && ! sibilanceForcesDry;
+@@ -1344,10 +1354,17 @@ private:
+     float readInput (int64_t sample) const noexcept
+     {
+         if (sample < 0 || sample >= static_cast<int64_t> (sourceScheduleSample + 1)
+             || sample < static_cast<int64_t> (sourceScheduleSample) - ringLength)
+             return 0.0f;
+         return input[index (static_cast<uint64_t> (sample))];
+     }
++    float readSourceHighFrequencyEvidence (int64_t sample) const noexcept
++    {
++        if (sample < 0 || sample >= static_cast<int64_t> (sourceScheduleSample + 1)
++            || sample < static_cast<int64_t> (sourceScheduleSample) - ringLength)
++            return 0.0f;
++        return sourceHighFrequencyEvidenceRing[index (static_cast<uint64_t> (sample))];
++    }
+     void pushMark (SourceMark mark) noexcept
+     {
+         marks[markWrite] = mark;
+@@ -2236,7 +2253,7 @@ private:
+     uint64_t lateCandidateCreationCount = 0;
+     uint64_t lateOlaWriteCount = 0;
+     uint64_t earliestLateOlaDestination = std::numeric_limits<uint64_t>::max();
+-    std::vector<float> input, outputSum, outputWeight;
++    std::vector<float> sourceHighFrequencyEvidenceRing, input, outputSum, outputWeight;
+     std::vector<double> outputRatioSum, outputAgeSum, outputReadPositionSum, outputSourceMarkSum, outputSourceF0Sum, outputExpectedF0Sum;
+     std::vector<float> outputDominantWeight;
+     std::vector<float> outputDominantSampleContribution;

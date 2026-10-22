@@ -1,0 +1,151 @@
+diff --git a/VibeAutotune/PluginEditor.h b/VibeAutotune/PluginEditor.h
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -97,12 +97,14 @@
+     // supported input profile without turning the keyboard into a scroll view.
+     std::array<juce::Rectangle<int>, 60> pianoKeyBounds;
+     std::array<juce::Rectangle<int>, 60> noteStatusBounds;
++    std::array<juce::Rectangle<int>, 5> editRuleBounds;
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;
+     float displayedPitchConfidence = 0.0f;
+     bool monitorHasValidPitch = false;
+     bool editNotesEnabled = false;
++    NoteRule selectedEditRule = NoteRule::Legal;
+     std::array<VibeAutotuneProcessor::WaveformScopeFrame, VibeAutotuneProcessor::waveformScopeCapacity> monitorScopeFrames {};
+     int monitorScopeFrameCount = 0;
+ 
+diff --git a/VibeAutotune/PluginEditor.cpp b/VibeAutotune/PluginEditor.cpp
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -172,8 +172,16 @@
+         if (button.getButtonText() == "EDIT NOTES")
+         {
+             auto r = button.getLocalBounds().toFloat().translated (0, press * 1.3f);
+-            g.setColour (brass.withAlpha (.90f)); g.drawLine (r.getX() + 16, r.getCentreY() + 3, r.getX() + 24, r.getCentreY() - 5, 1.7f); g.drawLine (r.getX() + 18, r.getCentreY() + 5, r.getX() + 15, r.getCentreY() + 6, 1.2f);
+-            g.setColour (ivory); g.setFont (juce::FontOptions (juce::jmax (10.0f, r.getHeight() * .30f), juce::Font::bold)); g.drawText (button.getButtonText(), r.toNearestInt().withTrimmedLeft (30), juce::Justification::centred);
++            const auto compact = r.getWidth() < 72.0f;
++            const auto pencilX = compact ? r.getCentreX() - 4.0f : r.getX() + 16.0f;
++            g.setColour (brass.withAlpha (.90f));
++            g.drawLine (pencilX, r.getCentreY() + 3, pencilX + 8, r.getCentreY() - 5, 1.7f);
++            g.drawLine (pencilX + 2, r.getCentreY() + 5, pencilX - 1, r.getCentreY() + 6, 1.2f);
++            if (! compact)
++            {
++                g.setColour (ivory); g.setFont (juce::FontOptions (juce::jmax (10.0f, r.getHeight() * .30f), juce::Font::bold));
++                g.drawText (button.getButtonText(), r.toNearestInt().withTrimmedLeft (30), juce::Justification::centred);
++            }
+             return;
+         }
+         if (button.getButtonText() != "POWER" && button.getButtonText() != "SETTINGS")
+@@ -446,20 +454,26 @@
+     logoMetal.addColour (.48, juce::Colour (0xffe3d9ca)); g.setGradientFill (logoMetal); g.drawText ("LIVE TUNE", logoArea, juce::Justification::centredLeft);
+     auto subtitleFont = juce::Font (juce::FontOptions (14.0f * layout.scale, juce::Font::plain)).withExtraKerningFactor (.72f);
+     g.setFont (subtitleFont); g.setColour (champagne.withAlpha (.88f)); g.drawText ("REALTIME VOCAL TUNING", layout.rect (430, 54, 445, 60), juce::Justification::centredLeft);
+-    drawPanel(g,correctionBounds.toFloat(),"CORRECTION"); drawPanel(g,monitorBounds.toFloat(),"LIVE PITCH"); drawPanel(g,setupBounds.toFloat(),"VOICE / SCALE / UTILITY");
+-    // Engraved separator under the three selector fields, anchored to the
+-    // master artboard rather than to a host-dependent panel percentage.
+-    const auto selectorDividerY = setupBounds.getY() + juce::roundToInt (145.0f * (float) setupBounds.getHeight() / 565.0f);
+-    g.setColour (juce::Colour (0xff615b4f).withAlpha (.64f)); g.drawHorizontalLine (selectorDividerY, (float) setupBounds.getX() + 18.0f, (float) setupBounds.getRight() - 18.0f);
+-    g.setColour (juce::Colours::white.withAlpha (.16f)); g.drawHorizontalLine (selectorDividerY + 1, (float) setupBounds.getX() + 18.0f, (float) setupBounds.getRight() - 18.0f);
++    drawPanel(g,correctionBounds.toFloat(),"CORRECTION"); drawPanel(g,monitorBounds.toFloat(),"LIVE PITCH"); drawPanel(g,setupBounds.toFloat(),"UTILITY");
+     g.setColour(graphite);g.fillRoundedRectangle(pianoBounds.toFloat(),10);g.setColour(champagne.withAlpha(.45f));g.drawRoundedRectangle(pianoBounds.toFloat().reduced(.5f),10,1);
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+     g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,728,130,24).toNearestInt(),juce::Justification::centredLeft);
+-    g.setColour(champagne.withAlpha(.8f));g.setFont(juce::FontOptions(14.0f*layout.scale,juce::Font::bold));g.drawText(processor.hasCustomNotePolicy()?"SCALE / CUSTOM":"SCALE",N(177,728,55,24).toNearestInt(),juce::Justification::centredLeft);
+-    g.setColour (champagne.withAlpha (.84f)); g.setFont (juce::FontOptions (14.0f*layout.scale, juce::Font::bold)); g.drawText ("SCALE NOTE RULES", N (412, 728, 135, 24).toNearestInt(), juce::Justification::centredLeft);
+-    const std::array<std::pair<juce::String, juce::Colour>, 5> rules {{{ "Legal", mint }, { "Excluded", juce::Colour (0xffc94848) }, { "Up", ice }, { "Down", juce::Colour (0xff9a5fd0) }, { "Bypass", juce::Colour (0xffb5b5ae) }}};
+-    const std::array<float, 5> ruleXs {{ 570, 654, 754, 824, 905 }};
+-    for (size_t i = 0; i < rules.size(); ++i) { auto icon = N (ruleXs[i], 732, 16, 16); g.setColour (rules[i].second); if (i == 2 || i == 3) { juce::Path p; const auto up = i == 2; p.startNewSubPath (icon.getCentreX(), up ? icon.getY() : icon.getBottom()); p.lineTo (icon.getRight(), up ? icon.getBottom() : icon.getY()); p.lineTo (icon.getX(), up ? icon.getBottom() : icon.getY()); p.closeSubPath(); g.fillPath (p); } else if (i == 4) { juce::Path p; p.startNewSubPath (icon.getCentreX(), icon.getY()); p.lineTo (icon.getRight(), icon.getCentreY()); p.lineTo (icon.getCentreX(), icon.getBottom()); p.lineTo (icon.getX(), icon.getCentreY()); p.closeSubPath(); g.fillPath (p); } else { g.drawEllipse (icon.reduced (2), 2.0f); } g.setColour (champagne.withAlpha (.86f)); g.setFont (juce::FontOptions (11.0f*layout.scale, juce::Font::plain)); g.drawText (rules[i].first, N (ruleXs[i] + 22, 728, 60, 24).toNearestInt(), juce::Justification::centredLeft); }
++    if (editNotesEnabled)
++    {
++        const std::array<juce::String, 5> labels {{ "LEGAL", "EXCL", "UP", "DOWN", "BYPASS" }};
++        for (size_t i = 0; i < editRuleBounds.size(); ++i)
++        {
++            const auto rule = static_cast<NoteRule> (i);
++            auto b = editRuleBounds[i].toFloat().reduced (.5f);
++            g.setColour (rule == selectedEditRule ? brass.withAlpha (.22f) : juce::Colours::black.withAlpha (.36f));
++            g.fillRoundedRectangle (b, 4.0f);
++            g.setColour ((rule == selectedEditRule ? brass : champagne).withAlpha (.75f));
++            g.drawRoundedRectangle (b, 4.0f, rule == selectedEditRule ? 1.4f : .8f);
++            drawRuleMarker (g, b.withSizeKeepingCentre (14.0f, 16.0f).withX (b.getX() + 7.0f), rule);
++            g.setColour (ivory); g.setFont (juce::FontOptions (9.0f * layout.scale, juce::Font::bold));
++            g.drawText (labels[i], b.toNearestInt().withTrimmedLeft (23), juce::Justification::centred);
++        }
++    }
+     drawPitchMonitor(g); drawPianoKeyboard(g);
+ }
+ 
+@@ -656,6 +670,8 @@
+                          &inputTypeLabel, &keyLabel, &scaleLabel })
+         label->setFont (controlHeading);
+     retuneSpeedLabel.setFont (juce::FontOptions (25.0f * layout.scale, juce::Font::bold));
++    for (auto* label : { &inputTypeLabel, &keyLabel, &scaleLabel })
++        label->setFont (juce::FontOptions (12.0f * layout.scale, juce::Font::bold));
+ 
+     headerBounds = D (38, 43, 1373, 80);
+     correctionBounds = D (20, 125, 508, 583);
+@@ -666,8 +682,8 @@
+     bypassButton.setBounds (D (1265, 50, 63, 63));
+     settingsButton.setBounds (D (1347, 61, 43, 43));
+ 
+-    retuneSpeedLabel.setBounds (D (75, 165, 275, 24));
+-    knobBounds[0] = D (55, 212, 305, 389); retuneSpeedSlider.setBounds (knobBounds[0]);
++    retuneSpeedLabel.setBounds (D (75, 176, 275, 24));
++    knobBounds[0] = D (65, 228, 285, 355); retuneSpeedSlider.setBounds (knobBounds[0]);
+ 
+     const auto character = [&] (int index, float y, juce::Label& label, juce::Slider& slider)
+     {
+@@ -678,9 +694,9 @@
+     character (2, 338, humanizeLabel, humanizeSlider);
+     character (3, 524, naturalVibratoLabel, naturalVibratoSlider);
+ 
+-    inputTypeLabel.setBounds (D (1008, 163, 148, 18)); inputTypeSelector.setBounds (D (1008, 190, 148, 54));
+-    keyLabel.setBounds (D (1170, 163, 82, 18)); keySelector.setBounds (D (1170, 190, 82, 54));
+-    scaleLabel.setBounds (D (1268, 163, 136, 18)); scaleSelector.setBounds (D (1268, 190, 136, 54));
++    inputTypeLabel.setBounds (D (177, 728, 44, 18)); inputTypeSelector.setBounds (D (220, 723, 125, 42));
++    keyLabel.setBounds (D (357, 728, 32, 18)); keySelector.setBounds (D (390, 723, 75, 42));
++    scaleLabel.setBounds (D (478, 728, 45, 18)); scaleSelector.setBounds (D (523, 723, 155, 42));
+     noteMapScaleSelector.setBounds (D (225, 723, 140, 42));
+ 
+     const auto utility = [&] (int index, float x, float y, juce::Label& label, juce::Slider& slider)
+@@ -693,8 +709,10 @@
+     utility (6, 1032, 507, trackingLabel, trackingSlider);
+     utility (7, 1228, 507, voicedColourLabel, voicedColourSlider);
+ 
+-    editNotesButton.setBounds (D (974, 728, 169, 48));
+-    groupOctavesButton.setBounds (D (1160, 727, 207, 49));
++    editNotesButton.setBounds (D (696, 724, 43, 40));
++    groupOctavesButton.setBounds (D (1100, 727, 267, 49));
++    for (size_t i = 0; i < editRuleBounds.size(); ++i)
++        editRuleBounds[i] = D (750.0f + static_cast<float> (i) * 68.0f, 727, 64, 34);
+ 
+     auto keyboard = D (43, 778, 1326, 160);
+     const auto statusStrip = D (43, 758, 1326, 20);
+@@ -848,6 +866,14 @@
+     if (! editNotesEnabled)
+         return;
+ 
++    for (size_t i = 0; i < editRuleBounds.size(); ++i)
++        if (editRuleBounds[i].contains (event.getPosition()))
++        {
++            selectedEditRule = static_cast<NoteRule> (i);
++            repaint (pianoBounds);
++            return;
++        }
++
+     const auto midiNote = pianoNoteAt (event.getPosition());
+     if (midiNote < 0)
+         return;
+@@ -857,10 +883,7 @@
+         return;
+     }
+ 
+-    const auto current = processor.getGroupOctaves()
+-                       ? processor.getNoteRuleForPitchClass (midiNote % 12)
+-                       : processor.getNoteRuleForMidiNote (midiNote);
+-    applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + 1) % 5));
++    applyNoteRule (midiNote, selectedEditRule);
+ }
+ void VibeAutotuneEditor::timerCallback()
+ {

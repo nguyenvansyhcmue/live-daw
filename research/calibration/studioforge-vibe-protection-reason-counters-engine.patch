@@ -1,0 +1,16 @@
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -1804,6 +1804,11 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
+         event.vibeRendererInvalid = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.rendererInvalid) : 0;
+         event.vibeCallbackOverloaded = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.callbackOverloaded) : 0;
+         event.vibeHardDryRescue = hasNativeVibe ? static_cast<uint8_t>(vibeHealth.hardDryRescue) : 0;
++        event.vibeRendererCollapseCount = hasNativeVibe ? vibeHealth.rendererCollapseCount : 0;
++        event.vibeRendererExcessiveCount = hasNativeVibe ? vibeHealth.rendererExcessiveCount : 0;
++        event.vibeRendererInvalidCount = hasNativeVibe ? vibeHealth.rendererInvalidCount : 0;
++        event.vibeHardDryRescueCount = hasNativeVibe ? vibeHealth.hardDryRescueCount : 0;
++        event.vibeSustainedOverloadProtectionCount = hasNativeVibe ? vibeHealth.sustainedOverloadProtectionCount : 0;
+         event.vibeProtectionCount = hasNativeVibe ? vibeHealth.protectionCount : 0;
+         event.vibeOverloadCount = hasNativeVibe ? vibeHealth.overloadCount : 0;
+         if (monitoredPhysicalInput >= 0)
+

@@ -1,0 +1,16 @@
+--- a/VibeAutotune/CausalTDPSOLARenderer.h
++++ b/VibeAutotune/CausalTDPSOLARenderer.h
+@@ -824,7 +824,12 @@ public:
+         // Retune 0 must arrive at the committed ratio within one short
+         // control interval. This smooths frequency only; source/synthesis
+         // phase remains integrated and is never re-anchored on a target
+         // change.
+-        constexpr auto ratioSmoothingSeconds = 0.0;
++#ifndef VIBE_TDPSOLA_RATIO_DEZIPPER_SECONDS
++#define VIBE_TDPSOLA_RATIO_DEZIPPER_SECONDS 0.0
++#endif
++        // Zero retains the historical renderer exactly; non-zero smooths
++        // ratio delivery only, never target selection or source marks.
++        constexpr auto ratioSmoothingSeconds = VIBE_TDPSOLA_RATIO_DEZIPPER_SECONDS;
+         const auto ratioAlpha = ratioSmoothingSeconds <= 0.0 ? 1.0
+                               : 1.0 - std::exp (-1.0 / (ratioSmoothingSeconds * sampleRate));

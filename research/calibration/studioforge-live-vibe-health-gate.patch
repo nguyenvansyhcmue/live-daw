@@ -1,0 +1,517 @@
+diff --git a/Source/AudioEngine/AudioEffectProcessor.h b/Source/AudioEngine/AudioEffectProcessor.h
+index 5c262c2..7f5cd32 100644
+--- a/Source/AudioEngine/AudioEffectProcessor.h
++++ b/Source/AudioEngine/AudioEffectProcessor.h
+@@ -4,6 +4,7 @@
+ #include <juce_gui_basics/juce_gui_basics.h>
+ 
++#include <cstdint>
+ #include <memory>
+ #include <vector>
+ 
+@@ -12,6 +12,24 @@ struct EffectParameterDescriptor
+     juce::String name;
+ };
+ 
++enum class LiveProcessorState : uint8_t
++{
++    unavailable = 0,
++    ready,
++    priming,
++    tracking,
++    protectedDry
++};
++
++// Lock-free snapshot read by the message thread. Implementations publish only
++// atomics from the audio callback; no strings or allocations cross that path.
++struct LiveProcessorHealth
++{
++    LiveProcessorState state = LiveProcessorState::unavailable;
++    float wetMix = 0.0f;
++    bool voiced = false;
++    uint64_t protectionCount = 0;
++    uint64_t overloadCount = 0;
++};
++
+ class AudioEffectProcessor
+ {
+ public:
+@@ -33,6 +51,7 @@ public:
+     // Product-owned processors can identify themselves without relying on a
+     // persistent plug-in identifier, which is shared by legacy AU/VST3 hosts.
+     virtual bool isStudioForgeNativeVibeAutotune() const noexcept { return false; }
++    virtual LiveProcessorHealth getLiveProcessorHealth() const noexcept { return {}; }
+     virtual juce::String getPersistentIdentifier() const { return {}; }
+     virtual double getTailLengthSeconds() const { return 0.0; }
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.h b/Source/Plugins/NativeVibeAutotuneProcessor.h
+index fd938e5..54023be 100644
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.h
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.h
+@@ -4,6 +4,7 @@
+ #include <juce_audio_processors/juce_audio_processors.h>
+ 
++#include <atomic>
+ #include <memory>
+ 
+ class VibeAutotuneProcessor;
+@@ -23,6 +24,7 @@ public:
+     int getLatencySamples() const noexcept override;
+     bool isLivePerformanceEssential() const noexcept override { return true; }
+     bool isStudioForgeNativeVibeAutotune() const noexcept override { return true; }
++    LiveProcessorHealth getLiveProcessorHealth() const noexcept override;
+     juce::String getPersistentIdentifier() const override;
+     double getTailLengthSeconds() const override;
+@@ -41,21 +43,32 @@ private:
+     std::unique_ptr<VibeAutotuneProcessor> processor;
+     juce::MidiBuffer midiBuffer;
+-    juce::AudioBuffer<float> dryFallbackBuffer;
+-    // The Vibe renderer is a fixed-latency processor.  Keep a matching dry
+-    // history solely to validate its output; the audible safety fallback is
+-    // deliberately the current (zero-latency) microphone block.
+-    juce::AudioBuffer<float> latencyAlignedDryBuffer;
++    juce::AudioBuffer<float> dryInputBuffer;
++    juce::AudioBuffer<float> dryHistoryBuffer;
++    juce::AudioBuffer<float> alignedDryBuffer;
+     juce::String identifier;
+     int expectedChannels = 0;
+     double preparedSampleRate = 0.0;
+-    float wetRecoveryGain = 1.0f;
++    float wetMix = 0.0f;
+     int dryHistoryWrite = 0;
+     int dryHistoryLatency = 0;
++    int64_t dryHistorySamples = 0;
+     int healthyWetBlocks = 0;
++    int consecutiveOverloads = 0;
++    bool wasBypassed = true;
+     bool prepared = false;
++
++    std::atomic<LiveProcessorState> liveState { LiveProcessorState::ready };
++    std::atomic<float> publishedWetMix { 0.0f };
++    std::atomic<bool> publishedVoiced { false };
++    std::atomic<uint64_t> protectionCount { 0 };
++    std::atomic<uint64_t> overloadCount { 0 };
+ };
+diff --git a/Source/Plugins/NativeVibeAutotuneProcessor.cpp b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+index 33de890..e7bfa30 100644
+--- a/Source/Plugins/NativeVibeAutotuneProcessor.cpp
++++ b/Source/Plugins/NativeVibeAutotuneProcessor.cpp
+@@ -31,22 +31,20 @@ void NativeVibeAutotuneProcessor::prepareToPlay(double sampleRate, int samplesPe
+     processor->releaseResources();
+     processor->setPlayConfigDetails(channels, channels, sampleRate, samplesPerBlock);
+     processor->prepareToPlay(sampleRate, samplesPerBlock);
+-    // The vocal route is populated automatically. Keep it as a truly direct
+-    // monitor until its renderer has passed real-device validation; musical
+-    // key/scale control may still be mapped while audio remains untouched.
+-    if (auto* bypass = processor->getBypassParameter(); bypass != nullptr)
+-        bypass->setValueNotifyingHost(1.0f);
+-    // This buffer belongs to the adapter, is allocated off the callback and
+-    // lets the host retain an audible dry path while the renderer settles.
+-    dryFallbackBuffer.setSize(channels, juce::jmax(4096, samplesPerBlock), false, true, true);
++
++    // All safety storage is allocated here. The callback only copies samples,
++    // advances indices and publishes atomics.
++    const auto maximumBlock = juce::jmax(4096, samplesPerBlock);
++    dryInputBuffer.setSize(channels, maximumBlock, false, true, true);
+     dryHistoryLatency = juce::jmax(0, processor->getLatencySamples());
+-    latencyAlignedDryBuffer.setSize(channels, juce::jmax(4096, dryHistoryLatency + samplesPerBlock + 1),
+-                                   false, true, true);
++    dryHistoryBuffer.setSize(channels, juce::jmax(4096, dryHistoryLatency + maximumBlock + 1), false, true, true);
++    alignedDryBuffer.setSize(channels, maximumBlock, false, true, true);
+     dryHistoryWrite = 0;
++    dryHistorySamples = 0;
+     healthyWetBlocks = 0;
++    consecutiveOverloads = 0;
+     expectedChannels = channels;
+     preparedSampleRate = sampleRate;
+-    wetRecoveryGain = 1.0f;
++    wetMix = 0.0f;
++    wasBypassed = true;
++    liveState.store(LiveProcessorState::ready, std::memory_order_relaxed);
++    publishedWetMix.store(0.0f, std::memory_order_relaxed);
+     prepared = true;
+ }
+@@ -69,88 +67,147 @@ void NativeVibeAutotuneProcessor::processAndProtect(juce::AudioBuffer<float>& buf
+                                                      juce::MidiBuffer& midi) noexcept
+ {
+-    // Vibe's own bypass continues to clock its fixed-latency spectral path.
+-    // A DAW live-monitor bypass must instead be truly transparent: no added
+-    // latency and, importantly, no possibility of renderer noise.
+-    if (auto* bypass = processor->getBypassParameter(); bypass != nullptr && bypass->getValue() >= 0.5f)
++    const auto bypassed = processor->getBypassParameter() != nullptr
++                       && processor->getBypassParameter()->getValue() >= 0.5f;
++    if (bypassed)
++    {
++        wasBypassed = true;
++        wetMix = 0.0f;
++        healthyWetBlocks = 0;
++        liveState.store(LiveProcessorState::ready, std::memory_order_relaxed);
++        publishedWetMix.store(0.0f, std::memory_order_relaxed);
++        publishedVoiced.store(false, std::memory_order_relaxed);
+         return;
++    }
+ 
+     const auto samples = buffer.getNumSamples();
+-    if (samples <= 0 || samples > dryFallbackBuffer.getNumSamples())
++    if (samples <= 0)
++        return;
++    if (samples > dryInputBuffer.getNumSamples())
+     {
+-        processor->processBlock(buffer, midi);
++        // Never run an unprotected renderer when a host violates the prepared
++        // maximum block size. The incoming microphone block remains audible.
++        liveState.store(LiveProcessorState::protectedDry, std::memory_order_relaxed);
++        protectionCount.fetch_add(1, std::memory_order_relaxed);
+         return;
+     }
+ 
+     auto dryPeak = 0.0f;
+-    auto alignedDryPeak = 0.0f;
+-    auto correlationNumerator = 0.0;
+-    auto delayedDryEnergy = 0.0;
+-    auto wetEnergy = 0.0;
+-    const auto historySize = latencyAlignedDryBuffer.getNumSamples();
++    const auto historySize = dryHistoryBuffer.getNumSamples();
++    const auto historyReady = dryHistoryLatency == 0 || dryHistorySamples >= dryHistoryLatency;
++
++    // Input safety: sanitize non-finite interface/driver samples before they
++    // can enter either the renderer or the fallback history.
+     for (int channel = 0; channel < expectedChannels; ++channel)
+     {
+-        dryFallbackBuffer.copyFrom(channel, 0, buffer, channel, 0, samples);
+-        const auto range = juce::FloatVectorOperations::findMinAndMax(buffer.getReadPointer(channel), samples);
+-        dryPeak = juce::jmax(dryPeak, juce::jmax(std::abs(range.getStart()), std::abs(range.getEnd())));
+-        auto* history = latencyAlignedDryBuffer.getWritePointer(channel);
+-        const auto* dry = dryFallbackBuffer.getReadPointer(channel);
++        auto* input = buffer.getWritePointer(channel);
++        auto* dry = dryInputBuffer.getWritePointer(channel);
++        auto* aligned = alignedDryBuffer.getWritePointer(channel);
++        auto* history = dryHistoryBuffer.getWritePointer(channel);
+         for (int sample = 0; sample < samples; ++sample)
+-            history[(dryHistoryWrite + sample) % historySize] = dry[sample];
++        {
++            const auto clean = std::isfinite(input[sample]) ? input[sample] : 0.0f;
++            input[sample] = clean;
++            dry[sample] = clean;
++            dryPeak = juce::jmax(dryPeak, std::abs(clean));
++            const auto write = (dryHistoryWrite + sample) % historySize;
++            const auto read = (write + historySize - dryHistoryLatency) % historySize;
++            aligned[sample] = dryHistoryLatency == 0 ? clean : history[read];
++            history[write] = clean;
++        }
+     }
++    dryHistoryWrite = (dryHistoryWrite + samples) % historySize;
++    dryHistorySamples = juce::jmin<int64_t>(dryHistoryLatency, dryHistorySamples + samples);
++
++    if (wasBypassed)
++    {
++        // A fresh enable must prove a valid delayed path before wet can enter.
++        wetMix = 0.0f;
++        healthyWetBlocks = 0;
++        wasBypassed = false;
++    }
+ 
++    const auto startedAt = juce::Time::getHighResolutionTicks();
+     processor->processBlock(buffer, midi);
++    const auto elapsedTicks = juce::Time::getHighResolutionTicks() - startedAt;
++    const auto elapsedSeconds = static_cast<double>(elapsedTicks)
++                              / static_cast<double>(juce::Time::getHighResolutionTicksPerSecond());
++    const auto callbackBudget = static_cast<double>(samples) / juce::jmax(1.0, preparedSampleRate);
++    const auto overloaded = elapsedSeconds > callbackBudget * 0.92;
++    consecutiveOverloads = overloaded ? consecutiveOverloads + 1 : 0;
++    if (overloaded)
++        overloadCount.fetch_add(1, std::memory_order_relaxed);
+ 
+     auto wetPeak = 0.0f;
+     auto hasInvalidSample = false;
+     for (int channel = 0; channel < expectedChannels; ++channel)
+     {
+-        const auto* wet = buffer.getReadPointer(channel);
+-        const auto range = juce::FloatVectorOperations::findMinAndMax(wet, samples);
+-        wetPeak = juce::jmax(wetPeak, juce::jmax(std::abs(range.getStart()), std::abs(range.getEnd())));
++        auto* wet = buffer.getWritePointer(channel);
++        const auto* aligned = alignedDryBuffer.getReadPointer(channel);
+         for (int sample = 0; sample < samples; ++sample)
+         {
+-            hasInvalidSample = hasInvalidSample || ! std::isfinite(wet[sample]);
+-            const auto delayedDry = latencyAlignedDryBuffer.getSample(
+-                channel, (dryHistoryWrite + sample + historySize - dryHistoryLatency) % historySize);
+-            alignedDryPeak = juce::jmax(alignedDryPeak, std::abs(delayedDry));
+-            correlationNumerator += static_cast<double>(wet[sample]) * delayedDry;
+-            delayedDryEnergy += static_cast<double>(delayedDry) * delayedDry;
+-            wetEnergy += static_cast<double>(wet[sample]) * wet[sample];
++            if (! std::isfinite(wet[sample]))
++            {
++                hasInvalidSample = true;
++                wet[sample] = aligned[sample];
++            }
++            wetPeak = juce::jmax(wetPeak, std::abs(wet[sample]));
+         }
+     }
+-    dryHistoryWrite = (dryHistoryWrite + samples) % historySize;
+ 
+-    // Pitch analysis may be undecided immediately after an editor/processor
+-    // transition. It may never turn a live microphone into a near-silent or
+-    // non-finite signal: preserve direct monitoring until wet DSP is healthy.
+-    const auto wetCollapsed = dryPeak > 0.01f && wetPeak < dryPeak * 0.20f;
+-    // Normalise after latency alignment. Pitch correction may move phase,
+-    // therefore this is intentionally a permissive floor: it rejects hiss,
+-    // stale buffers and discontinuous renderer output, not valid retuning.
+-    const auto correlation = correlationNumerator / std::sqrt(delayedDryEnergy * wetEnergy + 1.0e-18);
+-    const auto wetIsIncoherent = alignedDryPeak > 0.01f && wetPeak > 0.01f && correlation < 0.08;
+-    const auto wetHealthy = !hasInvalidSample && !wetCollapsed && !wetIsIncoherent;
++    // Do not use dry/wet correlation as a health signal: valid pitch shifting
++    // deliberately changes phase. Detect only objective renderer failures.
++    const auto wetCollapsed = historyReady && dryPeak > 0.01f && wetPeak < dryPeak * 0.08f;
++    const auto wetExcessive = wetPeak > juce::jmax(1.5f, dryPeak * 8.0f + 0.1f);
++    const auto rendererFault = hasInvalidSample || wetCollapsed || wetExcessive || consecutiveOverloads >= 3;
++    const auto tracking = processor->getPitchTrackingData();
++    const auto voiced = tracking.voiced && std::isfinite(tracking.confidence) && tracking.confidence >= 0.60;
++    publishedVoiced.store(voiced, std::memory_order_relaxed);
++
++    const auto wetHealthy = historyReady && !rendererFault;
+     healthyWetBlocks = wetHealthy ? juce::jmin(8, healthyWetBlocks + 1) : 0;
+-    if (!wetHealthy || healthyWetBlocks < 3)
++    const auto permitWet = wetHealthy && healthyWetBlocks >= 3 && voiced;
++    const auto attackSeconds = 0.012;
++    const auto releaseSeconds = rendererFault ? 0.003 : 0.008;
++    const auto rampSamples = juce::jmax(1.0, preparedSampleRate * (permitWet ? attackSeconds : releaseSeconds));
++    const auto targetMix = permitWet ? 1.0f : 0.0f;
++    const auto step = static_cast<float>(samples / rampSamples);
++    const auto nextMix = targetMix > wetMix ? juce::jmin(targetMix, wetMix + step)
++                                             : juce::jmax(targetMix, wetMix - step);
++
++    // During first-time latency priming retain the direct microphone. Once
++    // primed, every safety transition uses the latency-aligned dry stream.
++    const auto& fallback = historyReady ? alignedDryBuffer : dryInputBuffer;
++    for (int channel = 0; channel < expectedChannels; ++channel)
+     {
+-        for (int channel = 0; channel < expectedChannels; ++channel)
+-            buffer.copyFrom(channel, 0, dryFallbackBuffer, channel, 0, samples);
+-        wetRecoveryGain = 0.0f;
+-        return;
++        auto* wet = buffer.getWritePointer(channel);
++        const auto* dry = fallback.getReadPointer(channel);
++        for (int sample = 0; sample < samples; ++sample)
++        {
++            const auto alpha = static_cast<float>(sample + 1) / static_cast<float>(samples);
++            const auto mix = wetMix + (nextMix - wetMix) * alpha;
++            wet[sample] = dry[sample] + (wet[sample] - dry[sample]) * mix;
++        }
+     }
++    wetMix = nextMix;
++    publishedWetMix.store(wetMix, std::memory_order_relaxed);
+ 
+-    if (wetRecoveryGain >= 1.0f)
+-        return;
+-
+-    const auto recoverySamples = juce::jmax(1.0, preparedSampleRate * 0.015);
+-    const auto nextWetGain = juce::jmin(1.0f, wetRecoveryGain + static_cast<float>(samples / recoverySamples));
+-    for (int channel = 0; channel < expectedChannels; ++channel)
++    if (rendererFault)
+     {
+-        auto* wet = buffer.getWritePointer(channel);
+-        const auto* dry = dryFallbackBuffer.getReadPointer(channel);
+-        for (int sample = 0; sample < samples; ++sample)
+-        {
+-            const auto blend = wetRecoveryGain + (nextWetGain - wetRecoveryGain)
+-                * static_cast<float>(sample + 1) / static_cast<float>(samples);
+-            wet[sample] = dry[sample] * (1.0f - blend) + wet[sample] * blend;
+-        }
++        liveState.store(LiveProcessorState::protectedDry, std::memory_order_relaxed);
++        protectionCount.fetch_add(1, std::memory_order_relaxed);
+     }
+-    wetRecoveryGain = nextWetGain;
++    else if (! historyReady || healthyWetBlocks < 3)
++        liveState.store(LiveProcessorState::priming, std::memory_order_relaxed);
++    else
++        liveState.store(voiced ? LiveProcessorState::tracking : LiveProcessorState::ready,
++                        std::memory_order_relaxed);
+ }
+ 
+ void NativeVibeAutotuneProcessor::releaseResources()
+ {
+     prepared = false;
+-    wetRecoveryGain = 1.0f;
++    wetMix = 0.0f;
+     healthyWetBlocks = 0;
++    consecutiveOverloads = 0;
+     dryHistoryWrite = 0;
+     dryHistoryLatency = 0;
+-    dryFallbackBuffer.setSize(0, 0);
+-    latencyAlignedDryBuffer.setSize(0, 0);
++    dryHistorySamples = 0;
++    dryInputBuffer.setSize(0, 0);
++    dryHistoryBuffer.setSize(0, 0);
++    alignedDryBuffer.setSize(0, 0);
+     if (processor != nullptr)
+         processor->releaseResources();
+ }
+@@ -159,6 +216,17 @@ void NativeVibeAutotuneProcessor::releaseResources()
+ juce::String NativeVibeAutotuneProcessor::getName() const { return "VibeAutotune"; }
+ int NativeVibeAutotuneProcessor::getLatencySamples() const noexcept { return processor != nullptr ? processor->getLatencySamples() : 0; }
++LiveProcessorHealth NativeVibeAutotuneProcessor::getLiveProcessorHealth() const noexcept
++{
++    LiveProcessorHealth health;
++    health.state = liveState.load(std::memory_order_relaxed);
++    health.wetMix = publishedWetMix.load(std::memory_order_relaxed);
++    health.voiced = publishedVoiced.load(std::memory_order_relaxed);
++    health.protectionCount = protectionCount.load(std::memory_order_relaxed);
++    health.overloadCount = overloadCount.load(std::memory_order_relaxed);
++    return health;
++}
+ juce::String NativeVibeAutotuneProcessor::getPersistentIdentifier() const { return identifier; }
+ double NativeVibeAutotuneProcessor::getTailLengthSeconds() const { return processor != nullptr ? processor->getTailLengthSeconds() : 0.0; }
+diff --git a/Source/UI/InspectorComponents.cpp b/Source/UI/InspectorComponents.cpp
+index 2e302d1..971198a 100644
+--- a/Source/UI/InspectorComponents.cpp
++++ b/Source/UI/InspectorComponents.cpp
+@@ -585,20 +585,46 @@ void ChannelStripComponent::refreshAudioFx()
+         const auto bypassed = processor != nullptr && rack->bypass[slot];
+         button.setVisible(slot < visibleSlots);
+-        // State is communicated by the slot colour and tooltip; keep the
+-        // plug-in name clean and readable without decorative bullet glyphs.
+-        button.setButtonText(processor == nullptr ? juce::String {} : processor->getName());
++        auto label = processor == nullptr ? juce::String {} : processor->getName();
++        auto activeColour = juce::Colour(0xff276776);
++        auto activeTooltip = juce::String("ON — click to bypass; right-click for Replace, Remove or Editor");
++        if (processor != nullptr && processor->isStudioForgeNativeVibeAutotune() && ! bypassed)
++        {
++            const auto health = processor->getLiveProcessorHealth();
++            switch (health.state)
++            {
++                case LiveProcessorState::priming:
++                    label << "  ·  PRIMING";
++                    activeColour = juce::Colour(0xff8b692d);
++                    activeTooltip = "PRIMING — direct mic safety path is active";
++                    break;
++                case LiveProcessorState::tracking:
++                    label << "  ·  TRACKING";
++                    activeColour = juce::Colour(0xff23806f);
++                    activeTooltip = "TRACKING — tuned renderer is healthy";
++                    break;
++                case LiveProcessorState::protectedDry:
++                    label << "  ·  PROTECTED";
++                    activeColour = juce::Colour(0xff765147);
++                    activeTooltip = "PROTECTED — renderer fault/overload; latency-aligned dry mic remains live";
++                    break;
++                case LiveProcessorState::ready:
++                case LiveProcessorState::unavailable:
++                    label << "  ·  READY";
++                    activeTooltip = "READY — waiting for a confident voiced pitch";
++                    break;
++            }
++        }
++        button.setButtonText(label);
+         button.setColour(juce::TextButton::buttonColourId,
+                          processor == nullptr ? juce::Colour(0xff303b42)
+                                               : bypassed ? juce::Colour(0xff252a2e)
+-                                                         : juce::Colour(0xff276776));
++                                                         : activeColour);
+         button.setColour(juce::TextButton::textColourOffId,
+                          processor == nullptr ? StudioForgeTheme::primaryText.withAlpha(0.45f)
+                                               : bypassed ? StudioForgeTheme::primaryText.withAlpha(0.48f)
+                                                          : juce::Colour(0xffeffcff));
+         button.setTooltip(processor == nullptr ? "Click to insert a plug-in"
+             : bypassed ? "OFF — click to enable; right-click for Replace or Remove"
+-                       : "ON — click to bypass; right-click for Replace, Remove or Editor");
++                       : activeTooltip);
+     }
+diff --git a/Tests/NativeVibeAutotuneSmokeTest.cpp b/Tests/NativeVibeAutotuneSmokeTest.cpp
+index 4186adc..826d52d 100644
+--- a/Tests/NativeVibeAutotuneSmokeTest.cpp
++++ b/Tests/NativeVibeAutotuneSmokeTest.cpp
+@@ -3,6 +3,7 @@
+ #include <algorithm>
+ #include <cmath>
+ #include <iostream>
++#include <limits>
+ 
+ namespace
+ {
+@@ -16,6 +17,44 @@ bool containsParameter(const std::vector<EffectParameterDescriptor>& parameters,
+         return parameter.identifier.equalsIgnoreCase(identifier);
+     });
+ }
++
++bool runLiveCallbackSize(NativeVibeAutotuneProcessor& vibe, int blockSize)
++{
++    vibe.prepareToPlay(48000.0, blockSize, 2);
++    juce::AudioBuffer<float> block(2, blockSize);
++    for (int blockIndex = 0; blockIndex < 900; ++blockIndex)
++    {
++        const auto phrasePosition = blockIndex % 140;
++        const auto voiced = phrasePosition < 88;
++        if (blockIndex > 0 && blockIndex % 211 == 0)
++        {
++            vibe.setParameterText("key", blockIndex % 422 == 0 ? "C" : "F#");
++            vibe.setParameterText("scale", blockIndex % 422 == 0 ? "Major" : "Natural Minor");
++        }
++        for (int sample = 0; sample < blockSize; ++sample)
++        {
++            const auto time = static_cast<float>(blockIndex * blockSize + sample) / 48000.0f;
++            const auto value = voiced ? std::sin(juce::MathConstants<float>::twoPi * 220.0f * time) * 0.2f : 0.0f;
++            block.setSample(0, sample, value);
++            block.setSample(1, sample, value);
++        }
++        vibe.processBlock(block);
++        for (int channel = 0; channel < block.getNumChannels(); ++channel)
++            for (int sample = 0; sample < blockSize; ++sample)
++                if (! std::isfinite(block.getSample(channel, sample)))
++                    return false;
++    }
++    const auto health = vibe.getLiveProcessorHealth();
++    return health.state != LiveProcessorState::unavailable
++        && std::isfinite(health.wetMix)
++        && health.wetMix >= 0.0f && health.wetMix <= 1.0f;
++}
+ }
+ 
+ int main()
+@@ -34,6 +72,15 @@ int main()
+         return 1;
+     }
+ 
++    for (const auto callbackSize : { 32, 64, 128 })
++        if (! runLiveCallbackSize(vibe, callbackSize))
++        {
++            std::cerr << "Vibe live safety failed at callback size " << callbackSize << "\n";
++            return 1;
++        }
++
++    vibe.prepareToPlay(48000.0, 128, 2);
++
+     // A live microphone can remain open indefinitely. Run a continuous,
+     // voiced stereo signal long past the renderer's internal latency and
+     // verify the tail still carries audio instead of decaying to silence.
+@@ -131,6 +178,30 @@ int main()
+         return 1;
+     }
+ 
++    // Driver/interface corruption must be contained before entering DSP.
++    block.clear();
++    block.setSample(0, 0, std::numeric_limits<float>::quiet_NaN());
++    block.setSample(1, 1, std::numeric_limits<float>::infinity());
++    vibe.processBlock(block);
++    for (int channel = 0; channel < block.getNumChannels(); ++channel)
++        for (int sample = 0; sample < block.getNumSamples(); ++sample)
++            if (! std::isfinite(block.getSample(channel, sample)))
++            {
++                std::cerr << "Live input safety did not contain a non-finite sample\n";
++                return 1;
++            }
++
++    // A host block larger than prepareToPlay promised must stay dry and must
++    // be reported as protected instead of entering an unbounded callback.
++    juce::AudioBuffer<float> oversized(2, 5000);
++    oversized.clear();
++    oversized.applyGain(0.1f);
++    vibe.processBlock(oversized);
++    if (vibe.getLiveProcessorHealth().state != LiveProcessorState::protectedDry)
++    {
++        std::cerr << "Oversized callback did not engage live protection\n";
++        return 1;
++    }
++
+     auto editor = vibe.createEditor();
+     if (editor == nullptr || editor->getWidth() <= 0 || editor->getHeight() <= 0)
+     {

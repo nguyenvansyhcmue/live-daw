@@ -1,0 +1,10 @@
+--- a/Source/AudioEngine/AudioDiagnosticTracer.cpp
++++ b/Source/AudioEngine/AudioDiagnosticTracer.cpp
+@@ -83,7 +83,7 @@
+                               + juce::String(e.deviceBufferSize) + "," + juce::String(e.inputChannels) + ","
+                               + juce::String(e.outputChannels) + "," + juce::String(e.inputMask) + ","
+-                              + juce::String(e.outputMask) + ",,"
++                              + juce::String(e.outputMask) + ",,,"
+                               + juce::String(e.pluginSlot) + ","
+                               + juce::String(e.pluginLatencySamples) + ","
+                               + juce::String(e.pluginPreFxPeak) + ","

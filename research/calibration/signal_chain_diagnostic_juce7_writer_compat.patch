@@ -1,0 +1,22 @@
+diff --git a/tests/SignalChainDiagnostic.cpp b/tests/SignalChainDiagnostic.cpp
+--- a/tests/SignalChainDiagnostic.cpp
++++ b/tests/SignalChainDiagnostic.cpp
+@@ -537,13 +537,12 @@ int main (int argc, char* argv[])
+     // path can introduce a false spike in long exports; the in-memory metric
+     // remains the authoritative safety measurement, while PCM16 is stable for
+     // the independent contour/envelope comparisons performed by this tool.
+-    const auto renderedWriterOptions = juce::AudioFormatWriterOptions {}
+-        .withSampleRate (reader->sampleRate)
+-        .withChannelLayout (juce::AudioChannelSet::mono())
+-        .withBitsPerSample (16)
+-        .withSampleFormat (juce::AudioFormatWriterOptions::SampleFormat::integral);
++    // Keep this diagnostic compatible with JUCE 7 hosts as well as JUCE 8.
++    // The legacy overload transfers ownership of renderedStream to the writer.
++    const juce::StringPairArray renderedMetadata;
+     std::unique_ptr<juce::AudioFormatWriter> renderedWriter (
+-        renderedStream != nullptr ? wav.createWriterFor (renderedStream, renderedWriterOptions) : nullptr);
++        renderedStream != nullptr ? wav.createWriterFor (renderedStream.release(), reader->sampleRate,
++                                                          juce::AudioChannelSet::mono(), 16, renderedMetadata, 0) : nullptr);
+     if (renderedWriter == nullptr)
+     {
+         std::cerr << "unable to create render wav\n";

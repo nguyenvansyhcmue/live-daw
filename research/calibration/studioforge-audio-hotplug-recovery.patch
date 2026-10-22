@@ -1,0 +1,124 @@
+diff --git a/Source/AudioEngine/AudioEngine.h b/Source/AudioEngine/AudioEngine.h
+--- a/Source/AudioEngine/AudioEngine.h
++++ b/Source/AudioEngine/AudioEngine.h
+@@ -245,6 +245,9 @@ private:
+     void rebuildInputChannelMap(const juce::AudioIODevice* device) noexcept;
+     void rebuildOutputChannelMap(const juce::AudioIODevice* device) noexcept;
+     void recordDeviceSessionEvent(uint8_t kind) noexcept;
++    // Runs only on JUCE's message thread after CoreAudio reports that its
++    // device list changed. It never touches the realtime callback.
++    void recoverPreferredAudioDeviceAfterHotPlug();
+     void changeListenerCallback(juce::ChangeBroadcaster*) override;
+     int callbackOutputForPhysicalChannel(int physicalChannel) const noexcept;
+@@ -276,6 +279,11 @@ private:
+     std::unique_ptr<juce::MidiOutput> midiOutput;
+     std::atomic<juce::MidiOutput*> publishedMidiOutput { nullptr };
+     std::atomic<unsigned int> midiOutputCallbackUsers { 0 };
++    // Names loaded from audio-device.xml.  They deliberately survive a
++    // fallback to the built-in device, so a DAW opened before a Scarlett can
++    // reclaim the user's chosen interface as soon as it is plugged in.
++    juce::String preferredInputDeviceName;
++    juce::String preferredOutputDeviceName;
++    std::atomic<bool> recoveringPreferredAudioDevice { false };
+     juce::String midiOutputDeviceIdentifier;
+     AudioGraph graph;
+diff --git a/Source/AudioEngine/AudioEngine.cpp b/Source/AudioEngine/AudioEngine.cpp
+--- a/Source/AudioEngine/AudioEngine.cpp
++++ b/Source/AudioEngine/AudioEngine.cpp
+@@ -166,6 +166,11 @@ AudioEngine::~AudioEngine()
+ void AudioEngine::initialise()
+ {
+     const auto stateFile = getAudioDeviceStateFile();
+     const auto savedState = stateFile.existsAsFile() ? juce::parseXML(stateFile) : nullptr;
++    if (savedState != nullptr)
++    {
++        // JUCE serialises these as audioInput/OutputDeviceName in its
++        // DEVICESETUP XML (not the C++ AudioDeviceSetup member names).
++        preferredInputDeviceName = savedState->getStringAttribute("audioInputDeviceName");
++        preferredOutputDeviceName = savedState->getStringAttribute("audioOutputDeviceName");
++    }
+     deviceManager.initialise(2, 2, savedState.get(), true);
+     if (savedState == nullptr)
+         enableAllAvailableInputChannels();
+@@ -420,12 +425,61 @@ void AudioEngine::recordDeviceSessionEvent(uint8_t kind) noexcept
+     diagnosticTracer.record(event);
+ }
+ 
++void AudioEngine::recoverPreferredAudioDeviceAfterHotPlug()
++{
++    // Device-manager notifications are delivered on the message thread.  Do
++    // not run this from audioDeviceIOCallback: opening a CoreAudio device can
++    // block and causes the driver to stop/start the callback itself.
++    if (recoveringPreferredAudioDevice.exchange(true, std::memory_order_acq_rel))
++        return;
++
++    if (preferredInputDeviceName.isEmpty() && preferredOutputDeviceName.isEmpty())
++    {
++        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++        return;
++    }
++
++    auto* type = deviceManager.getCurrentDeviceTypeObject();
++    if (type == nullptr)
++    {
++        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++        return;
++    }
++
++    const auto inputNames = type->getDeviceNames(true);
++    const auto outputNames = type->getDeviceNames(false);
++    const auto inputReady = preferredInputDeviceName.isEmpty()
++        || inputNames.contains(preferredInputDeviceName);
++    const auto outputReady = preferredOutputDeviceName.isEmpty()
++        || outputNames.contains(preferredOutputDeviceName);
++
++    // Wait until every explicitly selected side of the interface is present.
++    // This avoids opening half of a USB interface while CoreAudio is still
++    // enumerating it, which previously left a vocal route with zero inputs.
++    if (! inputReady || ! outputReady)
++    {
++        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++        return;
++    }
++
++    auto setup = deviceManager.getAudioDeviceSetup();
++    auto changed = false;
++    if (preferredInputDeviceName.isNotEmpty()
++        && setup.inputDeviceName != preferredInputDeviceName)
++    {
++        setup.inputDeviceName = preferredInputDeviceName;
++        changed = true;
++    }
++    if (preferredOutputDeviceName.isNotEmpty()
++        && setup.outputDeviceName != preferredOutputDeviceName)
++    {
++        setup.outputDeviceName = preferredOutputDeviceName;
++        changed = true;
++    }
++
++    if (! changed)
++    {
++        recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++        return;
++    }
++
++    // Let JUCE choose the interface defaults when its channel count differs
++    // from the fallback device. audioDeviceAboutToStart then rebuilds the
++    // physical maps, prepares effects, and restores the live vocal monitor.
++    setup.useDefaultInputChannels = true;
++    setup.useDefaultOutputChannels = true;
++    deviceManager.setAudioDeviceSetup(setup, true);
++    recoveringPreferredAudioDevice.store(false, std::memory_order_release);
++}
++
+ void AudioEngine::changeListenerCallback(juce::ChangeBroadcaster*)
+ {
+     // This is delivered on JUCE's message thread.  A device manager change is
+     // a session boundary even when Core Audio doesn't issue an obvious stop;
+     // keep it in the same trace as raw callback samples.
+     recordDeviceSessionEvent(4);
++    refreshMidiInputDevices();
++    recoverPreferredAudioDeviceAfterHotPlug();
+ }
+ 
+ void AudioEngine::stopAudioTrace() { diagnosticTracer.stop(); }

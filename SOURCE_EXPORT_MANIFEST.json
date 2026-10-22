@@ -1,0 +1,4769 @@
+{
+  "canonical_revision": "911027e8ff3fd8e6515ea1971c66229525aa7995",
+  "includes_uncommitted_working_tree": true,
+  "canonical_not_modified": true,
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "ddc0840773eed7496ec0db3e61e5264f182c622548005c40322eeadcbc5023ea",
+      "bytes": 850
+    },
+    {
+      "path": "Assets/ControlBar/countin-metronome-console-v1.png",
+      "sha256": "5f4fca8eb3dec47cddf9db4909f722fed68a024e2da6fc9146fa45cf8bb6c7f1",
+      "bytes": 1975717
+    },
+    {
+      "path": "Assets/ControlBar/countin-metronome-console-v2.png",
+      "sha256": "40174a2acb7b0662aac5911626c663773b16b4954656cc3effa68cf19589bee9",
+      "bytes": 1654898
+    },
+    {
+      "path": "Assets/ControlBar/reference-console-strip-v1.png",
+      "sha256": "fc147f685a962ebb22e4f6dc21bc2b3e536e39edde6569257197cca7944b1e74",
+      "bytes": 254456
+    },
+    {
+      "path": "Assets/Knobs/analog-pan-knob-v1.png",
+      "sha256": "28d2930385438edbe923a60421282178b5c40419d14193c604ff9393226cb79b",
+      "bytes": 1834209
+    },
+    {
+      "path": "Assets/Knobs/analog-pan-knob-v2.png",
+      "sha256": "42155361d91fdb0dd11c5ce2944430b8f193d0647afde3b236387a6fb6fb4bd4",
+      "bytes": 2020722
+    },
+    {
+      "path": "Assets/LiveDawAppIcon.png",
+      "sha256": "3b16a56c4916dc99a016eb73234d878ff9b1b680c06e705e14ff119b716728b9",
+      "bytes": 2081978
+    },
+    {
+      "path": "Assets/LiveDawLogo.png",
+      "sha256": "037b2a733ef92dee7c3bc1841761ff2a76dda60139973ac1007fdab2f0cb9731",
+      "bytes": 1451352
+    },
+    {
+      "path": "Assets/MixerSkin/analog_button_neutral.svg",
+      "sha256": "f9edcccb8df2b173d336e80a78615e11b5f5531b6f1795a9ba3ed2934d09238d",
+      "bytes": 531
+    },
+    {
+      "path": "Assets/MixerSkin/analog_channel_label_well.svg",
+      "sha256": "cb127af301205c897e1088c3c18900f6c0388a00ba3fa386cf926a1b0a727b63",
+      "bytes": 435
+    },
+    {
+      "path": "Assets/MixerSkin/analog_fader_cap.svg",
+      "sha256": "0fb9b1590a47f049516e266edf36ccfe94e3b1a1c4d5df10581643e9b5691981",
+      "bytes": 1002
+    },
+    {
+      "path": "Assets/MixerSkin/analog_insert_slot_empty.svg",
+      "sha256": "b1b5ef5a83345438a5163d8b58f4fbd351764bffa1d0559a27621c9bb667136f",
+      "bytes": 447
+    },
+    {
+      "path": "Assets/MixerSkin/analog_knob_pan.svg",
+      "sha256": "35c6231fe733560f968722f9a0cdfe13e9b889371595caa4610cfedd76a9b3ac",
+      "bytes": 827
+    },
+    {
+      "path": "Assets/MixerSkin/analog_meter_well.svg",
+      "sha256": "a4d42beed83535917af2bf29ca2b33fc57207c481511f954c6c9b4f24c4edb18",
+      "bytes": 468
+    },
+    {
+      "path": "Assets/MixerSkin/analog_panel_texture.svg",
+      "sha256": "9b404806c0fee747773a130bb43f0cc6ec4bb5722341267018133eab2ed813fc",
+      "bytes": 810
+    },
+    {
+      "path": "Assets/MixerSkin/analog_screw.svg",
+      "sha256": "067a0edbb7634f684e0a1912935052467f2e7b71a555c9b45e6247cd6ec57705",
+      "bytes": 417
+    },
+    {
+      "path": "Assets/MixerSkin/analog_send_knob_generated.png",
+      "sha256": "2939b274b85625fe21c8484aa309e219a41d8c97cad28635dc8a29f0587a0cf3",
+      "bytes": 254217
+    },
+    {
+      "path": "Assets/MixerSkin/button_neutral.svg",
+      "sha256": "12c4fc2bfbf9bd993cb1b01df533b86b2564e9a33b321269ea53cc4a51df07fd",
+      "bytes": 345
+    },
+    {
+      "path": "Assets/MixerSkin/channel_faceplate.svg",
+      "sha256": "3b2ad82fa07d7357012bcd62f0acf7f226dcc697ab861db420d3dcd098a6b9c0",
+      "bytes": 431
+    },
+    {
+      "path": "Assets/MixerSkin/empty_insert_slot.svg",
+      "sha256": "8172e72c76de4289f595e51d1aa40372361c7a3c79059af09f0a4162e62174ff",
+      "bytes": 360
+    },
+    {
+      "path": "Assets/MixerSkin/empty_nameplate.svg",
+      "sha256": "5625c83c0f8d42d745ab4b10b24cf179807d103961a6a6622eced79c2c977f6e",
+      "bytes": 176
+    },
+    {
+      "path": "Assets/MixerSkin/fader_cap_silver.svg",
+      "sha256": "4e8fd7d09af2415a38e4b516d63e33b8b2f9e51fca738007c86817ee95777cb9",
+      "bytes": 569
+    },
+    {
+      "path": "Assets/MixerSkin/fader_rail.svg",
+      "sha256": "57cf8f9c55006f94dd3e635af9e16c3f9c87219a4cb954d6329e4862b39055f3",
+      "bytes": 207
+    },
+    {
+      "path": "Assets/MixerSkin/meter_off.svg",
+      "sha256": "a1cceaa7c88c96c97f2b2199f10c69910e8f541054b8905bb1319c875a43831f",
+      "bytes": 1639
+    },
+    {
+      "path": "Assets/MixerSkin/rotary_knob_neutral.svg",
+      "sha256": "58e9de4c220e874b452150933bdd4175e75e85ef22c16b7ee4d45f728efbe2fc",
+      "bytes": 497
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "74ac7e52d94556f18b81e200da82464a1c967d0eb615e0da2906f97afacb32a7",
+      "bytes": 21555
+    },
+    {
+      "path": "MIC_MONITOR_EXTERNAL_REVIEW.md",
+      "sha256": "803773d3ff5f31a843dca29df6f57b05ded075145608d98acf5d4277628ba02d",
+      "bytes": 2612
+    },
+    {
+      "path": "Packaging/Windows/README.md",
+      "sha256": "af71a510516b394ad86b2fed01357cf3cf36b7ace05cfbf2fb882f6ff62e9953",
+      "bytes": 1326
+    },
+    {
+      "path": "Packaging/macOS/README.md",
+      "sha256": "eab5f66c156bdb1d785aa86d6eef5fba48fd39814ba5058e6759c853abf120d3",
+      "bytes": 3374
+    },
+    {
+      "path": "Packaging/macOS/StudioForgeDAW.entitlements",
+      "sha256": "3e88dc16e96611fba2d4db99ea0782758edd610c23bd59026e7518f60351905d",
+      "bytes": 410
+    },
+    {
+      "path": "Packaging/macOS/StudioForgeLinkHAL-component.plist",
+      "sha256": "3461c1d5d166c2f685369adfed8c7255d8a49fb3c00823768afd3966cfa0d328",
+      "bytes": 518
+    },
+    {
+      "path": "Packaging/macOS/TuneAI.entitlements",
+      "sha256": "bdaff343907760775e26a96586b9b70d14c0af13ac21541a6de14b46c2bd0953",
+      "bytes": 550
+    },
+    {
+      "path": "Packaging/macOS/link-driver-scripts/postinstall",
+      "sha256": "70d14e32a13b4f6524b59650159f941ab7b05f81efcd0acfbf2d93e93ebf6cbd",
+      "bytes": 483
+    },
+    {
+      "path": "Packaging/macOS/link-driver-scripts/preinstall",
+      "sha256": "c41ae8715518c5669cd6954af1667e0e419177425f95cc3b37847a1ce7fbca56",
+      "bytes": 427
+    },
+    {
+      "path": "README.md",
+      "sha256": "225b89d9ce9d038d346397a5339b3bcd6f49c61d5576296d977f8b47604cc3c1",
+      "bytes": 2610
+    },
+    {
+      "path": "Source/AudioEngine/AudioDiagnosticTracer.cpp",
+      "sha256": "7094e2521dae9324575ec1de557ce5c4842e6ac64e21e4f0761e54131be98a28",
+      "bytes": 8235
+    },
+    {
+      "path": "Source/AudioEngine/AudioDiagnosticTracer.h",
+      "sha256": "02e55150ccecdc77a8e278a9a628d27992817fbe1bc448367e730b947640b91e",
+      "bytes": 2727
+    },
+    {
+      "path": "Source/AudioEngine/AudioEffectProcessor.h",
+      "sha256": "98a94b3dce86c2ec34f8ed79bf904cddeacfb2d795e99c0de0addd32c085971a",
+      "bytes": 4289
+    },
+    {
+      "path": "Source/AudioEngine/AudioEngine.cpp",
+      "sha256": "61d17fa65e778ce83f43ec7620e2d6d35b6403f52a401f520436080b12a4d34f",
+      "bytes": 151000
+    },
+    {
+      "path": "Source/AudioEngine/AudioEngine.h",
+      "sha256": "7b2d026e3c4a343ca9ae95e88276d9832680d493e262c4a9f690169a20789e0a",
+      "bytes": 28293
+    },
+    {
+      "path": "Source/AudioEngine/AudioGraph.cpp",
+      "sha256": "40535af93c3ab6a6974eab12c9cd6acfd5d51f971dc726f354b122aee1dc61a9",
+      "bytes": 1503
+    },
+    {
+      "path": "Source/AudioEngine/AudioGraph.h",
+      "sha256": "bb7d4bc856aafce712adcb8cc534743acad0af51045f1c1b8e824361ef89397c",
+      "bytes": 1004
+    },
+    {
+      "path": "Source/AudioEngine/AuxRoutingPlan.h",
+      "sha256": "b9edcde1cf45e57d7fbd7fc9db782eef40bbb725192b227db87f7ba7aaaffc3b",
+      "bytes": 3065
+    },
+    {
+      "path": "Source/AudioEngine/CoreAudioInputProbe.cpp",
+      "sha256": "f0baaa2d483e261b1988cdf318fd5579e61ce938a7e7a44dff8c12a57eac60f6",
+      "bytes": 2874
+    },
+    {
+      "path": "Source/AudioEngine/CoreAudioInputProbe.h",
+      "sha256": "ddb053e05ae2f75f5ba2e4ece8e13ec0f6eff934590d065f03f878aa14431fb8",
+      "bytes": 498
+    },
+    {
+      "path": "Source/AudioEngine/GainUtilityProcessor.h",
+      "sha256": "9542d409dbaec3adfada11910c752f481456ae3fff40df0c0a48f771d7ca71b1",
+      "bytes": 844
+    },
+    {
+      "path": "Source/AudioEngine/GlobalScaleContext.h",
+      "sha256": "97ef8d1198d6878a90a451d9112a1d93ad8326675eb4160900a09499d43b5add",
+      "bytes": 1155
+    },
+    {
+      "path": "Source/AudioEngine/LiveKeyDetector.cpp",
+      "sha256": "d2d5c6aa44dfa725b29f027820090b0df2d7b4597f949f680589c13ee24b40d2",
+      "bytes": 15966
+    },
+    {
+      "path": "Source/AudioEngine/LiveKeyDetector.h",
+      "sha256": "dcef1b25d73c5194c073a22e8fc3c4b570ca5c0301865dd11ad0bdc9e01b8c52",
+      "bytes": 2339
+    },
+    {
+      "path": "Source/AudioEngine/LivePerformanceAssessment.h",
+      "sha256": "d3adbd4ca0d8600e8ef31c67fb55d642e7370f819c62e28a25ee6e5f2bdb4476",
+      "bytes": 1314
+    },
+    {
+      "path": "Source/AudioEngine/LockFreeBuffer.h",
+      "sha256": "d8cbf0fa825b1c472eac5599c6aa15eaeb0dd7bdee17a6695b66310b3005a50a",
+      "bytes": 2440
+    },
+    {
+      "path": "Source/AudioEngine/TrackMixing.h",
+      "sha256": "2c04336bded48da0c51fed5de846f89808bd7229a37d2c2c2bb975fa4a224211",
+      "bytes": 1867
+    },
+    {
+      "path": "Source/AudioEngine/TransportUtils.h",
+      "sha256": "9e646521887af5cc323f5df6c527b4dac081530a5e462f8faf080d7276a6cbcd",
+      "bytes": 1530
+    },
+    {
+      "path": "Source/Control/ControlCommand.h",
+      "sha256": "5da378cc21f31d0e6979de43e377fbf48b52d41870b811fffd44a35fb13ff204",
+      "bytes": 1731
+    },
+    {
+      "path": "Source/Control/ControlRoutingProfile.cpp",
+      "sha256": "bc4541c826225492f7dedf63758a3d13020070c4806afc4c74571eac32c3ce4e",
+      "bytes": 863
+    },
+    {
+      "path": "Source/Control/ControlRoutingProfile.h",
+      "sha256": "dcab3e56fc83cfc35c4eb3b8b92f7dc40193d6e0f738b13cc1c43472ef49d85d",
+      "bytes": 601
+    },
+    {
+      "path": "Source/Control/LiveBridgeController.cpp",
+      "sha256": "3016720a078f5f7eef4a26ae783e336c0953e29638e24740113016159cfeae04",
+      "bytes": 10483
+    },
+    {
+      "path": "Source/Control/LiveBridgeController.h",
+      "sha256": "be73b75cc4da73f759ba80459e64563515b837c9439570399b54972bcc12f991",
+      "bytes": 3835
+    },
+    {
+      "path": "Source/Control/MusicalKey.h",
+      "sha256": "4f352dc9fe33255c5be5b3a26c01777ab5f277c940803ce7498bb83db96cee68",
+      "bytes": 2281
+    },
+    {
+      "path": "Source/Control/PerformanceMacroService.cpp",
+      "sha256": "9cb532fb2d4b7cebfb1146563c64c568eeea3713d6b237c1d5d843b3bf8e7ce0",
+      "bytes": 30882
+    },
+    {
+      "path": "Source/Control/PerformanceMacroService.h",
+      "sha256": "ad5ee8d492a3fde3f6e85e3b9aa0044733150f1abffa31b94f0ef280b0896dd9",
+      "bytes": 6394
+    },
+    {
+      "path": "Source/Control/PerformanceSurfaceBridge.cpp",
+      "sha256": "bf2f4feda3df147056848460c235f8d7de0a8beb9db6c1f9627996918380efbe",
+      "bytes": 9445
+    },
+    {
+      "path": "Source/Control/PerformanceSurfaceBridge.h",
+      "sha256": "629f5bc034dc52c99610b5fd03a51f19ae1e5db130e2239006220a38f8cb7b78",
+      "bytes": 1331
+    },
+    {
+      "path": "Source/Control/PerformanceSurfaceProtocol.cpp",
+      "sha256": "6d491f72eb6007c8237df1a66be9a7bb75d892cbf1dd075aace86553dd166c89",
+      "bytes": 54174
+    },
+    {
+      "path": "Source/Control/PerformanceSurfaceProtocol.h",
+      "sha256": "fdcc80bf764c620b7599b617c672f575d93845f1ef3353c09ab99ffb00153f12",
+      "bytes": 1471
+    },
+    {
+      "path": "Source/Control/PitchCorrectionIntegrationService.cpp",
+      "sha256": "7900514f3dee889d7a64ebb981587aab5a4f987fdb46b74ff841a2d21578ed5e",
+      "bytes": 13039
+    },
+    {
+      "path": "Source/Control/PitchCorrectionIntegrationService.h",
+      "sha256": "e2316f231494a6c66d545b597a4a0c5809ec0dd97eaa9fca532218001de5d96a",
+      "bytes": 2385
+    },
+    {
+      "path": "Source/Control/PluginSemanticMapper.cpp",
+      "sha256": "f8a7d7f0b55a4da59216085798f0a53184bab023968cbc6b1b9fcf231bb41ae4",
+      "bytes": 18318
+    },
+    {
+      "path": "Source/Control/PluginSemanticMapper.h",
+      "sha256": "851d18a5c2b028a4d5f5d7da89773b5f7d6631f863dd6466c5216b7b8c53557a",
+      "bytes": 2369
+    },
+    {
+      "path": "Source/Control/StudioForgeControlBridge.cpp",
+      "sha256": "8c2d1223c06a3f23c19d2f83592c5c519f8f66c35ec2234423b355ace36689cf",
+      "bytes": 5118
+    },
+    {
+      "path": "Source/Control/StudioForgeControlBridge.h",
+      "sha256": "b084cd79d309c785f99c58facd6027b92bc988bff508bc5202995a23ae42b70c",
+      "bytes": 806
+    },
+    {
+      "path": "Source/Control/VibeAutotuneAdapter.cpp",
+      "sha256": "2c20840559f937b4558bfa741ba48a4b799a64a54ff4fa6e4b4dce30a53c412b",
+      "bytes": 7022
+    },
+    {
+      "path": "Source/Control/VibeAutotuneAdapter.h",
+      "sha256": "c7c0f82efdf6c340b03ca7b0f1f471cbd0e5725dd04d9d41c421d19b5cd1c8dc",
+      "bytes": 977
+    },
+    {
+      "path": "Source/Core/AudioGainRange.h",
+      "sha256": "d1a9c2cf2f230a65e0604f201db12113ef4479f3854c814b82b93fccf11b7451",
+      "bytes": 447
+    },
+    {
+      "path": "Source/Core/Automation/AutomationLane.cpp",
+      "sha256": "fc7b24e87f8231f14d2bbf1b439ff904b21384e8ad442fd1a7d2baf1fe3373bc",
+      "bytes": 4167
+    },
+    {
+      "path": "Source/Core/Automation/AutomationLane.h",
+      "sha256": "7eade7587e88a40db91c54abfa6bb64d0b7037f58c6e2f34f4a17b5dbe2b38f4",
+      "bytes": 1216
+    },
+    {
+      "path": "Source/Core/Automation/AutomationRenderSnapshot.h",
+      "sha256": "151277c95a6fecb5b0f0f3623b7a2ba227256102e5e6fa07e3ce9d42529cf107",
+      "bytes": 2027
+    },
+    {
+      "path": "Source/Core/Main.cpp",
+      "sha256": "e54dc6bfd70e1a047ce37c37d768fee25baf33f7c13929d644246903e0d53ab6",
+      "bytes": 922
+    },
+    {
+      "path": "Source/Core/MainWindow.cpp",
+      "sha256": "44e8dd2a189c6558863b407773a119b35b9fcb16cc066723d25e2fbaf3fafeb8",
+      "bytes": 42598
+    },
+    {
+      "path": "Source/Core/MainWindow.h",
+      "sha256": "118700922e024abcde5de1fccd2f9849e83afabc2acd87e08fbc805db990b576",
+      "bytes": 3612
+    },
+    {
+      "path": "Source/Core/WorkspaceModeController.h",
+      "sha256": "9ff2320d6f9d88053b7b9c4c3a4e3d87d6520cfad0ebcf4e29b28904f8586923",
+      "bytes": 586
+    },
+    {
+      "path": "Source/Core/WorkspaceProfile.h",
+      "sha256": "44751fbd95fb6b2dcbee8d4e7adc75839d814c7fffd815c1ea3f08718af8bf1c",
+      "bytes": 1682
+    },
+    {
+      "path": "Source/Core/WorkspaceTransitionManager.cpp",
+      "sha256": "a4025a03aeb102f18c2ca2a2598b6fc3844dd4a6da417abe728620222c65fa6d",
+      "bytes": 2376
+    },
+    {
+      "path": "Source/Core/WorkspaceTransitionManager.h",
+      "sha256": "8481e45c2b4c2f49cc24d09e2be61199085437aba8269a9b4cd89381357ce2e1",
+      "bytes": 1019
+    },
+    {
+      "path": "Source/Media/AudioMediaPool.cpp",
+      "sha256": "fd62a274b2da7a24844a04c9a953d3e29f676299ad6d3c4f487eca30ebd7e1b2",
+      "bytes": 1547
+    },
+    {
+      "path": "Source/Media/AudioMediaPool.h",
+      "sha256": "b16be6319c22cfd4e958a4ed7e0a7bd2b95e9224b085cc8cf4b649db50f0e1d8",
+      "bytes": 1228
+    },
+    {
+      "path": "Source/Media/Import/AudioImportSupport.h",
+      "sha256": "3ef6797da145c90220513009b6a990fb34b8a2c62895779bc7ca9bea1e530599",
+      "bytes": 2653
+    },
+    {
+      "path": "Source/Media/MediaReloadService.cpp",
+      "sha256": "b3378fb9eea51d762eea07240cebc5c462a704d15a867fa68bacf4d808ce636d",
+      "bytes": 4869
+    },
+    {
+      "path": "Source/Media/MediaReloadService.h",
+      "sha256": "7447151eb04f3deb0d53dd26515faba372328e7d30fdc6bd843706069990df9e",
+      "bytes": 651
+    },
+    {
+      "path": "Source/Media/Waveform/WaveformCacheStore.cpp",
+      "sha256": "69334a9ad127c23fe5324f11ab552a01db3bc14ba46fa0b6172ee21bcba774d8",
+      "bytes": 2749
+    },
+    {
+      "path": "Source/Media/Waveform/WaveformCacheStore.h",
+      "sha256": "5c8c5dbaa6518cca25605c06109fd0f356cc8e2f27ba830a2110dcbb6c752f65",
+      "bytes": 516
+    },
+    {
+      "path": "Source/Media/WaveformThumbnailCache.cpp",
+      "sha256": "da8f8345b073744e8a1df0ac9585a30801b25ff2425e96b9e502f44fd55b6d53",
+      "bytes": 13358
+    },
+    {
+      "path": "Source/Media/WaveformThumbnailCache.h",
+      "sha256": "101a2485205b47571c2f14cd18f3976e0765b21edd176059bca34208b6133611",
+      "bytes": 2419
+    },
+    {
+      "path": "Source/Midi/MidiCore.cpp",
+      "sha256": "0efd33483f26e1909c117c154263b681f4710403832baa3faad620998f9d72aa",
+      "bytes": 3615
+    },
+    {
+      "path": "Source/Midi/MidiCore.h",
+      "sha256": "eaee11963d3ce8da26ca253c3c583a9851ff4f644348070d469c11b00be7ad2a",
+      "bytes": 2365
+    },
+    {
+      "path": "Source/Midi/MidiFileImporter.cpp",
+      "sha256": "79d0a67428b17cf9ea2f8c1347b1b22f3e2b858500c1767de9f70ea74797043a",
+      "bytes": 3943
+    },
+    {
+      "path": "Source/Midi/MidiFileImporter.h",
+      "sha256": "9be82141b3a5f82dfeff473d2bb5e7f82c26160147ec8279537fa7fe77bff05c",
+      "bytes": 364
+    },
+    {
+      "path": "Source/Midi/MidiTransposeProcessor.cpp",
+      "sha256": "db7ee4684c5784e3a01f54647a7d2cf04436fedadd2bd36ebf0bfc8b455d7a59",
+      "bytes": 1825
+    },
+    {
+      "path": "Source/Midi/MidiTransposeProcessor.h",
+      "sha256": "41f422ca0272faea00d57493abe994f1948cef2f922269085d76904252d160a1",
+      "bytes": 907
+    },
+    {
+      "path": "Source/Models/AudioClipState.h",
+      "sha256": "a5ee2614b442a49aaf0a34bfc90b5b327d36dcabd3653af5c94ee7fbbfeca27e",
+      "bytes": 1381
+    },
+    {
+      "path": "Source/Models/ProjectIdentifiers.h",
+      "sha256": "55d8d476d14622d0fc853f97e2e34ef3e52cf94cf3b50f43dacd4a9928aa2e7e",
+      "bytes": 1660
+    },
+    {
+      "path": "Source/Models/TakeFolderState.h",
+      "sha256": "1aad97a96e7357710803c829b4eb23ed99f601ba656b38c9cb736776fd11a326",
+      "bytes": 883
+    },
+    {
+      "path": "Source/Models/TrackDataModel.cpp",
+      "sha256": "70005865a722c6bfeeb8670de4897bd8df456aa61b08c8c291e71d0a7e425d49",
+      "bytes": 134879
+    },
+    {
+      "path": "Source/Models/TrackDataModel.h",
+      "sha256": "aead5e382dc7d3322e9df7bd154d4b329735514fd2a2d28bd052c3fe64823807",
+      "bytes": 27702
+    },
+    {
+      "path": "Source/Plugins/LiveTuneConfidenceGate.h",
+      "sha256": "b7b606bedfd5eff222bb48fa1da8c58bf34e16927563221a159a127d6abbd0b9",
+      "bytes": 1653
+    },
+    {
+      "path": "Source/Plugins/NativeVibeAutotuneProcessor.cpp",
+      "sha256": "ed573d785e0eec8ce9b0424c1c43a1123e9e9835b19f1baa833f53dcfb836317",
+      "bytes": 23379
+    },
+    {
+      "path": "Source/Plugins/NativeVibeAutotuneProcessor.h",
+      "sha256": "ee539e7d501ab18cad287203a44a964248df6376d61ab05d1875550fb3377021",
+      "bytes": 3910
+    },
+    {
+      "path": "Source/Plugins/PluginHostService.cpp",
+      "sha256": "e41421495f2f34f71f6dbd5a11f6a0f707e513c98de02a4e7d064167e1d8ce8c",
+      "bytes": 29321
+    },
+    {
+      "path": "Source/Plugins/PluginHostService.h",
+      "sha256": "4a8b4a51dda6dad96ee0555bc35621f07daa51d565b2b0a14b33bae6b906a219",
+      "bytes": 2370
+    },
+    {
+      "path": "Source/Project/AutosaveService.cpp",
+      "sha256": "f5726201e54f5a7cd8025cfa6449f9b868508466e324f6eaf819e71c2165774a",
+      "bytes": 3364
+    },
+    {
+      "path": "Source/Project/AutosaveService.h",
+      "sha256": "8145cc102595f1add651140c8908f407e854d226c4aff9eda42dbb5c2fbdd50b",
+      "bytes": 884
+    },
+    {
+      "path": "Source/Project/ProjectAlternativeStore.cpp",
+      "sha256": "b0838e9deeba04d52760af4c4232f166569c0faa658c821da899ef5e3b41bbcf",
+      "bytes": 1148
+    },
+    {
+      "path": "Source/Project/ProjectAlternativeStore.h",
+      "sha256": "89da6f217476991b7ef4012b779f0e6e86f2b8b8116504ab6437a4a8a0a9ad61",
+      "bytes": 339
+    },
+    {
+      "path": "Source/Project/ProjectBackupStore.cpp",
+      "sha256": "e919fd3a94efb4fce54a13fc95dd3ab7f816741dabbf5ed1a5d2f6f6c17b749f",
+      "bytes": 1643
+    },
+    {
+      "path": "Source/Project/ProjectBackupStore.h",
+      "sha256": "914926d7516750fd35ad0185d746258274da9e14c7bbd2cfc24b12171da8ef6a",
+      "bytes": 668
+    },
+    {
+      "path": "Source/Project/ProjectSerializer.cpp",
+      "sha256": "ce5686e9a73fcf4b1af54e9e6943feba145981316c3477723723e6d3452e7f10",
+      "bytes": 52356
+    },
+    {
+      "path": "Source/Project/ProjectSerializer.h",
+      "sha256": "3c15b358dceb4f3ce730f13191775a8db5abadab786cccca58d3ee549459309b",
+      "bytes": 1018
+    },
+    {
+      "path": "Source/Project/ProjectState.h",
+      "sha256": "e203befd19eb7934bb1ed08648769a27e372cddd501b551916afa46fc3965d96",
+      "bytes": 5120
+    },
+    {
+      "path": "Source/Project/ProjectTemplateStore.cpp",
+      "sha256": "86407d7ebaa7202861cf0920719d2a88d9e9113fa81cc1cd63265b2a2e5ad0d6",
+      "bytes": 1137
+    },
+    {
+      "path": "Source/Project/ProjectTemplateStore.h",
+      "sha256": "0ecb67650c589df12696107e9942eca296d3d42c93575a005032330a98806508",
+      "bytes": 418
+    },
+    {
+      "path": "Source/Project/ProjectTemplates.cpp",
+      "sha256": "65321083aba5eb9f6a108f742d4d478bed0a6560890bacbd8deb0cc5ec90a868",
+      "bytes": 7095
+    },
+    {
+      "path": "Source/Project/ProjectTemplates.h",
+      "sha256": "9d8f9cac4749e4c1e5c8cc5fdf4b8748f6ffd9da5dbd04a3a6b90ef9fbd1d1de",
+      "bytes": 1809
+    },
+    {
+      "path": "Source/Project/RecentProjectsStore.cpp",
+      "sha256": "842e0e105e0ef85a92bdaac207c2fb76a7aaf5926837b1eb59b6353a23b12388",
+      "bytes": 3428
+    },
+    {
+      "path": "Source/Project/RecentProjectsStore.h",
+      "sha256": "acefd2af6859bca78fa9c8439488aa1e303bfb301cdacb3ab94ccc41f49d6182",
+      "bytes": 666
+    },
+    {
+      "path": "Source/Recording/RecordingSession.cpp",
+      "sha256": "d0c211e4125889f6aa313707f51420f71a3e9da5636a03b8fe9b47be7d5a279c",
+      "bytes": 9011
+    },
+    {
+      "path": "Source/Recording/RecordingSession.h",
+      "sha256": "d9472767ca684615e8d1154f37249dd41488bf6d5696f6d739f40255730d8646",
+      "bytes": 2234
+    },
+    {
+      "path": "Source/Services/StudioForgeCalibrationRunner.cpp",
+      "sha256": "e3bbc9ae974747cf7a9d4285a63023b3bd39ab7110f941cad3758a5eab539b39",
+      "bytes": 11845
+    },
+    {
+      "path": "Source/Services/StudioForgeCalibrationRunner.h",
+      "sha256": "f42a3ee587e2a51d1091f3f284e9c13afd3a8f52e17fd970689c1c139ee7ea3b",
+      "bytes": 938
+    },
+    {
+      "path": "Source/Services/TuneAiAnalysisService.cpp",
+      "sha256": "44beccecef53266a8d2a4eef8ed6713cae2f9863dc8541ff9e1551d960f7aff5",
+      "bytes": 8875
+    },
+    {
+      "path": "Source/Services/TuneAiAnalysisService.h",
+      "sha256": "633248a8865ca2ac4d11445100a629c1b2b11da2af61c43c0ba6c6fbda89e09d",
+      "bytes": 989
+    },
+    {
+      "path": "Source/UI/ArrangeWindow.cpp",
+      "sha256": "0f15e9dafaff0bf7381cfa1a3c37de7490e9c27c2789eae5cedd5e58d62831bd",
+      "bytes": 171797
+    },
+    {
+      "path": "Source/UI/ArrangeWindow.h",
+      "sha256": "39709bfc859397201aaa112ee76216fb97fc28b2b11f5298d2c268c198a373ea",
+      "bytes": 18645
+    },
+    {
+      "path": "Source/UI/AssetBrowserPane.cpp",
+      "sha256": "b5ffcc86cd23c5c30f1f63445edfb372a31a6b10008a2b362a88aa8ab6a2d06b",
+      "bytes": 5335
+    },
+    {
+      "path": "Source/UI/AssetBrowserPane.h",
+      "sha256": "f9ea0eaa0d42dccb00928cb0d5f164670ffbeea5c4c91acc5be53e7d718ade12",
+      "bytes": 2222
+    },
+    {
+      "path": "Source/UI/AudioDeviceErrorLocalizer.cpp",
+      "sha256": "7d7cfae4b27c222828fff588a811e072ab1c8561290897fbf00c7bbc8e7c7cb0",
+      "bytes": 2673
+    },
+    {
+      "path": "Source/UI/AudioDeviceErrorLocalizer.h",
+      "sha256": "37d2c357d97d54815131efa0e4c87050d6cf38834829b48b233a96d1621ab0e6",
+      "bytes": 335
+    },
+    {
+      "path": "Source/UI/AudioPeakMeter.cpp",
+      "sha256": "911e24aa0c1762c7b08baa6e6a7af16fd8e4b658c11ec854e81d7c8bc8a99c8f",
+      "bytes": 5137
+    },
+    {
+      "path": "Source/UI/AudioPeakMeter.h",
+      "sha256": "1a6d464cd7a4a116927ece98255ad92e3a00bf331f340bf4308efa072674b39a",
+      "bytes": 730
+    },
+    {
+      "path": "Source/UI/AudioRegionInteraction.h",
+      "sha256": "4d3eea5c0507698beea2341cb5069452c77cb293de84ec8fe8caf25e4bbac49b",
+      "bytes": 220
+    },
+    {
+      "path": "Source/UI/ClipInteraction/ArrangementSelectionModel.h",
+      "sha256": "cf718d91009d27fdc489dd3353063e2d7ed9e0c67d4f1275088b5ecf38b8efe4",
+      "bytes": 1127
+    },
+    {
+      "path": "Source/UI/ClipInteraction/AudioRegionInteraction.h",
+      "sha256": "33f02ea38e2a2a3a1921e7893c755d02aad2d93e9b8078a274884edd0bf5bc7b",
+      "bytes": 3785
+    },
+    {
+      "path": "Source/UI/ControlBar.cpp",
+      "sha256": "257d5fdc5484f58d729829fb80368bbeab54a17a5994c74ff7f244591a241c35",
+      "bytes": 60495
+    },
+    {
+      "path": "Source/UI/ControlBar.h",
+      "sha256": "8d779590d5164e8d4158a96e7977b6b42d5d1e66c15448c521e71e8a7eed4bd0",
+      "bytes": 5460
+    },
+    {
+      "path": "Source/UI/DeviceSettingsPanel.cpp",
+      "sha256": "73afae51922e2055d894b9e5ae35b7835dcdd450c9541e6a72ff51d5a1f01e7e",
+      "bytes": 37014
+    },
+    {
+      "path": "Source/UI/DeviceSettingsPanel.h",
+      "sha256": "ec85734bce8d692c1794fc4d8f21618080445f35036fc3eb9f7b12c3fda3d8bd",
+      "bytes": 3340
+    },
+    {
+      "path": "Source/UI/Inspector/InspectorViewState.cpp",
+      "sha256": "1b64d8571991a6453d0711711abb3666ab92212a8d788d3026a5d01b1d3c01b4",
+      "bytes": 3463
+    },
+    {
+      "path": "Source/UI/Inspector/InspectorViewState.h",
+      "sha256": "c5b1fa3fb9d86f24f292d863a4fbef203b080f1ad33079d01aff5788059c391a",
+      "bytes": 861
+    },
+    {
+      "path": "Source/UI/InspectorComponents.cpp",
+      "sha256": "9c1d103fa15ae9ec5370ee3e5f7b1931985bc78590adc996f8193faf515d9c51",
+      "bytes": 77558
+    },
+    {
+      "path": "Source/UI/InspectorComponents.h",
+      "sha256": "63a8df93d1b481e5d16dea4920a701e9f09f88747bfd0da2feb1b806f81f169b",
+      "bytes": 8271
+    },
+    {
+      "path": "Source/UI/InspectorPane.cpp",
+      "sha256": "8ea14b4ed0fc807b80f9f1e5236e85ec745c5e3f387489482f6cdc74b4992e7b",
+      "bytes": 2457
+    },
+    {
+      "path": "Source/UI/InspectorPane.h",
+      "sha256": "609a08e017fd072915b0fe04619a6b4e4bfb2e7658acda8335ef337f022748a3",
+      "bytes": 777
+    },
+    {
+      "path": "Source/UI/MainComponent.cpp",
+      "sha256": "6a3e0cf60dbb3fe99a7ceece524c2e8f4496ac794658889d486560c361c733d8",
+      "bytes": 61396
+    },
+    {
+      "path": "Source/UI/MainComponent.h",
+      "sha256": "4ee9d1b40ac3c41f576ced0afc2e15a7ca765d506bf0a6b1a35a8479ac2a7c08",
+      "bytes": 11424
+    },
+    {
+      "path": "Source/UI/MixerPane.cpp",
+      "sha256": "99b8a69af35b74a1a5547720f100e4ffe224cdd893cec71dbc5c3b52a8c3d927",
+      "bytes": 104702
+    },
+    {
+      "path": "Source/UI/MixerPane.h",
+      "sha256": "76192d4ee4352d49d87577a0c90e6a1fd9f1f24fb7cc0f973503b3efd9f9b793",
+      "bytes": 11175
+    },
+    {
+      "path": "Source/UI/PerformanceRoomIconLibrary.cpp",
+      "sha256": "b9c97b4aafe1012af257e5da22fd22e2c0a45c4de449e2a7b1a3175493f689c5",
+      "bytes": 1894
+    },
+    {
+      "path": "Source/UI/PerformanceRoomIconLibrary.h",
+      "sha256": "e3f985f2d449accb6b5ce263e9a0d2894cf6b884ddc67925c0bfdb45239f7065",
+      "bytes": 457
+    },
+    {
+      "path": "Source/UI/PerformanceRoomModel.h",
+      "sha256": "d6be8b3290a27f2622bd1c8f4b6d8afb52431e4f74bf906f7bab3449cd549d16",
+      "bytes": 5396
+    },
+    {
+      "path": "Source/UI/PianoRoll.cpp",
+      "sha256": "c98e01f28e48d8fd98ebd00d61e4b083ec3c7d23f50e94ca775462dbb9b86e71",
+      "bytes": 16494
+    },
+    {
+      "path": "Source/UI/PianoRoll.h",
+      "sha256": "0fa00dc2bba304c8841b7958b7e2d9f236ddf21e86dfdb1f0388eacb4faff05b",
+      "bytes": 1694
+    },
+    {
+      "path": "Source/UI/PluginBrowserPanel.cpp",
+      "sha256": "dec765be03e8defc6422b89c3da07e45a5eb84bdc0ccfb0a7c1e63027f37622d",
+      "bytes": 10981
+    },
+    {
+      "path": "Source/UI/PluginBrowserPanel.h",
+      "sha256": "f4a16fee1510eec5e840971541d71e25c485f31f59c0b06239ce41df609d8e4c",
+      "bytes": 1596
+    },
+    {
+      "path": "Source/UI/ProjectSettingsPanel.cpp",
+      "sha256": "1a0fae7827e29e0bd7fc099e3f5c6e05500700aae94c845e1fd21ade69a1e7b7",
+      "bytes": 2134
+    },
+    {
+      "path": "Source/UI/ProjectSettingsPanel.h",
+      "sha256": "e66e08ce80d30e861f5c16ecebb7ce42c9e9b8d8ba0dbee703494cb4399546e6",
+      "bytes": 571
+    },
+    {
+      "path": "Source/UI/StartupWorkflowPane.cpp",
+      "sha256": "8685163e4cff074fac6a3cf32a25d8ce1d1e0ee0bb0e63c2004a4713e54e4494",
+      "bytes": 26360
+    },
+    {
+      "path": "Source/UI/StartupWorkflowPane.h",
+      "sha256": "2291910b3023543f4221be318d03881ddca4d294dea3a3a3f88a67814e76c895",
+      "bytes": 3514
+    },
+    {
+      "path": "Source/UI/StudioForgeDialog.cpp",
+      "sha256": "d24703dfa065713598df6c14026b46fb22d0222946438bcb5b63d954ee66e9b4",
+      "bytes": 418
+    },
+    {
+      "path": "Source/UI/StudioForgeDialog.h",
+      "sha256": "3fb627dbdad536ad1accf88d2439dbc9265ef4cb2f67d1ffef058262f0c8068c",
+      "bytes": 240
+    },
+    {
+      "path": "Source/UI/StudioForgeIconSvg.h",
+      "sha256": "448668e09ec873a0b01cd52fc6f2c4320b7b8cbfb1333ba94f3ac0e04c1fee18",
+      "bytes": 3267
+    },
+    {
+      "path": "Source/UI/Theme/StudioForgeLookAndFeel.cpp",
+      "sha256": "a1d35175626244ad0b06cb719b3267d60b0b89e5ee2979b3e941444c39bbbfdb",
+      "bytes": 13336
+    },
+    {
+      "path": "Source/UI/Theme/StudioForgeLookAndFeel.h",
+      "sha256": "dc0c715d31d36b967255d446fdd87c0c9f40297fbe31de28fc40c7ee51319911",
+      "bytes": 3191
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineGestureAdapter.h",
+      "sha256": "a6798f8ece2eddab133f5d5303f58a6a14495fccfd5406a013b7c44a3d2a49da",
+      "bytes": 1064
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineNavigationCommands.h",
+      "sha256": "5bf5ed79b94c6de8cc0352f0a3f3303000198923a5242089e4ed10f5fe867896",
+      "bytes": 232
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineViewportController.cpp",
+      "sha256": "4ac9808477fc8b33fa00019cd1326f27e54e360648f699e47ac0145ba0ce147e",
+      "bytes": 1182
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineViewportController.h",
+      "sha256": "00202011ec868d84998291932096a172297b91c6cf3853a0d52a60208cb3c53a",
+      "bytes": 646
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineViewportState.h",
+      "sha256": "a9571726c44601650cbdf626d765c98c53858580e1cb4fba5bc98ebbc080404b",
+      "bytes": 566
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineZoomPolicy.cpp",
+      "sha256": "0ef505718070f98192746201c10eddb5245eda39172fff1624b5b57d1b55430e",
+      "bytes": 2193
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineZoomPolicy.h",
+      "sha256": "7d75611eb1a06c45a6cace950e3b323373b681395d6b3439eddbbbcb35d24f84",
+      "bytes": 1164
+    },
+    {
+      "path": "Source/UI/TimelineNavigation/TimelineZoomPresetStore.h",
+      "sha256": "99ce99dc744bb8a85056465fa1afbd31ec0bb907335530525921112dc8a1fc39",
+      "bytes": 534
+    },
+    {
+      "path": "Source/UI/TransportLCD.cpp",
+      "sha256": "65442b5e4eb97394cf2df49bec00c18a87ceb4ba07c09abb434a04f1fc5d01cf",
+      "bytes": 12823
+    },
+    {
+      "path": "Source/UI/TransportLCD.h",
+      "sha256": "e832b0895734ea2f7dcf39c937b240ed3cc586204aed8bd5fc3bc8a0e35b70c3",
+      "bytes": 1192
+    },
+    {
+      "path": "Source/UI/Waveform/WaveformRenderRequest.h",
+      "sha256": "f77d4d97a9d10786ab944f7b43b91abdce54b9da4dc82a2f8d115fa528ce132f",
+      "bytes": 651
+    },
+    {
+      "path": "Source/UI/Waveform/WaveformRenderStyle.h",
+      "sha256": "dd89434dc19d5dde0925e478f67bece5bb99afa99da661a5a3d6574cc9f6bf98",
+      "bytes": 507
+    },
+    {
+      "path": "Source/UI/Waveform/WaveformRenderer.cpp",
+      "sha256": "9db590d915d934d7f2d5aba1bd7b66a4be39453ca21e5c3a4005fdcb24d9f865",
+      "bytes": 11247
+    },
+    {
+      "path": "Source/UI/Waveform/WaveformRenderer.h",
+      "sha256": "a00e65644a4212a087b7eccc6d0ec7281fbe02a60f7201236b86ca3452afd2b9",
+      "bytes": 679
+    },
+    {
+      "path": "Source/UI/WorkspaceMode.h",
+      "sha256": "aa5ef5e5044c0873f028c59a6dd04e3d0f4b4b08375d3d85b5395b24d078a305",
+      "bytes": 399
+    },
+    {
+      "path": "Tests/AutomationDomainTests.cpp",
+      "sha256": "ce62580a370a5daa14818ccac989d0dedfd20c24404c5dcfa482ba1beb4af8a7",
+      "bytes": 1866
+    },
+    {
+      "path": "Tests/AutomationDomainTests.h",
+      "sha256": "3586a22664c120474fd4e14c6b2ae71dc5291547ce82027f9090c4ce0eed0d43",
+      "bytes": 47
+    },
+    {
+      "path": "Tests/CorePlaybackMixerTests.cpp",
+      "sha256": "3a3b10e7306ed50a3993640640760c7a8c91143fa8332e5298f4a2b593b12bc7",
+      "bytes": 199524
+    },
+    {
+      "path": "Tests/LiveBridgeControllerTests.cpp",
+      "sha256": "6ef91464cae46c346fbae875a651c2f663f1ffec6f075dec077909d4ad5648e2",
+      "bytes": 3556
+    },
+    {
+      "path": "Tests/LiveBridgeControllerTests.h",
+      "sha256": "ac9b83158bc78f6c6ea70be110f047bced11d831882e242b14c74503f7c94ab2",
+      "bytes": 50
+    },
+    {
+      "path": "Tests/LivePerformanceAssessmentTests.cpp",
+      "sha256": "027a0d3f14349b3181d8dea4e36cab2f637aa4d19fb17e9d0b8dc7cfd4819137",
+      "bytes": 1442
+    },
+    {
+      "path": "Tests/LiveTuneConfidenceGateTest.cpp",
+      "sha256": "e0370bb9d97842730340d6cc6b393822a430c93b677490f132ef1bbe9b4d532e",
+      "bytes": 1579
+    },
+    {
+      "path": "Tests/NativeVibeAutotuneSmokeTest.cpp",
+      "sha256": "0ad97119d3515f8710a4d8d63d01d7842bbe85438b975f7dd0463cbc82b1804b",
+      "bytes": 10473
+    },
+    {
+      "path": "Tests/VST3TestEffect.cpp",
+      "sha256": "dd102fea7b695a6a098ff332f6e75421a267ffa97d476001d8ce600a10bdfdd7",
+      "bytes": 2661
+    },
+    {
+      "path": "Tools/SongIntelligence/README.md",
+      "sha256": "18be9fd424500699f97fb42f4ff501b52ead4bb0de976d7460b01372618a222e",
+      "bytes": 1344
+    },
+    {
+      "path": "Tools/SongIntelligence/smart_studio_bridge.py",
+      "sha256": "d6fa3814f718c8555439ae7eb2cb7a4e4266d6fb54152eebc64170930470e24d",
+      "bytes": 8072
+    },
+    {
+      "path": "Tools/StudioForgeCalibrationRunner.cpp",
+      "sha256": "2208b30ef260cd3238d70480f89505a1bbe15d516f517398f2fe26ff706bb621",
+      "bytes": 2871
+    },
+    {
+      "path": "Tools/StudioForgeVst3Probe.cpp",
+      "sha256": "043aa1b536dcfc947674d44b46adb4dd1e5cbf981a6d53f9c7e10fa511b5efb2",
+      "bytes": 8096
+    },
+    {
+      "path": "Tools/analyze_studioforge_calibration.py",
+      "sha256": "95f83074d83294ca94b8099bb6100e4eca73c0ba56628647591f3057ca7417e9",
+      "bytes": 5497
+    },
+    {
+      "path": "Tools/audit_macos_link_driver.py",
+      "sha256": "10a135ce4ee00e2d73bb264032303bab3fc88e44b8ce68f5495e92606c16be15",
+      "bytes": 2187
+    },
+    {
+      "path": "Tools/audit_macos_release.py",
+      "sha256": "b3a261dc1f66e1b7f676a3dc9e414918c88bdb127bf5ea7f4dffdf7a083848d0",
+      "bytes": 4271
+    },
+    {
+      "path": "Tools/build_macos_link_installer.sh",
+      "sha256": "9e1f7aad4523113201d1a52ea86ac43a182a8dab49c496e084b3544da91f5eb6",
+      "bytes": 3681
+    },
+    {
+      "path": "Tools/build_tune_ai_macos.sh",
+      "sha256": "c4fd6bc9e345bdc7ae23f5d4de6403eaffe18ba6baddbcdebb070e2b50e6088f",
+      "bytes": 977
+    },
+    {
+      "path": "Tools/package_macos_release.sh",
+      "sha256": "88865f535fc921feab28705f4968a08456e1d5ec8c9ec59576d0f2cf4cc80ed4",
+      "bytes": 5206
+    },
+    {
+      "path": "Tools/package_windows_release.ps1",
+      "sha256": "05522e6f87c385050e9c58c6a826a642b57044631753ddd8cd10bbbac006f76b",
+      "bytes": 2110
+    },
+    {
+      "path": "Tools/run_plugin_automation_audit.py",
+      "sha256": "16ecd09d35b8643d597d711717b01d6a7ababff0133a25955dc69539e590785e",
+      "bytes": 5164
+    },
+    {
+      "path": "Tools/run_studioforge_artist_vibe_calibration.sh",
+      "sha256": "d30da7ee5e433a97a904bbec9ebe97a1856e106235fc647139ff69e0990b1d57",
+      "bytes": 1059
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/.gitignore",
+      "sha256": "6b79eed3359c2e78489c9a976810f9dcd54ad5c195026676d934ff136efa1934",
+      "bytes": 32
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/CMakeLists.txt",
+      "sha256": "5cb3b83a6bd5485a41f808c9a77fb2d82d5131e56c1d6ba8bed94c462ebf434c",
+      "bytes": 1616
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/LICENSE.txt",
+      "sha256": "072b5e9eb5b22880bdf6256324654cf3ce53dba828edb911921121e1be09d9c3",
+      "bytes": 1074
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/README.md",
+      "sha256": "4cdc3a2a10f6beb5b3c6ca63d27e0daadaba488fe6e13b73045e755ba190ed43",
+      "bytes": 5155
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/SUPPORT.txt",
+      "sha256": "1ba46209187e36d6b85f450aa73b7a4dc820e413f7c423249c3c186d7fb1f944",
+      "bytes": 315
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/fft.h",
+      "sha256": "e7b3d4d98fd4bc4b09740b82a374d4c87ad1d1a6ca28fcfec71800292b939ca2",
+      "bytes": 44939
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/include/signalsmith-linear/fft.h",
+      "sha256": "98e7e64093b6fc8ccbba31f710370d5548243bad35beb489e8282de4dc25d76d",
+      "bytes": 23
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/include/signalsmith-linear/linear.h",
+      "sha256": "5c5d55810af0b7f8c8fe27ef1a36a87a4529f95cbebbb5e49f39845f6a2a0d5e",
+      "bytes": 26
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/include/signalsmith-linear/stft.h",
+      "sha256": "a323656e5ed80b271262106ea782d6150ef2f1c8b2f3c5896552b90b2ad6c17e",
+      "bytes": 24
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/linear.h",
+      "sha256": "710aa61dbba376b256f22b1c28c20b5d56e068df408c9e5a77c778a226f8db1f",
+      "bytes": 33964
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/platform/fft-accelerate.h",
+      "sha256": "969751cc7f800bf83bd5511a9e9293172465d931f6f3a8adec4ddca15c859fa0",
+      "bytes": 12167
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/platform/fft-ipp.h",
+      "sha256": "5d04e3be7f78372a9a1b1073bfa2f072f1392be8af5127d1a8697e41de0e9f82",
+      "bytes": 20326
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/platform/fft-pffft-double.h",
+      "sha256": "ffb252be17ca2c0f58deb752c97376b2edfab400136fbf3ee332faf3366570a6",
+      "bytes": 6841
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/platform/fft-pffft.h",
+      "sha256": "e355b04ea379dbef61ed13e594b711f3e5431e616071d717170e3b1f8ccc1046",
+      "bytes": 6743
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/platform/linear-accelerate.h",
+      "sha256": "461a943d793dbb7045ebe1f1a92e4d805667d72988d1cde958b32a2b5a2cf673",
+      "bytes": 22086
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/stft.h",
+      "sha256": "4e11e85e823aaf2ec9bd5bd6bd55e6665126de1de2604af84574009ed1f3b5f2",
+      "bytes": 21883
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/CMakeLists.txt",
+      "sha256": "90b503566e1f020c007aeccfc2e6b7576e69486a98cbfccb3a811ac088654916",
+      "bytes": 991
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/Makefile",
+      "sha256": "a0209811b2709574ee68e00eccb4393743285a90c3d5f302c9cb863c988f179e",
+      "bytes": 964
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/main.cpp",
+      "sha256": "cc4b44e3fc0d7b4e30ffe8f6a7930ba2426db7e8903e5f5e49ea70a1e5add78b",
+      "bytes": 1665
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/others/signalsmith-fft.h",
+      "sha256": "17c8948062bbe66ff66df1b3886ba3ce1290df37acb06dc54cdac628ce79fa7d",
+      "bytes": 15561
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/stop-denormals.h",
+      "sha256": "9db5f979830ce398a1325cf622e862ecbde787f065eb87416148c82507b76674",
+      "bytes": 970
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/stopwatch.h",
+      "sha256": "013abf76442d743b70cad37f96de0ccd24c5f491bb03ca5b04d9e0a801a5f234",
+      "bytes": 2512
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/test-ffts.h",
+      "sha256": "04d60a26e2e11e2dffe6c790b0aaba24084cf2196eccba7d764da646f2ac087a",
+      "bytes": 40455
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/test-linear.h",
+      "sha256": "0cf057acf1a196fcb75027d6ad657d8d98913be5cb679b5a2ad4579f447f70b6",
+      "bytes": 22880
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/test-runner.h",
+      "sha256": "9496a08e6ed8fbae391b15695cca63266a8d0128f56fb3b23c069a3706f564e2",
+      "bytes": 10625
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_linear-src/tests/test-stfts.h",
+      "sha256": "a1ccd6ddf8dea49820b58abbcd21d8cfb01a32d2cd5846a8d706600c74c06519",
+      "bytes": 12953
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/.gitignore",
+      "sha256": "67f2acc9725dc8191dabf9b4d39337094365dfd057381d736d17d6105f084b6b",
+      "bytes": 15
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/.gitmodules",
+      "sha256": "d9bfc3771358e3da6b3daa72f10b00821d7af4f091a9a6eee0213f69d1d51ea2",
+      "bytes": 87
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/CMakeLists.txt",
+      "sha256": "2c6ada4752690efac4bbd2c263dfebeccd7d3bc941efbb615944fc6a88a5d2dd",
+      "bytes": 533
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/LICENSE.txt",
+      "sha256": "ee2ef82481ffb445ecdd4b3a4c1f82c0cddb2da8fe39d8e8dc384fffb3e7f06f",
+      "bytes": 1093
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/README.md",
+      "sha256": "d2c43d92312154a09660bffbb06b408f3b470662f89cb4123fa5268a4ced444c",
+      "bytes": 8205
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/SUPPORT.txt",
+      "sha256": "ad4fb2e7e80ad621f6da8ca451ac7b4fa88edff7cc89eaf1c82f519f11260548",
+      "bytes": 109
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/cmd/CMakeLists.txt",
+      "sha256": "f5c6c47843abc580ca58f5f2bdf1935698fea78834b5b8c7607b19a085508bef",
+      "bytes": 544
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/cmd/Makefile",
+      "sha256": "bf1e22380551bbd435fd81b2838297aeb376e9b8e2ba81730d3cf1cc047901b4",
+      "bytes": 1972
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/cmd/main-dev.cpp",
+      "sha256": "737a9f70cdd03c456bfcfe2953be327dfa5b8fdb67454ece906d6e65b34a39b8",
+      "bytes": 8932
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/cmd/main.cpp",
+      "sha256": "9c3583c6ea51b42002ed28ddbd6f482f4edf5ab5694c2e4a6bd8099d6ffe1496",
+      "bytes": 3977
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/include/signalsmith-stretch/signalsmith-stretch.h",
+      "sha256": "869facc1853189bec91fb54960da2f59333284963d6b52a242d55a399d305e4d",
+      "bytes": 38
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/signalsmith-stretch.h",
+      "sha256": "1188667959ac19dd40c0a6abbce694e44705615ec4f0e8db8af0f1cfb4c5dea7",
+      "bytes": 35446
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/Makefile",
+      "sha256": "99901da6197e4a3c05da50e4847425c840686227faea847a41f468a6caba5e93",
+      "bytes": 915
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/demo/Scope.mjs",
+      "sha256": "494ea5d36c7b44f0baa5f38c9798266c5ddc141bcd9a60815517fc8949f13382",
+      "bytes": 60662
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/demo/index.html",
+      "sha256": "1a8f8c04ffbb3ae0593cc5531bd133a374714e06b1f9bd35f931574665e34070",
+      "bytes": 9937
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/emscripten/compile.sh",
+      "sha256": "7ada65b1e125a361cb1222c346c966b548fc7580e0643ccbb268cddde1a60fd7",
+      "bytes": 1674
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/emscripten/main.cpp",
+      "sha256": "50b1e459020d8e73ba3228c7a60cc0cafa75f32d1bc2ea8408e775de176f9073",
+      "bytes": 2606
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/emscripten/main.js",
+      "sha256": "f4af9d616062c67dbfe6a98d9bfd39f0149246f02c111122a10936f5c63d5cf6",
+      "bytes": 98451
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/emscripten/pre.js",
+      "sha256": "9ea04c8c7b671fc2fabe60db674669a952b00d907d09b43f14fce5c219b61a5b",
+      "bytes": 353
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/index.html",
+      "sha256": "2beee8b8216d4774b884efcd2db84e995e82f0791f392db900031ac4cfc1234e",
+      "bytes": 3132
+    },
+    {
+      "path": "autotune/.third_party/signalsmith_stretch-src/web/web-wrapper.js",
+      "sha256": "4b380e40efee6c7a8ac3c9abce8911e7dcf77d659a91f771dd6db398715b5872",
+      "bytes": 15330
+    },
+    {
+      "path": "autotune/VibeAutotune/AnalogHardwareButton.cpp",
+      "sha256": "91104db7720f785a587f5e8075f911dd8c4c98950daf7edc4057aa3f7bd3a3b4",
+      "bytes": 1855
+    },
+    {
+      "path": "autotune/VibeAutotune/AnalogHardwareButton.h",
+      "sha256": "8103fcde6d1e1aac3f210b66d0bce2f07e170aa4050ae9f6873819e6a84dc9bb",
+      "bytes": 1184
+    },
+    {
+      "path": "autotune/VibeAutotune/AnalogRotaryControl.cpp",
+      "sha256": "9bec7f1630124942cf17bcbd40cef3812591ecb863970b082cb9859a3c1d474a",
+      "bytes": 7839
+    },
+    {
+      "path": "autotune/VibeAutotune/AnalogRotaryControl.h",
+      "sha256": "7320118bd1989677e64abe3676ecd6cd54e431daa31671e2effc892522bc6928",
+      "bytes": 2184
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/Reference/LIVE_TUNE_TARGET_MASTER.png",
+      "sha256": "7b4a46f7522f501ad0875d1aaa2fdf2040eaecc1175b62f35700f3a83b3d86a8",
+      "bytes": 1849113
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_02_black_glass_frame_exact.png",
+      "sha256": "42d1e46dfa2678ecf8c1afee865c6be6c809be5867b3aacec425e00c7b9be63f",
+      "bytes": 43149
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_04_ribbon_wave_transparent.png",
+      "sha256": "1c3ce6ef63f9f574596082e1084c1d7970bd47bfd5a317f00d318d354f15a455",
+      "bytes": 131638
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_champagne_brushed_neutral_v1.png",
+      "sha256": "54c7e48270946599d74ddb65602c7c8b147d18e35a3b01e49bc8697129668963",
+      "bytes": 1659903
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_champagne_brushed_panel_sample.png",
+      "sha256": "37240730ecbdeb7c0932aef4cbe48928d05cbbe5675214e3f5f79725bf43ca00",
+      "bytes": 19342
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_dark_anodized_header_sample.png",
+      "sha256": "ff6f5e845c0acefa590f1de80bf2d37f867653c32d4e030c45b1d9cff87e604d",
+      "bytes": 16317
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_flex_tune_knob_circle_alpha.png",
+      "sha256": "89179f5fb9e3f1083af3f6886e3dd22b342e23f47bb3bce6bba0daba7347c0a6",
+      "bytes": 40494
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_humanize_knob_circle_alpha.png",
+      "sha256": "2b785f5b8876d376a5d11c39526b1cc856b5177af0375740649731346e63e09f",
+      "bytes": 37141
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_keyboard_complete_exact.png",
+      "sha256": "3536146aec5a610c353ba722bed7f9395d738611e16333563fca38fa85434a16",
+      "bytes": 282206
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_knob_assembly_neutral_v2.png",
+      "sha256": "68113a1dbc9dfee909bae5445553b8352f235e28d1d6382b7adfc44b706a6f89",
+      "bytes": 1889164
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_knob_face_neutral_v1-square.png",
+      "sha256": "8dec516141a3386e9c78e646ce2b1f64069aef60281d064f2173bfeb6c3172df",
+      "bytes": 1699626
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_knob_face_neutral_v1.png",
+      "sha256": "08a8199b6f8f06904d1e2f73228d9da82a217801095b419f7152b9c25d20341c",
+      "bytes": 1519941
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_natural_vibrato_knob_circle_alpha.png",
+      "sha256": "bb744b0b1e4f589ce0cdd2c3172059ea12005d76daa55b4ece34bd144f24fbde",
+      "bytes": 37592
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_reference_knob_circle_alpha.png",
+      "sha256": "7d9724d17dac3ba766c6b7bab209a0844992e83295912a5ecf0aea7e0a621bc2",
+      "bytes": 54510
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_retune_knob_face_circle_alpha.png",
+      "sha256": "ad28e76dfe6415117a4619394008c2fa76ef598eb49dbef4f5b58e0339a9a1f6",
+      "bytes": 188030
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_tracking_knob_circle_alpha.png",
+      "sha256": "7cc98237f605774374d218596bb1ae2dee91e2a264ff1f33acd51d589fdd3380",
+      "bytes": 50759
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_transpose_knob_circle_alpha.png",
+      "sha256": "633fbd91c0f2b78587a9f0daa0d98c7a6fdfe9d4fb74b2f2c650220f2fcafddc",
+      "bytes": 50358
+    },
+    {
+      "path": "autotune/VibeAutotune/Assets/ui_voiced_colour_knob_circle_alpha.png",
+      "sha256": "1f708ed89cdb3cd0c3ff27ae6d34cb538d1d1a5a0b2c27c58f2c19b62df27630",
+      "bytes": 54449
+    },
+    {
+      "path": "autotune/VibeAutotune/BufferedSpectralPitchRenderer.h",
+      "sha256": "8ed08dff3bef9aa28fc5da532a8dc273bbcafdc7b2cd0a482abab6b66efc2fd6",
+      "bytes": 11630
+    },
+    {
+      "path": "autotune/VibeAutotune/CMakeLists.txt",
+      "sha256": "7bbc7b5c3624c53514bab341113963d5c0939c2aab1ade982d692cc906e5a00e",
+      "bytes": 875
+    },
+    {
+      "path": "autotune/VibeAutotune/CausalTDPSOLARenderer.h",
+      "sha256": "736fbd3f9f566aaadcfdc2303045585f15684f3e16260b7bff0c61a67ddfc563",
+      "bytes": 139293
+    },
+    {
+      "path": "autotune/VibeAutotune/CorrectionTrajectory.h",
+      "sha256": "8effa80e6ebbc10225906f0abbf5b4476795b96027af16e22dfa7a2b1e088b5e",
+      "bytes": 173188
+    },
+    {
+      "path": "autotune/VibeAutotune/EventOwnedSpectralFrameQueue.h",
+      "sha256": "8b23491af6ad2d379b896e2a64f1beea342b377564c2ad5abc5a635b5ffb9dc8",
+      "bytes": 4295
+    },
+    {
+      "path": "autotune/VibeAutotune/HumanizeProcessor.h",
+      "sha256": "c876836c54549e48550472d25fa9aff25d9f7df5b5e475f6e4870559927742c1",
+      "bytes": 2257
+    },
+    {
+      "path": "autotune/VibeAutotune/LiveControlPipeline.h",
+      "sha256": "b0c67ffbbdd65533c8934db8b2ab3e4369ca12c57bb043cce575cb171932ea7e",
+      "bytes": 5729
+    },
+    {
+      "path": "autotune/VibeAutotune/NotePolicy.h",
+      "sha256": "0180fda38758329475c7f29c07f5a104b86be3c42dec13c2d04e21146b2b43b0",
+      "bytes": 2873
+    },
+    {
+      "path": "autotune/VibeAutotune/NoteTransition.h",
+      "sha256": "e686ec11bdbd67c7f56b5382dc66e14690dad2b0042bae68f5467044ece73611",
+      "bytes": 1368
+    },
+    {
+      "path": "autotune/VibeAutotune/PitchDecomposer.h",
+      "sha256": "b14f35225f22e8da11ab257339d7c358e6215e017a0f06a264dba490ade175ab",
+      "bytes": 8924
+    },
+    {
+      "path": "autotune/VibeAutotune/PluginEditor.cpp",
+      "sha256": "87e02ff40d111788c469f2bfe8b81a40c0fec04e0867abfb2847c43fd2940df0",
+      "bytes": 94375
+    },
+    {
+      "path": "autotune/VibeAutotune/PluginEditor.h",
+      "sha256": "0b97cc39d9f1fce4a48972b91d6367364b5e7ba5f0f28a24f55c889f807ad61c",
+      "bytes": 6955
+    },
+    {
+      "path": "autotune/VibeAutotune/PluginProcessor.cpp",
+      "sha256": "7391046a66fc29b090a905b3dfefeaf6db4f066b1fdf2ef2e3733821de911ebc",
+      "bytes": 173930
+    },
+    {
+      "path": "autotune/VibeAutotune/PluginProcessor.h",
+      "sha256": "baa40792ccf67a10f33600c3952149c926f39208fa51f9e7b4505b9314fe2b62",
+      "bytes": 41092
+    },
+    {
+      "path": "autotune/VibeAutotune/SignalsmithPitchRenderer.h",
+      "sha256": "ba163e848b955d212653805b238d286dbccf1be76d43b1027efe6443e06cb0e1",
+      "bytes": 9370
+    },
+    {
+      "path": "autotune/VibeAutotune/VibratoProcessor.h",
+      "sha256": "a32ef668bd56bad9d72d9d0dd6aeadf1d6e6b0438c67671ba78e5c10c9255af5",
+      "bytes": 1806
+    },
+    {
+      "path": "autotune/VibeAutotune/VoicedColourProcessor.h",
+      "sha256": "bde96aa82a42e01775c1121d4aaedd5d6e239f72cbd7d4b3765a5716c7e8180a",
+      "bytes": 2869
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "3e874b0342d7561c1a806e7974adf5e05f1920d54b650fb30e1f7b1cd01a93e7",
+      "bytes": 652
+    },
+    {
+      "path": "docs/ASIO_SETUP.md",
+      "sha256": "8cb86283ffbbc1d02a0a8b780b62b07766052de1a7c6878207f0d6c2451a4063",
+      "bytes": 856
+    },
+    {
+      "path": "docs/DAW_CAPABILITY_MATRIX.md",
+      "sha256": "8a8809c2c476f216d25e1d931963235fa5257f90fe1e71d5bcc16b29bbe2035d",
+      "bytes": 3211
+    },
+    {
+      "path": "docs/PHASE_10_ROUTING.md",
+      "sha256": "c91e5281d46f9f20428e113f816420bace3ab921fb3e0cb51e3656e0089eae9b",
+      "bytes": 670
+    },
+    {
+      "path": "docs/PHASE_1_TRANSPORT_MIXER.md",
+      "sha256": "da6dea40f7aa9ef4241f7ed9e58ea315ccfaec4f6b92eb4546e4ac3e43fc2ec3",
+      "bytes": 1603
+    },
+    {
+      "path": "docs/PHASE_2_SNAPSHOT_OWNERSHIP_AND_IDS.md",
+      "sha256": "7c8681b8109c53f706ee72cdf1b1dc56a15b0c334384ce5189dddb9f73c09a2a",
+      "bytes": 2363
+    },
+    {
+      "path": "docs/PHASE_3_STRUCTURAL_RENDER_SNAPSHOTS.md",
+      "sha256": "e0cb1543824748200ba7bc63a74b9c8598db742780c7c212ade27ae59db41fa9",
+      "bytes": 1661
+    },
+    {
+      "path": "docs/PHASE_4_PROJECT_PERSISTENCE.md",
+      "sha256": "67255132d9ff19061b617af6248ac278c9d4b5815a862631f8746a62a19685e0",
+      "bytes": 1809
+    },
+    {
+      "path": "docs/PHASE_5_MEDIA_RELOAD_RELINK.md",
+      "sha256": "c825fc5dd8f88ae2d961c62e9be540286456eed85c90eecdad2f12409a3ef48a",
+      "bytes": 1296
+    },
+    {
+      "path": "docs/PHASE_6_UNDO_REDO.md",
+      "sha256": "10a0c0329207adf030b4e096596a4679a30b2a32d0bad0366c790377c0c9b281",
+      "bytes": 836
+    },
+    {
+      "path": "docs/PHASE_7_AUDIO_RECORDING.md",
+      "sha256": "49dc495cb6727f997a29cd3e15fba867b8dd8d14c899ca660409b5d5edbefbd5",
+      "bytes": 838
+    },
+    {
+      "path": "docs/PHASE_8_OFFLINE_BOUNCE.md",
+      "sha256": "cca1b32ffc5760b3532d4bdfd8a9fc5d31063172e759b88bb0f02206a4e21cb9",
+      "bytes": 769
+    },
+    {
+      "path": "docs/PHASE_9_CLIP_EDITING.md",
+      "sha256": "93a56cd4df84db6798c03e7a546a1f3174717e3b523481f475acaa6fa69b9399",
+      "bytes": 662
+    },
+    {
+      "path": "research/calibration/STUDIOFORGE_CORE_AUDIO_ARCHITECTURE.md",
+      "sha256": "192c2dfceed106c109a0780db08eb0fa42e22f6454e3766ee5b49c9cbc9f933c",
+      "bytes": 4486
+    },
+    {
+      "path": "research/calibration/Tune-AI-Info.plist",
+      "sha256": "414e2b4e4134229b4556ff1213e811c536ca3a6e6952feff1ebeff6035aaa94c",
+      "bytes": 1014
+    },
+    {
+      "path": "research/calibration/add_output_renderer_control_trace.zsh",
+      "sha256": "03baf551a4451b535855a148c028ce8b41ee9c91821e446c342e48cfd19d032e",
+      "bytes": 4108
+    },
+    {
+      "path": "research/calibration/alto_detector_resolution_probe.patch",
+      "sha256": "8dd109bcf2d6180ad390205e4d88cc80dffe50f78de97eab59ce9e3ea9d6f15d",
+      "bytes": 1254
+    },
+    {
+      "path": "research/calibration/analyze_artist_trajectory_delta.py",
+      "sha256": "caf41b8a579142a9540bb74d8e19af9e83912510f8d08a508bb78cfdcf2563ee",
+      "bytes": 6179
+    },
+    {
+      "path": "research/calibration/analyze_hardtune_control_path.py",
+      "sha256": "1865890aa493d43426c5f5906bac62c8de8d8c41e94390113a637509831370d4",
+      "bytes": 4560
+    },
+    {
+      "path": "research/calibration/analyze_hook2_correction_transfer.py",
+      "sha256": "0342a1a1fc960b0df1ef29acfb4f648c205e6b2ad2eb1395be7e7a8dfcfce8bf",
+      "bytes": 9510
+    },
+    {
+      "path": "research/calibration/analyze_hook2_pitch_window.py",
+      "sha256": "ca04736cb9173be918618850d26d4df6c3ac55c48f5612fcbcf20601958ad4b2",
+      "bytes": 5497
+    },
+    {
+      "path": "research/calibration/analyze_hook2_selector_delivery.py",
+      "sha256": "d33853793ca4dfdb2d25e23875ff3319857068d6f536b3ae6c012c13db9ca53b",
+      "bytes": 7837
+    },
+    {
+      "path": "research/calibration/analyze_hook2_transition_outliers.py",
+      "sha256": "201e93c470a2e35392e4aa6dfa98b45c8fd52849acbc9bc51f43badd647df7e6",
+      "bytes": 2877
+    },
+    {
+      "path": "research/calibration/analyze_natural_vibrato_phase.py",
+      "sha256": "fcbdd70bc708969142c7b33b58abd8e355496e21f996f1274e80c17013a277d4",
+      "bytes": 4282
+    },
+    {
+      "path": "research/calibration/analyze_renderer_control_materialization.py",
+      "sha256": "aee35a89610ba676fb515fbd0a5e5a9f10299e2d96beecc414be5345bc0ea1e5",
+      "bytes": 3014
+    },
+    {
+      "path": "research/calibration/analyze_renderer_control_transfer.py",
+      "sha256": "8a4cec99e91eb98593e21d43fa0c432e0db0728463c56ae3c6b2270baf5197df",
+      "bytes": 7851
+    },
+    {
+      "path": "research/calibration/analyze_sibilance_ab.py",
+      "sha256": "cacac2916491454c750f83dcc54737a94766ae3838418ab705230e8e2d5a014e",
+      "bytes": 4208
+    },
+    {
+      "path": "research/calibration/apply_and_verify_note_map_completion.zsh",
+      "sha256": "e98a716287f4dd975ca9e5d54199c29cf5edb77587527068fdd061b8eeabb1f9",
+      "bytes": 955
+    },
+    {
+      "path": "research/calibration/apply_live_control_output_dezipper.zsh",
+      "sha256": "917554ff2b86e88a04c51a65e7394c85a82d7bf6b42731a5c60e6fb0d1d66f0f",
+      "bytes": 4844
+    },
+    {
+      "path": "research/calibration/apply_nested_ui_v4.zsh",
+      "sha256": "63244ee2f02967cbe09d44bd1cac1b1e66e4920744a667088aad73dd95b776c8",
+      "bytes": 4039
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_aligned_sibilance_wetgate.zsh",
+      "sha256": "ed15e83d690156bc4e440b3b22d2888420cf60444e9a7acfd3c706fadbdb85be",
+      "bytes": 732
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_causal_sibilance_probe.zsh",
+      "sha256": "7006c38d783cfcc1c8b9f0a07c8b91163f575c2063f49a1c1533926aafb02edb",
+      "bytes": 1001
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_planner_handoff_margin_config.zsh",
+      "sha256": "95a63ee6dc051361d447a9a720faf8d9e5ff5f14d809915c3e84838bcb5e13f4",
+      "bytes": 813
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_quality_latency_config.zsh",
+      "sha256": "ab3ad645ab7a6aab58a82b79732e1898b9d729747def28f48c3b5d5dc7d123c1",
+      "bytes": 638
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_sibilance_residual_ceiling.zsh",
+      "sha256": "32bb2895bc811403c96aa3f937f06752233a6cdaf3b9a3d4580d9d74ab11897c",
+      "bytes": 843
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_sibilance_wetgate.zsh",
+      "sha256": "b4fadb05b0be4035584e5351412a8ee98f2a1ed05c0575f78dc98a0a9c68c893",
+      "bytes": 727
+    },
+    {
+      "path": "research/calibration/apply_tdpsola_sibilance_wetgate_lookahead.zsh",
+      "sha256": "32bf21869bbc52b15d5444a65fedec8cd432758013334140c6f5d3939540e773",
+      "bytes": 747
+    },
+    {
+      "path": "research/calibration/apply_tune_ai_live_workflow.zsh",
+      "sha256": "6a502bfa9a576e8cc6af6f0fdf0cbfdd97b2a16bb0a1023becad94d501663b70",
+      "bytes": 2055
+    },
+    {
+      "path": "research/calibration/artist_knob_map_probe.lldb",
+      "sha256": "798025530d5600a2f2065d91373b82c60a8a293b9550f31e7f64748a605ddaf1",
+      "bytes": 739
+    },
+    {
+      "path": "research/calibration/artist_knob_map_probe.py",
+      "sha256": "68667c8cf1156922c8f2fc1c916e3358c414a51e6665b62d6f30b7e3b71bf45f",
+      "bytes": 8541
+    },
+    {
+      "path": "research/calibration/artist_lpc_path_probe.lldb",
+      "sha256": "9afef2551a1404441c16774be6c66416ec236f3820559fe40b1c79dcd617fe34",
+      "bytes": 1553
+    },
+    {
+      "path": "research/calibration/artist_lpc_path_probe.py",
+      "sha256": "9981aed3fe49f8395455b04ddcf5472de5cb2480fc25839660aa8832ac75a506",
+      "bytes": 8111
+    },
+    {
+      "path": "research/calibration/audit_hook2_transition_provenance.py",
+      "sha256": "64bb708ee107c004681db71afb70ea937a3157d3ac2c81cf2db31d439e72d6b3",
+      "bytes": 4042
+    },
+    {
+      "path": "research/calibration/audit_output_renderer_control.py",
+      "sha256": "f2a527937df9b738b278b1d72ce30a5fb5126d012355feca2b8024b5184d5a19",
+      "bytes": 3332
+    },
+    {
+      "path": "research/calibration/audit_renderer_control_consistency.py",
+      "sha256": "edea070452e0f5a9fecb325789e43570352c6db016c90895c386836d4761f064",
+      "bytes": 3428
+    },
+    {
+      "path": "research/calibration/audit_renderer_grain_causality.py",
+      "sha256": "60b7e9fc0474654dd6dab8fad39fe56e53bbd838ebd0af79f201ea7b5f7cb531",
+      "bytes": 3141
+    },
+    {
+      "path": "research/calibration/audit_trace_host_windows.py",
+      "sha256": "583d2eb53438ec6c2c366d3fd33ec4f81bd117894b6e01526c1cd7bad39895f3",
+      "bytes": 2660
+    },
+    {
+      "path": "research/calibration/audit_vibe_detector_midpoint.py",
+      "sha256": "63de4e7df12f2584bf234ece05e5d0d79f1e85638713c9966686ef58c94b32ff",
+      "bytes": 5656
+    },
+    {
+      "path": "research/calibration/autotune_hook2_short_probe.lldb",
+      "sha256": "eb8d95b50f10b36112de4db1a120cbdba3e5cf9908a941de22d6b644db668e4b",
+      "bytes": 974
+    },
+    {
+      "path": "research/calibration/autotune_hook2_state_trace.lldb",
+      "sha256": "e138ff70342b98bc013f738cee271fed536d5dfd7f42ee23ac1ce12812d8961b",
+      "bytes": 1258
+    },
+    {
+      "path": "research/calibration/autotune_hook2_state_trace.py",
+      "sha256": "89a2c1a022f0b36e8a24372657cbf30a4c8bda71d0e1fbba188a3c1db853766f",
+      "bytes": 8055
+    },
+    {
+      "path": "research/calibration/autotune_live_trace.lldb",
+      "sha256": "cc8a9f5fea303ff9430042e445353e2a149d1f6665b95dd8bb731a97b1e6957e",
+      "bytes": 1184
+    },
+    {
+      "path": "research/calibration/autotune_retune_coefficient_probe.lldb",
+      "sha256": "bbb956b3ff249d2ce04d22be47cd23de8a4982f2529dedcb8e9bb61b38407ef6",
+      "bytes": 680
+    },
+    {
+      "path": "research/calibration/build_and_package_current_release_daw.zsh",
+      "sha256": "086cd30439b4f472575815f0ac9b0e31ede21baf7d1c5bb23945a5a79fdc57e6",
+      "bytes": 4468
+    },
+    {
+      "path": "research/calibration/cleanup_superseded_studioforge_releases.zsh",
+      "sha256": "134e7337b5ad9cfd31730624b820ae6022f32f7c263531f8e60da750242d09b3",
+      "bytes": 3880
+    },
+    {
+      "path": "research/calibration/compare_crossing24_trace_host.py",
+      "sha256": "cef3a0e657e600ee2b8381b0cf636ae6d2b62244d1c52664a9fc2a9895bf6779",
+      "bytes": 3264
+    },
+    {
+      "path": "research/calibration/consolidate_vibe_into_daw_monorepo.zsh",
+      "sha256": "c20c66709ab47beb78accb208ec263fb9938f8ea8b8c578d5627334fe98b72e8",
+      "bytes": 3146
+    },
+    {
+      "path": "research/calibration/deploy_generic_plugin_trace.zsh",
+      "sha256": "df03df651a327541c8a015d5e9ca9816ab289f4bb15bd1f9b2a476dbf2ab3cda",
+      "bytes": 3459
+    },
+    {
+      "path": "research/calibration/deploy_hook2_calibrated_control_profile.zsh",
+      "sha256": "832d377a5038bf59f1f8b1ec725f626bd5c4021ac5f2e44001fe79554a9ca014",
+      "bytes": 3183
+    },
+    {
+      "path": "research/calibration/deploy_latest_vibeautotune_to_daw.zsh",
+      "sha256": "10a04c448eec11161c46251cad44159bc57c0cd6f2645d5340c7d0822c9556a3",
+      "bytes": 10539
+    },
+    {
+      "path": "research/calibration/deploy_latest_vibeautotune_to_logic.zsh",
+      "sha256": "4c41d872a2bbf43b706c8ddd64577bddbb7cf9415c11b893a4bd2e97146936b2",
+      "bytes": 652
+    },
+    {
+      "path": "research/calibration/deploy_live_audibility_hotfix.zsh",
+      "sha256": "7401604bc4ba7458f326c0caee2844b5a7e6740c609f23c6cf00369fa6fb166f",
+      "bytes": 17578
+    },
+    {
+      "path": "research/calibration/deploy_retune_knot_calibration.zsh",
+      "sha256": "cd98ca2dacf37f3336e6dd28c0d89a08b7f0b2352978b537f2b0eb6517908e29",
+      "bytes": 3763
+    },
+    {
+      "path": "research/calibration/deploy_sibilance_transparency_guard.zsh",
+      "sha256": "1dfeb3e5b286ace0629419837399fb467a24e106a68ef5b7c45c79f24f32a2ed",
+      "bytes": 3081
+    },
+    {
+      "path": "research/calibration/deploy_studioforge_unified_host_phase1.zsh",
+      "sha256": "b9f252c2b8c57124eca9bf843ac61b15cd47ef783142c34a44213fec872e4bc9",
+      "bytes": 10144
+    },
+    {
+      "path": "research/calibration/diagnose_candidate_texture_against_artist.zsh",
+      "sha256": "ee17889338e9079261c8b1e0ab464672b1c0a542ba20c385d8792499123d3db7",
+      "bytes": 2423
+    },
+    {
+      "path": "research/calibration/diagnose_hook2_control_handoff.py",
+      "sha256": "4435b632e0d1119f17c72a1bd967a95f2f83828d7d38ec100948e3829988a924",
+      "bytes": 3094
+    },
+    {
+      "path": "research/calibration/diagnose_hook2_transition_transfer.py",
+      "sha256": "6b10d44dfa001749c74de098f44472aa31ec408ff8c05df99012c088212e7121",
+      "bytes": 4566
+    },
+    {
+      "path": "research/calibration/diagnose_legal_adjacency_direct_wet.zsh",
+      "sha256": "0c2f463242c3db1f0f7db770ebe664850a2cfde43e7849c0ee31e94d4798bc38",
+      "bytes": 2744
+    },
+    {
+      "path": "research/calibration/diagnose_legal_adjacency_renderer_texture.zsh",
+      "sha256": "cb258b5e09927f13ade29297d9e9ea0c1b3a5ff8e65f85fe11ffcd4bbd55de69",
+      "bytes": 4630
+    },
+    {
+      "path": "research/calibration/diagnose_legal_adjacency_signalsmith_renderer.zsh",
+      "sha256": "d6025e3d6054e5ea7da92c6fc7688267913f7245101b0b8cd2d32f9e432c56ad",
+      "bytes": 4439
+    },
+    {
+      "path": "research/calibration/diagnose_live_control_glide_step.zsh",
+      "sha256": "94b0fcfd4494821f8f64a109555b5a5537f972500d1d3331d65291f3e1b0ce8d",
+      "bytes": 801
+    },
+    {
+      "path": "research/calibration/diagnose_signalsmith_studio_window2048.zsh",
+      "sha256": "8ccf8097262f12b5371d6d12e843d4138f971ffcc8e81c6f22dc49719b2fa091",
+      "bytes": 3010
+    },
+    {
+      "path": "research/calibration/finalize_latest_vibeautotune.zsh",
+      "sha256": "9852fe25d97ff85c3bea75d105e74bf2cbcea472c8e25bdf83bec6d6bd5f3158",
+      "bytes": 2821
+    },
+    {
+      "path": "research/calibration/fit_studioforge_transitions.py",
+      "sha256": "6436bc12b5a4e7a0fcebe023e2ffab8650a42632bd7b38f0f0fdea05a437cee6",
+      "bytes": 8424
+    },
+    {
+      "path": "research/calibration/fix_note_policy_dorian_fixture.patch",
+      "sha256": "67be1cf670b65aacf4c14195cabc28406d4bf8968ddfd2f9f74d2e57506350ca",
+      "bytes": 794
+    },
+    {
+      "path": "research/calibration/fix_note_policy_melodic_minor_fixture.patch",
+      "sha256": "3bce090749b77ea750a7c9573ef198749ce9f63bccea281d43155465fecbfce0",
+      "bytes": 733
+    },
+    {
+      "path": "research/calibration/fix_studioforge_canonical_vibe_resolution.zsh",
+      "sha256": "668acda5b3d18681c8a266a6f81b569c1ffe17e0dc22b1caaec55e41057a039b",
+      "bytes": 2087
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/README.md",
+      "sha256": "3c9baf68a5d1fa6f203ced7510ddfbb80463b124e4eaae8b1b8730c79fdbbc16",
+      "bytes": 3963
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/acquire_gtsinger_subset.py",
+      "sha256": "790f3bf925118ac3fa606a55a86107834b885d2ad00186f5e5163b50dc5768a3",
+      "bytes": 7193
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/analyze_gtsinger_annotation_windows.py",
+      "sha256": "1d823c0106e523de6a5251abfcd79d2aa0013d2f81439f30d31e568050e4ae66",
+      "bytes": 5832
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/analyze_guard_handoff.py",
+      "sha256": "afddcbf6db7a4c62e57ce1a31b3188fa8106efcd9a3206db9547cd70838c86e4",
+      "bytes": 3224
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/analyze_vibrato_residual.py",
+      "sha256": "b9b6251362e74a8ea74aa9f6d841cdb5151757382bb05fbbb92e9baed0603b46",
+      "bytes": 7145
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/apply_key_aware_calibration_runner.zsh",
+      "sha256": "55c49cf82ad17f6b7fa9b1a7b27e2c7a46c97f35c2d73987fe30701222101af8",
+      "bytes": 6333
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/build_gtsinger_test_plan.py",
+      "sha256": "12b65c7b531d17a62ad33d7579e4daec766a47c4efb1572ee143ef9a7dbe49eb",
+      "bytes": 7206
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/build_gtsinger_test_plan.zsh",
+      "sha256": "d021b975cdb6eb2ab2ff092629de138447b9c34a7ce5f24c62212bbe2bbae1cf",
+      "bytes": 348
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/check_octave_ground_truth.py",
+      "sha256": "566003316d92af73dc2f402a441284ae82e5806e344e5635c665f83a72f1f4b7",
+      "bytes": 2596
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/compare_detector_guard.py",
+      "sha256": "583a6a13fc7ab94a53c585cce7ebb175629e872aca3cee5bfd5cc8dbdadfec10",
+      "bytes": 3290
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/compare_guard_holdout.py",
+      "sha256": "28b15ff7496cb5b242adeb305fa92426a9e29b1255c96e5903c294ce1fe600ce",
+      "bytes": 2012
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/compare_new_technique_holdout.py",
+      "sha256": "46cce2c5daf907b2f60b1198af1dc2b5ec75072ebfd3e7f109873bf7b6e49d3d",
+      "bytes": 2069
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/emit_gtsinger_jobs.py",
+      "sha256": "3340808c9981246d9aa05523f977c1dcff26cb82e2d89e309dffe3936b059e74",
+      "bytes": 1641
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/experimental_periodic_guard.patch",
+      "sha256": "c2f4c96464e5cdfcbe736ca112968bb241c1ccf5487e9ee30a9ce46153f7bce6",
+      "bytes": 2208
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/explain_pitch_window.py",
+      "sha256": "efa80f0df42977fd519fff4cd68b19e2cc92ea769dc108a10e9b7defcc916361",
+      "bytes": 1738
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/glissando_qualification_20261017.md",
+      "sha256": "45f0110ba92cb697e0c1af73752b31fa2bc5357f562143254d3666d093491e30",
+      "bytes": 14221
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/inspect_renderer_handoff.py",
+      "sha256": "7203a9be3ec66e8e2e29e0f06b6615c3fc3cee56f0e3fc65728e3f2498ed8981",
+      "bytes": 5117
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/localize_pitch_error.py",
+      "sha256": "d348752e193701b7dfbf59262d6a5200708cd47bd0a5986c26b5b2bf9be2e258",
+      "bytes": 2218
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/prepare_gtsinger_benchmark.zsh",
+      "sha256": "cfe5f9445e61fb504242048b44a86dec5b31eb13f690d5096d44b5deb211e9b9",
+      "bytes": 811
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/repair_host_parameter_label_lookup.zsh",
+      "sha256": "8f5e09747c162ef8f9486ea062bb93275cd004ff0c7ab47629e4d640705a2a30",
+      "bytes": 3558
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/require_key_aware_runner.zsh",
+      "sha256": "ed3ebd0dfa9a4acbd7b4852364d21689fd4f20e4aa3359e95cda94004aba5215",
+      "bytes": 660
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/run_glissando_explicit_vst3.zsh",
+      "sha256": "288a175258bc00c6afe67be940bc36222da83612834ea09dbb7d13e100aae633",
+      "bytes": 3464
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/run_gtsinger_artist_vibe_ab.zsh",
+      "sha256": "5e235276f07bbf33c4df162b17ce22bc3e5d2fe4fb6dac97496acd116683cc4c",
+      "bytes": 6151
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/run_gtsinger_explicit_vst3_ab.zsh",
+      "sha256": "6a47e19c9f7c9bc7657ee4bc02449e82e7873bda9e1b86eac623765d111de9bc",
+      "bytes": 5388
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/run_tenor_vibrato_hop128_host_ab.zsh",
+      "sha256": "01979356d332bbe7ddf4ab31b22611b6e2dcb004a82d7d0ef03a24599929dcdc",
+      "bytes": 5958
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/scoped_guard_release_candidate_20261018.md",
+      "sha256": "665011e94c3c1dfde6f97cc45f53f9895f4fa475441ca820e3298f9025fe3375",
+      "bytes": 3092
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/summarize_gtsinger_ab.py",
+      "sha256": "4a4f005c614868216fd0d8813d596f7a8768f0a272f1a89f8d04846302dab523",
+      "bytes": 2967
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/verify_gtsinger_plan.py",
+      "sha256": "ac0ff6b01f9fcd1fc0faea9e67b0678d12ec2ec7adce70ad274ed7ba723c7d82",
+      "bytes": 1790
+    },
+    {
+      "path": "research/calibration/gtsinger_benchmark/verify_scoped_guard_candidate.zsh",
+      "sha256": "1c35cf117edfd762872d417fa2e9af1a1598ad6ed8372ce6a8d326d518b16bc8",
+      "bytes": 1977
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_audible_grain_age.zsh",
+      "sha256": "d4047f30e616d72535986e8d21970034cc84726c3640ee40f27a85b99cad4e1d",
+      "bytes": 2011
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_autocorrelation_f0.zsh",
+      "sha256": "7948d500873c2d7416fb155d374722c61fff277467f995584c5203aa7d0c3d0f",
+      "bytes": 3020
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_control_handoff_detail.zsh",
+      "sha256": "558e5155ccca058689f8748b19159565f9be1ba5f5a39b1be89d991ab5fa2ea9",
+      "bytes": 1929
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_control_history.zsh",
+      "sha256": "4e6a8ddbf7bb09c1096aec6f95ea7aadd01778a0c0bf91f2ada876aa7f734793",
+      "bytes": 2188
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_live_path_test.zsh",
+      "sha256": "5bf1357b30d10b810136088a36e69d59fc5c9de7410d864d29a9fa46f8ac0fa7",
+      "bytes": 2549
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_output_windows.zsh",
+      "sha256": "a9c1b9dd92bb7705ab4ce9a414414405f8603ccb7a85163170aa7c5f16f63e11",
+      "bytes": 1795
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_renderer_detail.zsh",
+      "sha256": "7ac88b7cd96dd46ec27b0cc1fd43edcfe9983c5156663e9ac3e0efae1a4a3c70",
+      "bytes": 2323
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_renderer_grain_state.zsh",
+      "sha256": "d30ccd4d9afcda5561e4429d9ebdc79b2bb30d70bb90d0f7496e7f8eb78eb249",
+      "bytes": 2210
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_renderer_path.zsh",
+      "sha256": "be8c2f9889d2fdc233d0851c2b1935ad61372b0dc36c829fbeefdf1ab147c09f",
+      "bytes": 3174
+    },
+    {
+      "path": "research/calibration/instrument_keyscale_synthesis_cadence.zsh",
+      "sha256": "9db6c24dbffe2632d83ec8bef2895f5f9e92aeefc690140a67a2bdbb0750955e",
+      "bytes": 1639
+    },
+    {
+      "path": "research/calibration/measure_artist_knob_audio.py",
+      "sha256": "9fe4edb1f555de5dbe8726c140b8b27b55119eaa25f459bce13931b57850ef78",
+      "bytes": 4058
+    },
+    {
+      "path": "research/calibration/measure_hook2_local_trajectory_alignment.py",
+      "sha256": "6677ad5a2914fa826ad3937ec45a95f7fc9b958190370bbc8daace0076bf35a3",
+      "bytes": 3289
+    },
+    {
+      "path": "research/calibration/merge_verified_oct19_vibe_release.zsh",
+      "sha256": "c065fd9654e76d80a13b41bbb030deada3ce2424703487ccb3f018fca6cf602d",
+      "bytes": 3348
+    },
+    {
+      "path": "research/calibration/mxtune_renderer_feasibility_20261022.md",
+      "sha256": "c998a431ffd5163325da6e59a7a7ede62d526790984a4330e1111800349fc02c",
+      "bytes": 3843
+    },
+    {
+      "path": "research/calibration/natural_hardtune_surface_diagnostic.patch",
+      "sha256": "51a57bf3c2b5af9aed8668d8252069c56bcf57e1a5ecb24176fdb0d1db4e1a8c",
+      "bytes": 3742
+    },
+    {
+      "path": "research/calibration/open_current_studioforge_with_trace.zsh",
+      "sha256": "5b18b05ce5d381cca41149899cbd2cb65defc37e9fad7f5d06750625861e8c93",
+      "bytes": 612
+    },
+    {
+      "path": "research/calibration/package_current_tune_ai.zsh",
+      "sha256": "54548523960ce5d12af2c8ba647ddd15cdd7f1453a78aaa43212bf9e2600ce37",
+      "bytes": 3494
+    },
+    {
+      "path": "research/calibration/package_legal_adjacency_champion_test.zsh",
+      "sha256": "2a53cf9c846cf805974a41b73e0251c178972c64de3e0684b084d8163c7823a5",
+      "bytes": 2611
+    },
+    {
+      "path": "research/calibration/package_live_daw_application.zsh",
+      "sha256": "d4893177c26647ab3f1998aef8e89484e6443ba1fc46ebe3a6e34c9210729a5c",
+      "bytes": 10349
+    },
+    {
+      "path": "research/calibration/package_verified_vibe_into_daw.zsh",
+      "sha256": "09b1ce0ddf7f03b8c66c2663b9fa0c6c069b97699cba1a45d9d9a69bd3c0d0c6",
+      "bytes": 2143
+    },
+    {
+      "path": "research/calibration/patches/renderer-wet-path-isolation.patch",
+      "sha256": "0592b9c5d1bf2d7fd449aafdebf947bfa37eeb5558a8f68fb09e8a14b3e904d4",
+      "bytes": 2192
+    },
+    {
+      "path": "research/calibration/patches/signalsmith-formant-compensation-diagnostic.patch",
+      "sha256": "582f105595ad7825b62296d3d14bdd1b63e85892af1c11f794f9f41b1091c0ec",
+      "bytes": 623
+    },
+    {
+      "path": "research/calibration/patches/tdpsola-direct-wet-diagnostic.patch",
+      "sha256": "664812f2726be079ef21e1b35b6d7cc48f979a2698b261826134b3472489cd38",
+      "bytes": 955
+    },
+    {
+      "path": "research/calibration/patches/tdpsola-ratio-dezipper-probe.patch",
+      "sha256": "45844027e5b674c16f4e3eb39ff2f0d2f3323010c756ee5ea037bc0f19be90e3",
+      "bytes": 909
+    },
+    {
+      "path": "research/calibration/patches/vibe-broad-landing-2667-diagnostic.patch",
+      "sha256": "ca0d1728a9018dcbf5b64d8179cab2b423dae8c83ac268c2e97a52aa9e52d075",
+      "bytes": 1535
+    },
+    {
+      "path": "research/calibration/patches/vibe-diagnostic-renderer-default.patch",
+      "sha256": "a3247ff0ed3f8e274416e316f162f1eb352587f58bf1ef1441c8ecb837aa7d64",
+      "bytes": 1120
+    },
+    {
+      "path": "research/calibration/patches/vibe-guarded-broad-preview-only-diagnostic.patch",
+      "sha256": "01b153301e18fcbc04546d6ae9e138198cc022aa281e9fe83efe1b9445102244",
+      "bytes": 1179
+    },
+    {
+      "path": "research/calibration/prepare_hook2_blind_listening.py",
+      "sha256": "d5eefcc36af3bfe6e96c508cb9037d58645e28d4c02e557797d454610cbf91f9",
+      "bytes": 3337
+    },
+    {
+      "path": "research/calibration/probe_tdpsola_window_overlap.zsh",
+      "sha256": "32217db5a8df472b113532f718322a9e0ab83a90c85f259baaa757e8984b3055",
+      "bytes": 3061
+    },
+    {
+      "path": "research/calibration/promote_approved_vibe_to_studioforge.zsh",
+      "sha256": "f059e0fea31a5107b6033a52c05d6db322fa6c35b0ab00aeab93e180a33bdddc",
+      "bytes": 4497
+    },
+    {
+      "path": "research/calibration/promote_hook2_calibrated_control_profile.patch",
+      "sha256": "7b41e5c594d496345cd49d0d6a0455bcb410d951e61b0e16b0357e0a5b268ea6",
+      "bytes": 2682
+    },
+    {
+      "path": "research/calibration/qualify_alto_1024_128_candidate.zsh",
+      "sha256": "4657aa1c709ee2a38f13ba7c65cf5938738637a34319eedb171a117db0c054de",
+      "bytes": 2987
+    },
+    {
+      "path": "research/calibration/qualify_hook2_tdpsola_crossing24.zsh",
+      "sha256": "181c941d218cf83aadc85dea9d546f4853d5e1bd584ff9bc94c6ea0518811294",
+      "bytes": 1253
+    },
+    {
+      "path": "research/calibration/qualify_tdpsola_crossing24_release_candidate.zsh",
+      "sha256": "de5dc432e91d9adc15ac645033b9774ee84c243734140612c1e5e2873517a911",
+      "bytes": 3888
+    },
+    {
+      "path": "research/calibration/qualify_tdpsola_live_candidate.zsh",
+      "sha256": "7977c1e756ecede795dbfa209dfed5ba87f08e686fbb951528fb2a1d1419e6d7",
+      "bytes": 1749
+    },
+    {
+      "path": "research/calibration/renderer_pitch_diagnostic.cpp",
+      "sha256": "16e17c2e8006162027257dd6424424367f037197f8c53c2c1707dcb48b5267ec",
+      "bytes": 3896
+    },
+    {
+      "path": "research/calibration/renderer_step_audit.cpp",
+      "sha256": "bde1eef8deab7ff514cd928fffb8495f5ab83e755e2cbaed9e61c2a7fa9c4d9a",
+      "bytes": 2749
+    },
+    {
+      "path": "research/calibration/repair_control_handoff_regression_api.zsh",
+      "sha256": "90a2c9829cc15556162e060f1934b618ede98fcbfd641537363f927723574b62",
+      "bytes": 1206
+    },
+    {
+      "path": "research/calibration/repair_keyscale_fixture_remove_semitone_tie.zsh",
+      "sha256": "f1e8f81b594b2ea9b8efde74f74a27b56c488c73c7454ac45274ba1e32d96e6b",
+      "bytes": 1709
+    },
+    {
+      "path": "research/calibration/repair_retune_regression_contract.zsh",
+      "sha256": "8160e444a8b30c59cf3d3268dcbb18aab8abbb9def395205dcb41b5e62ff2276",
+      "bytes": 1721
+    },
+    {
+      "path": "research/calibration/repair_studioforge_vibe_catalog.zsh",
+      "sha256": "71a16b1ffbd8873d347599b5b3d7a67a8b645ce13c79f9c51e0ac4e3e31d8b18",
+      "bytes": 1320
+    },
+    {
+      "path": "research/calibration/repair_tdpsola_source_mark_advance.zsh",
+      "sha256": "22a31a81ca676fe07c959f9dbba493961cb5e12f662725a3d4895a4ebc79591a",
+      "bytes": 1857
+    },
+    {
+      "path": "research/calibration/repair_vibe_au_registration.zsh",
+      "sha256": "3a04b44607d378207303144f8b4e34b5d7c7012c08aabbcd684a7912216e711f",
+      "bytes": 714
+    },
+    {
+      "path": "research/calibration/restore_exact_verified_vibe_baseline.zsh",
+      "sha256": "c1d6a93d8cb04d29d0de4082a42a8d36dae27612771f771d43b3a8fc6ac8e97d",
+      "bytes": 2550
+    },
+    {
+      "path": "research/calibration/revert-vibe-sibilance-unvoiced-v3.patch",
+      "sha256": "6b5dd3f1e5f11aee1e74f710b9c3a15128dfea569afba40a214cb486619295b1",
+      "bytes": 3544
+    },
+    {
+      "path": "research/calibration/revert_sibilance_unvoiced_v3.zsh",
+      "sha256": "fe2ffe65f4b0e75421b624292a6a5a06f19d67c5725aef24106f55d902291002",
+      "bytes": 1651
+    },
+    {
+      "path": "research/calibration/run_artist_independent_fsharp_terminal.zsh",
+      "sha256": "ec41ffbfff70a4cc9a2e5b653b916c79d3adb4596439861b1f3fb3ee2713957d",
+      "bytes": 1824
+    },
+    {
+      "path": "research/calibration/run_artist_retune_coefficient_probe.py",
+      "sha256": "b771753224906147bc20f883b6b9f205ba23db86f0296e90da6e61cbaff2e8d6",
+      "bytes": 3136
+    },
+    {
+      "path": "research/calibration/run_automated_vibe_trace.zsh",
+      "sha256": "66d2978b42fd37dc65a7531f6a564ca7a1fd1f9dc0664f7ee11df61054d06695",
+      "bytes": 1187
+    },
+    {
+      "path": "research/calibration/run_autotune_hook2_short_probe.py",
+      "sha256": "bd4f31afa187f872920dfb333c9fd3486b6b0e370932c7d58a5dee7d6ec24459",
+      "bytes": 2571
+    },
+    {
+      "path": "research/calibration/run_autotune_hook2_state_trace.zsh",
+      "sha256": "cb67c8e8345208fea21af27dc4d6b8283e85285079a1ac98410dfdb8ceb888fa",
+      "bytes": 2250
+    },
+    {
+      "path": "research/calibration/run_crossing24_bounded_preview_candidate.zsh",
+      "sha256": "3cb2db78db8bf88f174594228116bce64758b9d759378b4005ddc310ad1c637c",
+      "bytes": 3102
+    },
+    {
+      "path": "research/calibration/run_hook2_adjacent_dwell_sweep.zsh",
+      "sha256": "16c1a71e41a405a4413a7e41ad0f413bf0031a6d017501a43bee6f045b679ab4",
+      "bytes": 4686
+    },
+    {
+      "path": "research/calibration/run_hook2_adjacent_return_boundary_sweep.zsh",
+      "sha256": "4206927247114660cb484ce79f9b02e46b6bc19b62fdae80c4bd44fe8e232add",
+      "bytes": 4757
+    },
+    {
+      "path": "research/calibration/run_hook2_alto_detector_resolution_probe.zsh",
+      "sha256": "32d01bf3fa3e93ea026d6299228ba9275961dd058f7c7ca97890c025cc9bc3be",
+      "bytes": 6663
+    },
+    {
+      "path": "research/calibration/run_hook2_artist_vibe_baseline.zsh",
+      "sha256": "cfff1ba88c3021f62f5d0b7b9cc9af0de2c4ed386728bb68d1d8da6ae91d5e23",
+      "bytes": 2378
+    },
+    {
+      "path": "research/calibration/run_hook2_boundary_dwell3_ab.zsh",
+      "sha256": "ae0debe0105a5e0705aad3020d9cc2c6ad6a505f994ea56d82fabfc1ac91a659",
+      "bytes": 3161
+    },
+    {
+      "path": "research/calibration/run_hook2_correction_rail_candidate.zsh",
+      "sha256": "cd74b0d4c85cd773af36c2427ef81d83229fabde4b85ed97bb4544b77452c781",
+      "bytes": 2831
+    },
+    {
+      "path": "research/calibration/run_hook2_crossing48_ab.zsh",
+      "sha256": "0a6b7184d71c688bccf79d5bfa2a5a1317201d81cd3faad346f3db467986fc3d",
+      "bytes": 2441
+    },
+    {
+      "path": "research/calibration/run_hook2_fast_musical_rail_candidate.zsh",
+      "sha256": "f2e87e3df129d279c61f99301cbe417e413991fd813f6badd226b00ef3efe9df",
+      "bytes": 3927
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_engage1_candidate.zsh",
+      "sha256": "aabebd49da3bfbcb95c50f2f0197107d698b4cfee94fb2e1e99f173621bfcb9b",
+      "bytes": 3004
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_rail_candidate.zsh",
+      "sha256": "ca01f5b1eb102409177f4b783ebc0aec3531a8845185715126767728034be359",
+      "bytes": 3349
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_reversal_guard_candidate.zsh",
+      "sha256": "a74033ec9fa79468abb2ba07a0c1edd42c3086fea702b14ada868e21bef979bb",
+      "bytes": 2849
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_spectral_hop_candidate.zsh",
+      "sha256": "cc38373382614a623f07a0fa216fdc11adc34ab828ce35f220c268da463453b2",
+      "bytes": 3233
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_spectral_range_candidate.zsh",
+      "sha256": "cda624d76e704e4755c29183d91bbc0a68a7ae02624c2022571ada5bcbae9f19",
+      "bytes": 3348
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_tdpsola_host_ab.zsh",
+      "sha256": "f05b744a2b75691da8700646984128b8196163ec7f164c84b44fda7a2859c9d3",
+      "bytes": 3089
+    },
+    {
+      "path": "research/calibration/run_hook2_hardtune_tdpsola_rail240_ab.zsh",
+      "sha256": "75c6745cb8c8a81e70a806e20eeeb7245b331099bca64611c64ba116be907193",
+      "bytes": 3580
+    },
+    {
+      "path": "research/calibration/run_hook2_installed_vibe_against_artist_reference.zsh",
+      "sha256": "8fe1476e81b14ce6f82c1271f3c75c1a294dd505ae0e00d3c2b360dcbc45d3e5",
+      "bytes": 1654
+    },
+    {
+      "path": "research/calibration/run_hook2_musical_rail_candidate.zsh",
+      "sha256": "6df5a9b23f63ffda874ee63f7949173459f955300c12d3b5dd0dc8f8d57862d5",
+      "bytes": 3133
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_adjacent_dwell32_candidate.zsh",
+      "sha256": "f20de3e793175dc3d17ce00aa74cdddcad8aa85072085616976153b4137caa75",
+      "bytes": 2999
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_adjacent_dwell_candidate.zsh",
+      "sha256": "1be25e724c76b96200902f5946fe4709613437dc54d31b1bd5fb46c04528e426",
+      "bytes": 3313
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_dwell16_ab.zsh",
+      "sha256": "b34840d87f7e93107e4b9dc21e352432b9fba52e99c8432223420ec9f51d9859",
+      "bytes": 2613
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_legato_lead50_ab.zsh",
+      "sha256": "df99941ffa1bc7f2b93194ff478e847c357a208dcf14c9422eb810233d695961",
+      "bytes": 2981
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_legato_preview_ab.zsh",
+      "sha256": "be5f6081c59f275d015a3d969ebfdd3d7fa9c7ef4b73a352c4cab8e0a9ad6631",
+      "bytes": 3788
+    },
+    {
+      "path": "research/calibration/run_hook2_rapid_reversal_hold_candidate.zsh",
+      "sha256": "3191cea1440de81ef57f585a1b7674d2a9c7d7dd7eee1ad28dfc9887de6443fc",
+      "bytes": 3435
+    },
+    {
+      "path": "research/calibration/run_hook2_renderer_delivery_narrow_sweep.zsh",
+      "sha256": "f5824021b7d51ac2c5aa07fd8b9692094d2d1a0024c4a95a55d656bc16788484",
+      "bytes": 4148
+    },
+    {
+      "path": "research/calibration/run_hook2_scale_degree_evidence_sweep.zsh",
+      "sha256": "5aa49e49a0caf352ea0c2d36804191a7ed7e4d9bf5cf98526d44431d5af1fd92",
+      "bytes": 4719
+    },
+    {
+      "path": "research/calibration/run_hook2_spectral_64_control_candidate.zsh",
+      "sha256": "1a720e476913f97fa6ec9291f074c13386e4ff0cb2f7558c00e5d79ccb4e3973",
+      "bytes": 2683
+    },
+    {
+      "path": "research/calibration/run_hook2_spectral_ratio_range_candidate.zsh",
+      "sha256": "9f7de82d94f588c79f681ecc882fc0ed2e53e21eeb1bc3938b5dbb0a2b38646e",
+      "bytes": 3143
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_aligned_sibilance_wetgate004_host_ab.zsh",
+      "sha256": "2ae67fde63d570209b41c98701820d85597e3cb076fcb6e309e784d7d4430ea7",
+      "bytes": 491
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_aligned_sibilance_wetgate040_host_ab.zsh",
+      "sha256": "cdd0716a7244dedde293b664a161a7f99a3e8c04d93ba8331f7bb3f09835432a",
+      "bytes": 538
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_causal_sibilance_host_ab.zsh",
+      "sha256": "ea0694d62f8257c9461e8fa311cfaa09c242417abcdedeaa324cef78748eb1c8",
+      "bytes": 3767
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_keyscale_fixed_host_ab.zsh",
+      "sha256": "1d22f492fe84c42e4df7683fa6e1fa640fa18191fa58a4cff9b5eba59f0eda26",
+      "bytes": 3306
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_keyscale_no_preview_host_ab.zsh",
+      "sha256": "52263a01e7b53bcde959f6b69c70e9d0ce03b504308cab6dfd45e324240d9f6a",
+      "bytes": 3566
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_lookahead_sibilance_wetgate040_l640_host_ab.zsh",
+      "sha256": "83a99d8845cb11ce1a319c5f2bea18909c3ac5b701da67fb7469a003783c9a0b",
+      "bytes": 648
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_preview_ab.zsh",
+      "sha256": "884c7bf2ab1c1e02b96d6c7b102f7cd140f9ce14dd97a9aef52650cf4e8bc1bc",
+      "bytes": 3590
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_preview_adjacent_ab.zsh",
+      "sha256": "132603330e256a287554a1c7f89de8256d97c16d121af617ef00c071372c1e4d",
+      "bytes": 3819
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_preview_scale_neighbour_ab.zsh",
+      "sha256": "b44f30d773a7cd849c44eaa40ca38e67c637cfcaff141c4bb6fa75b03cb67113",
+      "bytes": 4042
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_reversal_plateau_off_ab.zsh",
+      "sha256": "39cc242a1888572a05c7d3562cda1beadf4011dc6ad8ad6b08acc861cf697965",
+      "bytes": 3633
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_sibilance_ceiling060_host_ab.zsh",
+      "sha256": "6e5c26584b70072f1eb9a24d29c6fedaac76e4453f761d15a30402007ee71ac2",
+      "bytes": 3802
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_sibilance_residual0_host_ab.zsh",
+      "sha256": "be4b1d237070b6836543e67082b17c32b5ff145fa306940de5de4f22b4034ec4",
+      "bytes": 3786
+    },
+    {
+      "path": "research/calibration/run_hook2_tdpsola_sibilance_wetgate004_host_ab.zsh",
+      "sha256": "6a54c0129f67861cadc44eaa4683cca67019ab17f3de17e067c86d1b98030cf9",
+      "bytes": 4438
+    },
+    {
+      "path": "research/calibration/run_joint_calibration_confirm.sh",
+      "sha256": "49b086c60301feafdaa21a05046efda67ff4fa6296826edafe968bea23962ecd",
+      "bytes": 1564
+    },
+    {
+      "path": "research/calibration/run_joint_calibration_doe.sh",
+      "sha256": "aafafd8aaa2b5ce7c397c1bb33a2c1a90647cf124280961a8eeabc80df609909",
+      "bytes": 2336
+    },
+    {
+      "path": "research/calibration/run_joint_calibration_local_fit.sh",
+      "sha256": "ba41ec949c0bf74c537ac90192d3de3bda59562499ec00bc28a0ffdf676b30a4",
+      "bytes": 1795
+    },
+    {
+      "path": "research/calibration/run_natural_vibrato_phase_fit.sh",
+      "sha256": "a4e368c53ec41fd2190b5be57bbd6d08ae82a35c9fb4bbe25d658c1df35b7f5c",
+      "bytes": 2466
+    },
+    {
+      "path": "research/calibration/run_renderer_wet_path_isolation.zsh",
+      "sha256": "752ee0e186b59dc43b67be59ff61488f5ec3f92153bbce8eda6de1a2fd8514d1",
+      "bytes": 2703
+    },
+    {
+      "path": "research/calibration/run_retune_knot_final_sweep.sh",
+      "sha256": "08e45fd40dc2ff4d1b262b778feb39b6a48a956047c576874d9fb0e22a76d58d",
+      "bytes": 1431
+    },
+    {
+      "path": "research/calibration/run_retune_knot_fine_sweep.sh",
+      "sha256": "82b7a5db2f767f185f8e969b387fa2a87250de72efca13451e80f17e4c16404e",
+      "bytes": 1563
+    },
+    {
+      "path": "research/calibration/run_retune_knot_sweep.sh",
+      "sha256": "42b463214bf02e10bc310a8921b7b51e350db1665a2517e4d8ab0290ed68199b",
+      "bytes": 1489
+    },
+    {
+      "path": "research/calibration/run_signalsmith_renderer_window_ab.zsh",
+      "sha256": "746544ecdb876b63d968e64595ea276f8b73f69d9ac0089da15231d29191db0c",
+      "bytes": 3170
+    },
+    {
+      "path": "research/calibration/run_studioforge_embedded_vibe_signal_path_test.zsh",
+      "sha256": "057cf30b6067c1443bde499b36f3236af559b26b979b868cae747dffbd29faee",
+      "bytes": 1439
+    },
+    {
+      "path": "research/calibration/run_tdpsola_grain_window_ab.zsh",
+      "sha256": "724ef70e8d69b38cd7e456591d82c19d53698f11873417d9dad85d64178df7b2",
+      "bytes": 3972
+    },
+    {
+      "path": "research/calibration/score_hook2_candidate_history.py",
+      "sha256": "469aa0d1684d9b434edf90a1b9c162a9e4af15c693d5a706c484ea0dd4bb5c37",
+      "bytes": 2557
+    },
+    {
+      "path": "research/calibration/score_hook2_control_fit.py",
+      "sha256": "2d292ecde8c424f16a3280d45d5946dcbe7c1ca264c06fb2c450aae40f5d72dc",
+      "bytes": 4099
+    },
+    {
+      "path": "research/calibration/signal_chain_diagnostic_juce7_writer_compat.patch",
+      "sha256": "61b20e75c4f35b0a643901bf443b151764df25d44342b0b6ea6fb64f2214bdf8",
+      "bytes": 1455
+    },
+    {
+      "path": "research/calibration/signal_chain_diagnostic_stereo_host_parity.patch",
+      "sha256": "8e50e778a5a1c8148ad75d616ceb9d4153ab161d620a762934a97c2f0c99b5d6",
+      "bytes": 2496
+    },
+    {
+      "path": "research/calibration/studioforge-audio-device-selection-fix.patch",
+      "sha256": "b4af1d4cbc6c0b00b3ed21c75d40b87b562d0a3eece3a7e4936cee6b8dd40444",
+      "bytes": 4810
+    },
+    {
+      "path": "research/calibration/studioforge-audio-hotplug-recovery.patch",
+      "sha256": "269f376a29843b3ba919304110c01f3c5c7d8314c2b4023e168fc37bd367b444",
+      "bytes": 5570
+    },
+    {
+      "path": "research/calibration/studioforge-autokey-full-ui.patch",
+      "sha256": "0fde078a2bf537682a8be66d2b0e1a48a2b6df3a36d7b77a952412d85f7ffd70",
+      "bytes": 3886
+    },
+    {
+      "path": "research/calibration/studioforge-automated-vibe-trace-retry.patch",
+      "sha256": "83d0324a8d5ca3abe2ea9b68285c07b4372bbb3921ae3fca7ec5bf0d46971dba",
+      "bytes": 2675
+    },
+    {
+      "path": "research/calibration/studioforge-automated-vibe-trace.patch",
+      "sha256": "aecd98281ce80ed3267e25afd66ac9baf65a1e6e9a02bd92e07f8760a3f3787d",
+      "bytes": 5109
+    },
+    {
+      "path": "research/calibration/studioforge-exact-plugin-block-contract.patch",
+      "sha256": "d30208e73f6a4d07e0e60f1e6bb924a2350fc960887d3c140364b8a293f4fa0e",
+      "bytes": 6369
+    },
+    {
+      "path": "research/calibration/studioforge-fx-slot-interaction.patch",
+      "sha256": "bd290465c828aa99883aff2ea3da8c57814f86ecb723218db414a64100aa2749",
+      "bytes": 7120
+    },
+    {
+      "path": "research/calibration/studioforge-generic-plugin-processing-trace.patch",
+      "sha256": "bdfac59b5c879245ebc3890ee08bff2d9a0cac08acaef8821f606cda3d75f097",
+      "bytes": 15404
+    },
+    {
+      "path": "research/calibration/studioforge-generic-plugin-trace-csv-alignment.patch",
+      "sha256": "e56ceeffa6534ad32c544faef2a5fca5d61fc7336774f5c4fce49e2378d3c022",
+      "bytes": 682
+    },
+    {
+      "path": "research/calibration/studioforge-joint-calibration-runner.patch",
+      "sha256": "b9853aecd2557de95fff0da3e5eca97fe72a8a119b243ba2db11e58eca157270",
+      "bytes": 1916
+    },
+    {
+      "path": "research/calibration/studioforge-latest-vibe-only.patch",
+      "sha256": "8f399a2bb3b0967871f76fd09b1abcb7c8df694744deaccbc04ac7d9555f276b",
+      "bytes": 2920
+    },
+    {
+      "path": "research/calibration/studioforge-live-bypass-trace.patch",
+      "sha256": "2a452bf3cbdae6ef8448602c76814e60cf875d9f6344aeee7520cfa133bae5e1",
+      "bytes": 5444
+    },
+    {
+      "path": "research/calibration/studioforge-live-confidence-hysteresis.patch",
+      "sha256": "e07a562b390250cc4c37316664fa4f429459bdb830da1f6dec0a56c8542f4a68",
+      "bytes": 7623
+    },
+    {
+      "path": "research/calibration/studioforge-live-continuity-hold-ui.patch",
+      "sha256": "66db00ba599d51f5a58574e7429d0dcd1790f291c9b171bb931080b878035b3c",
+      "bytes": 890
+    },
+    {
+      "path": "research/calibration/studioforge-live-continuity-hold.patch",
+      "sha256": "1446b8524299ba1858192433353097cc7cb0685dff094b07ff1a123c945ee615",
+      "bytes": 23808
+    },
+    {
+      "path": "research/calibration/studioforge-live-hold-contract-tests.patch",
+      "sha256": "2561052e3e9554d23638313b6a81400a22b96ff861dce36c66c3e7e391e8bf25",
+      "bytes": 2398
+    },
+    {
+      "path": "research/calibration/studioforge-live-hold-contract.patch",
+      "sha256": "d7fc9f68c14d3994cb3e82a07f574a31e2d0f6a5022262d8d91079fd8c27f36b",
+      "bytes": 5013
+    },
+    {
+      "path": "research/calibration/studioforge-live-trace-detail.patch",
+      "sha256": "f7a40ef229bc2b1539259e79eb6a0a535387b6145a0e9240606532504ea7e88f",
+      "bytes": 5333
+    },
+    {
+      "path": "research/calibration/studioforge-live-trace-format-fix.patch",
+      "sha256": "82446c267482fec6617fa0af761fb79b65eb40bfd6124dead1b422a4a1380b85",
+      "bytes": 904
+    },
+    {
+      "path": "research/calibration/studioforge-live-tracker-trace.patch",
+      "sha256": "9b45c8165bf2194fb3dd8d6987d9cf384eaca2c1d62542b43a724e8f7e3f52ab",
+      "bytes": 7050
+    },
+    {
+      "path": "research/calibration/studioforge-live-tune-activation-telemetry.patch",
+      "sha256": "5d7fb2664718320fbab573c61f48001249819018b22fc9ba6c821f526f3fd5f6",
+      "bytes": 8462
+    },
+    {
+      "path": "research/calibration/studioforge-live-vibe-audibility-invariant.patch",
+      "sha256": "822d79c93e76c6a7cdc4b4d3ec59fdb91e142fbaadb4e145ffc2b633238f2789",
+      "bytes": 2316
+    },
+    {
+      "path": "research/calibration/studioforge-live-vibe-direct-dry-safety.patch",
+      "sha256": "77c37e40793c603fdb82cbdc2aeac877e2d4e51134c70e15a3f4cfc2ce732fc3",
+      "bytes": 4256
+    },
+    {
+      "path": "research/calibration/studioforge-live-vibe-health-gate.patch",
+      "sha256": "306ef90e653aec9529c84571b3ce43d831587624671b81a6fb29123d5722d940",
+      "bytes": 25312
+    },
+    {
+      "path": "research/calibration/studioforge-mixer-rack-and-pdc-phase3.patch",
+      "sha256": "8a3ad3c72c8dcf3bb981072b2e3ac5d038a3bc6916131062a721ce3693adfa26",
+      "bytes": 22014
+    },
+    {
+      "path": "research/calibration/studioforge-monitoring-latency-policy-phase6.patch",
+      "sha256": "25c847b383f7752fdabf7bc20d11f7da9a545fa5278b0e3e5910ec646e8967db",
+      "bytes": 19388
+    },
+    {
+      "path": "research/calibration/studioforge-natural-fit-retune.patch",
+      "sha256": "eb0ac2818a4af29d8a89d14a2bbcd7ab2fd068b2bfb6e5bc6346224ad16277b6",
+      "bytes": 1646
+    },
+    {
+      "path": "research/calibration/studioforge-oat-v2.patch",
+      "sha256": "67d4bc1640fe7ced5f65e730740d0226b92bd45a5325493a74f919a36e6a4a42",
+      "bytes": 5359
+    },
+    {
+      "path": "research/calibration/studioforge-packaged-tune-ai.patch",
+      "sha256": "d9b4ebc70f530975686714dc25660c24bf3b07e3d9ab03253d397f469f59c0a5",
+      "bytes": 2200
+    },
+    {
+      "path": "research/calibration/studioforge-pdc-aux-output-fixture-phase5.patch",
+      "sha256": "5a50fa1b35eed6345e70e02333ce2e30bcfa6363e20c71489de474adbe7878d7",
+      "bytes": 3050
+    },
+    {
+      "path": "research/calibration/studioforge-playback-callback-recovery.patch",
+      "sha256": "272858418da9b2196115cdbce54bace6118085f60b72c32ae17e02935501fd81",
+      "bytes": 3224
+    },
+    {
+      "path": "research/calibration/studioforge-plugin-editor-lifecycle-phase2.patch",
+      "sha256": "1b83cc3f06f53443be3fc5b6290af1735142e1e27bebd1bc802592069b59814c",
+      "bytes": 4717
+    },
+    {
+      "path": "research/calibration/studioforge-trace-vibe-insert-selection.patch",
+      "sha256": "352c17bdd19885e10aa02c58f9fa72b7770b14b4de0c72c4d625786ccfa2b30d",
+      "bytes": 3638
+    },
+    {
+      "path": "research/calibration/studioforge-track-plugin-delay-compensation.patch",
+      "sha256": "ff4124b6d9753dd2943cbeec190d48738d29562c7be62c82545c1149700d4bf5",
+      "bytes": 9842
+    },
+    {
+      "path": "research/calibration/studioforge-tune-ai-live-workflow.patch",
+      "sha256": "0aa5e3252d8a11affd853038154a71ff701c9ae69a38ee9e53b65b6c42293f4f",
+      "bytes": 29049
+    },
+    {
+      "path": "research/calibration/studioforge-unified-mixer-editor-session-phase4.patch",
+      "sha256": "c3436a32dc924ae96af2bc81788c87e2b90766d69635070538556dfc9ce09086",
+      "bytes": 7305
+    },
+    {
+      "path": "research/calibration/studioforge-unified-plugin-host-phase1-v2.patch",
+      "sha256": "b306acdac025cb0090fa7f2d28de9793ea4262f54abbddc8e32cb982aeaa8625",
+      "bytes": 9603
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-counter-csv-header.patch",
+      "sha256": "45d6e1055a0929494bcb32e8962746c1ed425e836eafbe526c319e1ce03ba799",
+      "bytes": 1645
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-counter-csv-values.patch",
+      "sha256": "bb91a0f50d049b629e2437be111f4481c9eb898a91ebccbaab845d65542b50c4",
+      "bytes": 1203
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-reason-counters-core-poll.patch",
+      "sha256": "b8cfcdfa13ddd950ec3b0ff6abac1a60a17a928f70a6ed72ea4f557d6dda20e6",
+      "bytes": 798
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-reason-counters-engine.patch",
+      "sha256": "2f61ad524c63fe6d98a171ebf1c1b37b03d8a4d69a710868b5b31678410ff830",
+      "bytes": 1304
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-reason-counters.patch",
+      "sha256": "852bf94756e62d98785b1f9a9383f84480ed84e5152a5e9c9cf824b9d8beb208",
+      "bytes": 6280
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-protection-reason-trace.patch",
+      "sha256": "64370d22f02fa0ac0a9e5e0cf39625c7dbe7833e4ffdfdeb3b97b76701c63d2a",
+      "bytes": 10892
+    },
+    {
+      "path": "research/calibration/studioforge-vibe-transition-telemetry.patch",
+      "sha256": "d83387fa62410192ddb64295cd28f9500cecb9027d630d209a766904cfa9553b",
+      "bytes": 12398
+    },
+    {
+      "path": "research/calibration/studioforge_bundled_vibe_scanner.patch",
+      "sha256": "8d294f4dbea567714df19214de08e59e2d17eea19af0d07a3b7c30f916b708de",
+      "bytes": 1773
+    },
+    {
+      "path": "research/calibration/studioforge_canonical_bundled_vibe.patch",
+      "sha256": "73bd17237bee75f1354312b0a6fbede0f20f53ff3ee3951fc73d18925da948ed",
+      "bytes": 2985
+    },
+    {
+      "path": "research/calibration/studioforge_embedded_vibe_signal_path.patch",
+      "sha256": "444fd7286a4291daaa241743100590496b5432de303ef5d0a13d70f743bc60b1",
+      "bytes": 6720
+    },
+    {
+      "path": "research/calibration/studioforge_natural_hardtune_runner.patch",
+      "sha256": "39d4ccc43cd6108e733fcf85fa7e5f2fde23d2e209b77152a68491babe2ab680",
+      "bytes": 827
+    },
+    {
+      "path": "research/calibration/sweep_hook2_flex_residual.zsh",
+      "sha256": "df980317caf4ec018a2e7c90e791840f554defb13e85cc56493c576dd8d4dffb",
+      "bytes": 3540
+    },
+    {
+      "path": "research/calibration/sweep_hook2_sibilance_residual.py",
+      "sha256": "3b7d1c8a2247a81ed4383540598c46cbe1198c28e735f102f20f2d78e436c1d3",
+      "bytes": 4852
+    },
+    {
+      "path": "research/calibration/sweep_hook2_tdpsola_delivery_gain.zsh",
+      "sha256": "a3e37608da29d3564e1282ae0445b9d31435e9bd006c579eb09be0168d236e24",
+      "bytes": 4275
+    },
+    {
+      "path": "research/calibration/sweep_hook2_tdpsola_delivery_gain_current_baseline.zsh",
+      "sha256": "3a4cf227696f53d0ed0f87e8523bef884bc4735f7b85ac1b17201fb917fc1252",
+      "bytes": 4866
+    },
+    {
+      "path": "research/calibration/sweep_hook2_tdpsola_planner_handoff_margin.zsh",
+      "sha256": "5bbd219e8a19e736a9070fb2d4243c42ce7764f96d499f9148a62aed6bb08674",
+      "bytes": 4854
+    },
+    {
+      "path": "research/calibration/sweep_hook2_tdpsola_quality_latency.zsh",
+      "sha256": "845d3732dac9a9ed3958ab64bf5884cf5c02703b7407065ec80564138f058d93",
+      "bytes": 4977
+    },
+    {
+      "path": "research/calibration/sweep_hook2_tdpsola_renderer_crossing_preview.zsh",
+      "sha256": "1ef2a5089e449b1bf44e15031361bb96bf6ae925e043b03aacd206b339d7f4ed",
+      "bytes": 4939
+    },
+    {
+      "path": "research/calibration/sweep_natural_hardtune_surface.zsh",
+      "sha256": "4010245a6da09f988550a47c85ce7d714a78d2bef77ab50acc3fc674aaf0f1aa",
+      "bytes": 2034
+    },
+    {
+      "path": "research/calibration/tdpsola-aligned-sibilance-wetgate.patch",
+      "sha256": "fdab29b78b34a61e1b4d4a11ec8ab3a7c06a2a46c6b4fd01a0c1b17cbf447a68",
+      "bytes": 5403
+    },
+    {
+      "path": "research/calibration/tdpsola-causal-sibilance-envelope.patch",
+      "sha256": "7c49bebe399f474876c0c6be86e2b89fbc252c646c1c2f66675dd382c270b1da",
+      "bytes": 4432
+    },
+    {
+      "path": "research/calibration/tdpsola-sibilance-residual-ceiling.patch",
+      "sha256": "5ce252898b03133534578fe4b399be48d684c85e20821f68785c673e8ff89345",
+      "bytes": 1541
+    },
+    {
+      "path": "research/calibration/tdpsola-sibilance-wetgate-lookahead.patch",
+      "sha256": "e9232d2fd82d19e53b49776d405d8457b79a9f66a1240bb3872de2e5de5e26e5",
+      "bytes": 1539
+    },
+    {
+      "path": "research/calibration/tdpsola-sibilance-wetgate.patch",
+      "sha256": "35592d5b1f3696c52d3cc2d1b91ef44831055c38e117ce878aea8e3cf99fce59",
+      "bytes": 1534
+    },
+    {
+      "path": "research/calibration/tdpsola_realtime_candidate_benchmark.patch",
+      "sha256": "fc33363c5e99a4c5a930da4c37cc8902e1a5edfe1a93bf01c79b772d832f9c5c",
+      "bytes": 3103
+    },
+    {
+      "path": "research/calibration/tdpsola_realtime_deadline_accounting.patch",
+      "sha256": "b94086618c42c69afb1e7f3abb4f4c54cd57573e60207de2982519034694af97",
+      "bytes": 1747
+    },
+    {
+      "path": "research/calibration/tools/LiveControlGlideProbe.cpp",
+      "sha256": "8622a54724d8c18043a0de3d1291e77dd1935c3ba3d120862e5ad3a6cf78dba0",
+      "bytes": 2665
+    },
+    {
+      "path": "research/calibration/tools/analyze_ola_handoff.py",
+      "sha256": "96b17be4190a3774ce4cfed316bdf89e7c3c6884c633692bdb75e338708a72be",
+      "bytes": 6256
+    },
+    {
+      "path": "research/calibration/tools/analyze_ola_phase_coherence.py",
+      "sha256": "17d12d565c1c7009a1a5d289fca378b2dfa62a6b71a62c4799bdd2dff22612af",
+      "bytes": 1777
+    },
+    {
+      "path": "research/calibration/tools/analyze_transition_context.py",
+      "sha256": "e09d7184d30d174f0c257eeb7dcfe3d9177aa512e760932bf162e4f02b2d1f9f",
+      "bytes": 5232
+    },
+    {
+      "path": "research/calibration/tools/audit_final_epoch_pairs.py",
+      "sha256": "e5a87e6d3108f7bb0ec0e5b70d7af83564cc27a12c4b58df37d830f4057e3349",
+      "bytes": 2392
+    },
+    {
+      "path": "research/calibration/tools/audit_ola_handoff.py",
+      "sha256": "953da1d49f347187e6c33f8f2daee3f95e12b5080927cf15a9dc213a887225e5",
+      "bytes": 3226
+    },
+    {
+      "path": "research/calibration/tools/compare_hook2_render_envelopes.py",
+      "sha256": "6ce8a6cd6040ef913bc4808b58291ce87fec17d2843cbdc12193014a9e6bb749",
+      "bytes": 3850
+    },
+    {
+      "path": "research/calibration/tools/compare_tail_envelopes.py",
+      "sha256": "fd21ddc2ed7a7e0727e07f142589fc7e3c666692616343c0484673bfb5a65163",
+      "bytes": 2986
+    },
+    {
+      "path": "research/calibration/tools/compare_vocal_envelope_windows.py",
+      "sha256": "7afef15b48bfbd290ec47a08b6091ba4778b001dc94111b5e57a96f0f53e7374",
+      "bytes": 2585
+    },
+    {
+      "path": "research/calibration/tools/diagnose_vocal_texture_ab.py",
+      "sha256": "59b31d497117af3d21f968fe216e5472ae4dd3a605a3ab7aead87215e8b8c398",
+      "bytes": 7257
+    },
+    {
+      "path": "research/calibration/tools/inspect_hook2_first_two_seconds.py",
+      "sha256": "02eb6507a813c6ab71e22fd3463d53c1cbca9045b62dadc2c2d8fa527375e3ee",
+      "bytes": 2705
+    },
+    {
+      "path": "research/calibration/tools/inspect_hook2_intro_texture.py",
+      "sha256": "e876cb88a30a5dfe26062612970f152ca3bbe6eb3fd9d606886e313c42df4fb1",
+      "bytes": 2663
+    },
+    {
+      "path": "research/calibration/tools/inspect_note_regressions.py",
+      "sha256": "712a21ea1bcc0acdffc153a1b0031ec180c278a9b55db03f6306d8aedf1224d3",
+      "bytes": 3126
+    },
+    {
+      "path": "research/calibration/tools/measure_annotated_consonant_alignment.py",
+      "sha256": "86e51dcf1ebc48fe6e646c59904ee7db507b1174eace5470b5e471cb7540ace8",
+      "bytes": 7729
+    },
+    {
+      "path": "research/calibration/tools/measure_command_cadence_output.py",
+      "sha256": "2c7d427c941726e7a833d0b0473d98d2c92ec536038997b1c198242e222a5596",
+      "bytes": 4261
+    },
+    {
+      "path": "research/calibration/tools/measure_source_harmonic_leakage.py",
+      "sha256": "42336de7c85a1954e584fd779dd00dcaad296ef6934914866bd96c54f2ecb3d6",
+      "bytes": 3888
+    },
+    {
+      "path": "research/calibration/tools/measure_steady_periodicity_ab.py",
+      "sha256": "3fa9f7f7c9463ad8adf9e1e983db439e2c14aa75243d71162a2e70d5dcd922db",
+      "bytes": 2322
+    },
+    {
+      "path": "research/calibration/tools/oracle_retime_ola_event.py",
+      "sha256": "f74be42590b22af05369f48ed424df8e2f6e9e2664fc62411f3669ba741a59fe",
+      "bytes": 3712
+    },
+    {
+      "path": "research/calibration/tools/rerank_hook2_best_variants.py",
+      "sha256": "a81e29eedf9e66b14265750c0b080fbd6f06b4112446030ec40b7b627f343aeb",
+      "bytes": 6148
+    },
+    {
+      "path": "research/calibration/tools/score_confirmed_landing_sweep.py",
+      "sha256": "bd559ae68a93fdcf0eb7836a45a9381686818c003679d9b41dc4e868faa5ef54",
+      "bytes": 5513
+    },
+    {
+      "path": "research/calibration/tools/score_holdout_pair.py",
+      "sha256": "b38d0a9b6fd8f2ef2ee871d044c5cd1faeba7c05fa0d821bf0e4810e9b75f608",
+      "bytes": 9329
+    },
+    {
+      "path": "research/calibration/tools/score_independent_vocal_holdout.py",
+      "sha256": "11b06c21b4e9fcb8977fed0c7bdc6e6725fb589089057b5619103e8d1054b996",
+      "bytes": 2019
+    },
+    {
+      "path": "research/calibration/tools/score_joint_handoff.py",
+      "sha256": "9e3810f7c96d156ebbb6b4e214409e2fd13f5587277a0cc36d81e0efdbffc74d",
+      "bytes": 7247
+    },
+    {
+      "path": "research/calibration/tools/trace_grain_handoff.py",
+      "sha256": "c8893c1661064081a969004a2abacc92682cd864d5e7683503eef8cf7e44b539",
+      "bytes": 3659
+    },
+    {
+      "path": "research/calibration/trace_crossing24_worst_transitions.zsh",
+      "sha256": "1925a6c2bc8bea46300ea14a621bfb696f2e3fe9f02c67316fbd173570a8a855",
+      "bytes": 2540
+    },
+    {
+      "path": "research/calibration/trace_hook2_artist_trajectory.zsh",
+      "sha256": "a398b5f9190aff4a71ea28edfc23eebda1891c02d6b31427175a72cd6483865f",
+      "bytes": 1073
+    },
+    {
+      "path": "research/calibration/trace_hook2_continuous_return_excursion.zsh",
+      "sha256": "b2bd28e46842768cdc2799070b3edf117af79b10654a32edffa404b15b638662",
+      "bytes": 3219
+    },
+    {
+      "path": "research/calibration/trace_hook2_detector_midpoint.zsh",
+      "sha256": "c59cde318a8eed051ba9854bf8b037a80a3ee090dc2764bad822bc487d96af92",
+      "bytes": 753
+    },
+    {
+      "path": "research/calibration/trace_hook2_fast_musical_rail_delivery.zsh",
+      "sha256": "72982ac2206bcd3501dde62a9591c4b9dbcd6ff2ec23d73a3674f0447237fa97",
+      "bytes": 2368
+    },
+    {
+      "path": "research/calibration/trace_hook2_hardtune_4631_window.zsh",
+      "sha256": "f62ad59a5bdb30f2a6cc12d652e12f9ace898cd2a34f8273ebf2cae8b54d98e8",
+      "bytes": 1333
+    },
+    {
+      "path": "research/calibration/trace_hook2_hardtune_baseline.zsh",
+      "sha256": "fda88f075d738404981e97c3f7b6c1a0415b1ed20307287da02dd35c39ab78e4",
+      "bytes": 2496
+    },
+    {
+      "path": "research/calibration/trace_hook2_hardtune_control_path.zsh",
+      "sha256": "3a636d914470c2959b695c882a32ab8bebdff97422d8201e88b3bfbf80f2c838",
+      "bytes": 1429
+    },
+    {
+      "path": "research/calibration/trace_hook2_hardtune_transition_windows.zsh",
+      "sha256": "10a651b245c081057fbe2e35364374559121bae61eff829a0c36947ffa5aa9c2",
+      "bytes": 1676
+    },
+    {
+      "path": "research/calibration/trace_hook2_output_renderer_control.zsh",
+      "sha256": "4de5f7aa606d2c0a75d16364931cb2cd5812f4a932521007cc93e83e28ab8b3e",
+      "bytes": 2428
+    },
+    {
+      "path": "research/calibration/trace_hook2_rapid_adjacent_dwell_candidate.zsh",
+      "sha256": "96259682cd1f641881e1846ef05ace3742a0ea56ead8254b62d47fa3b7ab8c1f",
+      "bytes": 3500
+    },
+    {
+      "path": "research/calibration/trace_hook2_renderer_control_transfer.zsh",
+      "sha256": "e994b6c545b0b4e58d8c22e012bc0d33c8e1a6331d7a94dbd67800dadedd010c",
+      "bytes": 1001
+    },
+    {
+      "path": "research/calibration/trace_hook2_renderer_grain_causality.zsh",
+      "sha256": "814aac4486f6cef26df2663499004c8ec5802967877714c5b41c8c7dd80354f7",
+      "bytes": 624
+    },
+    {
+      "path": "research/calibration/trace_hook2_reversal_guard64_selector.zsh",
+      "sha256": "355bad6f444af6e24e9b2a04f9da33457166af033c31acf20630fbc132d7df5f",
+      "bytes": 3708
+    },
+    {
+      "path": "research/calibration/trace_hook2_target_selector.zsh",
+      "sha256": "d4332ceaf39efd3104a563e37196b205ebc76a75bd5c91486476923b5c834093",
+      "bytes": 3023
+    },
+    {
+      "path": "research/calibration/trace_hook2_target_tail_handoff.zsh",
+      "sha256": "eb177eeac0748ff3c3dff4590b2bb69a0f88b2af6006a5b232ccaf16ad655c1c",
+      "bytes": 2929
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_aligned_sibilance_wetgate004_controls.zsh",
+      "sha256": "2d1669477488ca2badf4ec76cbf5727bfa483535f63d2b9ee2480563f9524770",
+      "bytes": 352
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_aligned_sibilance_wetgate040_controls.zsh",
+      "sha256": "753e15c7e026ea42b771d2812a91c9307937502daffc6af4c9cb850d2b6f4525",
+      "bytes": 351
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_causal_sibilance_controls.zsh",
+      "sha256": "18724488d1b106e991aac71711d9a93f8d28fc6a0b55b79190a01bb57208fe01",
+      "bytes": 1827
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_keyscale_fixed_controls.zsh",
+      "sha256": "68e66cdc3d2bda1daed7919009064bd557a1d8ae0cb89b68416bd749fcf0d579",
+      "bytes": 3090
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_keyscale_fixed_sibilance.zsh",
+      "sha256": "6845ca24ff3f70ea60716913d690b3d94326d9b26bd2fc16be7a49fd9995f01f",
+      "bytes": 2253
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_sibilance_wetgate004_controls.zsh",
+      "sha256": "aa5722d666c111d9c62ec8c9f09642d03e300e4e427b3f4a9a910e8300850d88",
+      "bytes": 354
+    },
+    {
+      "path": "research/calibration/trace_hook2_tdpsola_transition_windows.zsh",
+      "sha256": "6b961dcc98c3036e5251d98891a2657c110f83d3073debe9c2d357e802786315",
+      "bytes": 3363
+    },
+    {
+      "path": "research/calibration/trace_tdpsola_ratio_dezipper_probe.zsh",
+      "sha256": "30d00052de0e582b1a9d17e1b6d1146889ca2496946473e5d22dcfcd0c67746f",
+      "bytes": 2512
+    },
+    {
+      "path": "research/calibration/tune_ai_macos_launcher.zsh",
+      "sha256": "ba37f2992f3ea2db70e0951ce3f8f669f2616c4d2dece01eadb3d46798b61939",
+      "bytes": 508
+    },
+    {
+      "path": "research/calibration/verify_current_studioforge_ecosystem.zsh",
+      "sha256": "4f31cffd349a394d32b9fa130374d39d99379e942a88cf4aceb0e880816a3e93",
+      "bytes": 4401
+    },
+    {
+      "path": "research/calibration/verify_installed_vibe_against_verified_artist.zsh",
+      "sha256": "b15a1ba95443a54225227344efecd8ee3105cb671da85b02ffcfc564f69169da",
+      "bytes": 2130
+    },
+    {
+      "path": "research/calibration/vibe-chassis-background-layer-unification-v3.patch",
+      "sha256": "47230b6c6c1792f785410bfcb711b873ce048fd4fea05b98acb28705f16362e6",
+      "bytes": 8309
+    },
+    {
+      "path": "research/calibration/vibe-chassis-integration-pass.patch",
+      "sha256": "5d7573cfa9b05220c5bebef63eaf612c8fdafe9b2957e4c91333436938da6e04",
+      "bytes": 3298
+    },
+    {
+      "path": "research/calibration/vibe-chassis-rail-layering-fix.patch",
+      "sha256": "3f9a858c73ea67d91f1dbdd941b286ec790ae6545999abdb4d4a597278271723",
+      "bytes": 2867
+    },
+    {
+      "path": "research/calibration/vibe-compact-default-typography.patch",
+      "sha256": "f331f67d4e9700ecf01f44693c117aa697181715625eb0eddcde97a926898071",
+      "bytes": 1546
+    },
+    {
+      "path": "research/calibration/vibe-control-hierarchy-header-cleanup.patch",
+      "sha256": "2c76b6870673f1099a8076f59a9c7aa4831d0a33b500ad1639c9086ff3e089c8",
+      "bytes": 15525
+    },
+    {
+      "path": "research/calibration/vibe-correction-rail-config.patch",
+      "sha256": "ac305d9a91163e50a099a4e56126b26e20e61c566e0b3781baccc1ad9e3b9d69",
+      "bytes": 1323
+    },
+    {
+      "path": "research/calibration/vibe-fast-musical-correction-rail-config.patch",
+      "sha256": "df6e23ccc76cfe5a5620536f3173b158e99e7a58340a188424d475fa316c819f",
+      "bytes": 2250
+    },
+    {
+      "path": "research/calibration/vibe-fast-musical-delivery-rail.patch",
+      "sha256": "28848911165e83da543a0bbb1c0862efb504601058bc56a726548a179fc8cf26",
+      "bytes": 3303
+    },
+    {
+      "path": "research/calibration/vibe-final-composition-pass.patch",
+      "sha256": "b71806f96855d9667405b73f80e67e35c01ff255ec8babb72594424ae749d747",
+      "bytes": 2111
+    },
+    {
+      "path": "research/calibration/vibe-footerless-midi-end.patch",
+      "sha256": "74bdf225b1b7cf6c7d5e010c92d6d3df852e3d876b24c1b5a8c1448e4b828b45",
+      "bytes": 6519
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-engage-gate-config.patch",
+      "sha256": "6dc40cac0b7877a9fe36806a75b2730ae4c333d1845ad0a8c1ed7bd29a90b295",
+      "bytes": 1417
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-preview-adjacent-config.patch",
+      "sha256": "2e26637c25c6d4de75b57b6d6c298d17cbaaacda0a9c54d190d80141cf817b9d",
+      "bytes": 1147
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-preview-config.patch",
+      "sha256": "7f1ad684b04bf0f3fa17cf334bb06466b9df7ec9d9643934157b79744cc3cb1c",
+      "bytes": 1416
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-preview-scale-neighbour-config.patch",
+      "sha256": "dbbf70e608202b522d5b9ac1f5e3f1ab714b8be7347383e7eca49863e444915c",
+      "bytes": 2117
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-reversal-guard-config.patch",
+      "sha256": "f15c29a804d71ff839baaee0466786abcfa3962e8a8aba672fd4a2241ec10909",
+      "bytes": 1162
+    },
+    {
+      "path": "research/calibration/vibe-hard-tune-reversal-plateau-config.patch",
+      "sha256": "c3009694517edf036fcf666b9ed071dfc39a699c332ade6922b44b756bb9b276",
+      "bytes": 1590
+    },
+    {
+      "path": "research/calibration/vibe-hardtune-correction-rail-config.patch",
+      "sha256": "bb762f7f951b061f1df80b88705eb06836ff5c9355d1333cc7e22169da8dc372",
+      "bytes": 2841
+    },
+    {
+      "path": "research/calibration/vibe-hardware-layout-polish.patch",
+      "sha256": "ced6dd4a4066ed02a3cd133458ce20a5b63c169d3c4324a1c79d6f12c838dabd",
+      "bytes": 2586
+    },
+    {
+      "path": "research/calibration/vibe-inner-bay-alignment.patch",
+      "sha256": "71b9a5c84dbc6f0a55d08c93199397d2b7703df9bf095a9b5114dabb66ae844c",
+      "bytes": 1164
+    },
+    {
+      "path": "research/calibration/vibe-joint-calibration-diagnostics.patch",
+      "sha256": "99d75165addce044b8aacffcb3aec10c7f28d494ac01c850f27155d379bac53a",
+      "bytes": 5898
+    },
+    {
+      "path": "research/calibration/vibe-joint-calibration-version.patch",
+      "sha256": "bf3203fca95c1533778e109aefb1ef634a6cd2ff71564502a2188e1cbf3ef543",
+      "bytes": 703
+    },
+    {
+      "path": "research/calibration/vibe-live-control-output-dezipper.patch",
+      "sha256": "b4f7a5d3163e56eca9ca0e43405b9263afe3b6748deee0da86ff12b5ed573e5f",
+      "bytes": 2559
+    },
+    {
+      "path": "research/calibration/vibe-live-pitch-ribbon-motion.patch",
+      "sha256": "83547d812b22ebfee2f1f7476c752e4cf06e06325381e7fc20c35b8460676364",
+      "bytes": 6685
+    },
+    {
+      "path": "research/calibration/vibe-machined-fasteners-and-rails-v6.patch",
+      "sha256": "7892fb229b387c2d549a0cfca1b7999c7e3b93dad161cb8567490da509eaacd7",
+      "bytes": 7211
+    },
+    {
+      "path": "research/calibration/vibe-meter-hardware-refinement.patch",
+      "sha256": "0b963e3f6d63f25a66dfbaf230f3ed4501b7267e249dcd6cb9040b642cc3e793",
+      "bytes": 10303
+    },
+    {
+      "path": "research/calibration/vibe-musical-correction-rail-config.patch",
+      "sha256": "21f88be73841c9cdafde6ad3f3e8599b0aadfd6e19e79bb720a30b2ee99b7d68",
+      "bytes": 7850
+    },
+    {
+      "path": "research/calibration/vibe-nested-background-layout-v4.patch",
+      "sha256": "0d589f7485035dad1eb312016311145d004fe08362383e0afc09b7f5911db459",
+      "bytes": 6999
+    },
+    {
+      "path": "research/calibration/vibe-note-edit-palette-interaction.patch",
+      "sha256": "c219105ae5d89da93c2b84e81693772abb721b8c98c1eb28c72edebbead98eac",
+      "bytes": 7523
+    },
+    {
+      "path": "research/calibration/vibe-note-edit-workflow-v5.patch",
+      "sha256": "230a4a92f7f2bf0a6f099475834cb3f246882d03b2d47ad57f1a59528c5951f5",
+      "bytes": 7685
+    },
+    {
+      "path": "research/calibration/vibe-note-filter-strip-spec.patch",
+      "sha256": "72018b8dc1bda0fd429217b000b5a880dfaad7988abc2e36e0f7892925a7213a",
+      "bytes": 12816
+    },
+    {
+      "path": "research/calibration/vibe-note-grid-edit-and-lcd-legibility.patch",
+      "sha256": "02236839b26768c7a7939463814de258516c01e23bfe12fb9d596c0cdba6e71e",
+      "bytes": 7278
+    },
+    {
+      "path": "research/calibration/vibe-note-grid-glyphs-and-corner-layer-fix.patch",
+      "sha256": "fb8ce0e62b31163fe699a096d8340b673210b6836f99d7515743e308d911224f",
+      "bytes": 6463
+    },
+    {
+      "path": "research/calibration/vibe-note-map-clean-edit-mode.patch",
+      "sha256": "83b2b07576608272674cafa4876f1f52fd042667ff93a56150996f9157b54691",
+      "bytes": 11049
+    },
+    {
+      "path": "research/calibration/vibe-note-map-dsp-completion.patch",
+      "sha256": "872f5c852c0e3e317d1382848fcf527e7721bb5188e48311a46b7e29bda138b3",
+      "bytes": 8911
+    },
+    {
+      "path": "research/calibration/vibe-note-map-functional-ui.patch",
+      "sha256": "80dc6bca1b9f6dffdc48549556152689160988ef8185854d3107f364a9882452",
+      "bytes": 18649
+    },
+    {
+      "path": "research/calibration/vibe-note-map-layout-v2.patch",
+      "sha256": "1b78945ca9e4938869c0d4f023946db40d892b6d033ed717f99a4b2e1131b90e",
+      "bytes": 10561
+    },
+    {
+      "path": "research/calibration/vibe-note-map-pixel-grid-v7.patch",
+      "sha256": "55286843fc0bf9d5facdd15ebfa706d3326c746c2def9493ff678206c54165be",
+      "bytes": 12594
+    },
+    {
+      "path": "research/calibration/vibe-note-policy-test-key-initialisation-fix.patch",
+      "sha256": "c8ffd5737632eb1978baf1d5a163eaaa0bc452a7c6e3e206fd1c9131b09e2115",
+      "bytes": 1000
+    },
+    {
+      "path": "research/calibration/vibe-note-rules-five-state-layout-v2.patch",
+      "sha256": "64db613f7fbd3a988229a8c1672fd90954188eccc9ff502b8ad7c74740fe148b",
+      "bytes": 5250
+    },
+    {
+      "path": "research/calibration/vibe-notemap-context-strip.patch",
+      "sha256": "94c5e31bec14224e47ee14ba9f10c38e2841d22a63f60f39ad4af4e291b0646c",
+      "bytes": 5538
+    },
+    {
+      "path": "research/calibration/vibe-notemap-legend-refinement.patch",
+      "sha256": "47d870b4cf02fee010f1ded5b381123e78206a61d92a62b2b53c9d333139224b",
+      "bytes": 5900
+    },
+    {
+      "path": "research/calibration/vibe-notemap-live-keys.patch",
+      "sha256": "58008ad3561c99854a67eb15a205fc59ec2e45009a3d6710cfd97c5974ddb913",
+      "bytes": 6357
+    },
+    {
+      "path": "research/calibration/vibe-notemap-pixel-centres.patch",
+      "sha256": "e117d4dda22e381a6dd7f84f028a75719aec41cae205367a2bafd31dd878a50b",
+      "bytes": 5812
+    },
+    {
+      "path": "research/calibration/vibe-notemap-voice-range-pressed-keys.patch",
+      "sha256": "0ba05f99d84c94a01f2d4859b9cd3c3ca8e6b6d91a43c35be413110578120266",
+      "bytes": 9272
+    },
+    {
+      "path": "research/calibration/vibe-piano-key-press-persistence.patch",
+      "sha256": "134c34c56958fd5f138f81f040adb60f06dabd2e7c91c2f86be6a831c7b931a3",
+      "bytes": 4257
+    },
+    {
+      "path": "research/calibration/vibe-rapid-adjacent-dwell-config.patch",
+      "sha256": "8c75efd7e5588f68189cd15fd1aec1dcca527f3cb298c173ad4d406f6e1570aa",
+      "bytes": 1508
+    },
+    {
+      "path": "research/calibration/vibe-retune-drag-direction-v9.patch",
+      "sha256": "19a9292f472269d000e844719eeb08b5791e8bede78f3c8c90e6653a41937a22",
+      "bytes": 1720
+    },
+    {
+      "path": "research/calibration/vibe-retune-knot-au-normalized.patch",
+      "sha256": "92054138104746b41e0591ca0d4e2483af81f40e78f9ec0035488c62dbbb7dd4",
+      "bytes": 2670
+    },
+    {
+      "path": "research/calibration/vibe-retune-knot-au-parameter.patch",
+      "sha256": "e8a630f71dd587f7f7b0a554f0267c1e892ee38d76e7eac4a96f1ea9844f611e",
+      "bytes": 5061
+    },
+    {
+      "path": "research/calibration/vibe-retune-knot-au-version.patch",
+      "sha256": "cfb587b7df66ad6d97045dc3f1d822d464732e0cc13c18427d4c17c3ca257855",
+      "bytes": 703
+    },
+    {
+      "path": "research/calibration/vibe-retune-knot-diagnostic.patch",
+      "sha256": "6aa6b9b2a8a9082e7c0a8915be54329411617617cbb79421f00db2309a917704",
+      "bytes": 5032
+    },
+    {
+      "path": "research/calibration/vibe-scheduled-grain-retirement.patch",
+      "sha256": "2866be44891b39fd0233f553800459fb0948b470f77a20f2bfb543ec7e321f64",
+      "bytes": 620
+    },
+    {
+      "path": "research/calibration/vibe-signalsmith-sibilance-detector-v2.patch",
+      "sha256": "62584089d26561f8f8236fd7243b6daf130e8b6d647c0fef06758fc0286bc5ba",
+      "bytes": 4617
+    },
+    {
+      "path": "research/calibration/vibe-signalsmith-sibilance-transparency.patch",
+      "sha256": "ccfe79492500597d5541f338bfb15f0adc8950ee5e17df87383e10827cc01ecc",
+      "bytes": 10818
+    },
+    {
+      "path": "research/calibration/vibe-signalsmith-sibilance-unvoiced-v3.patch",
+      "sha256": "934af2aa0604422e17eea7e9ca9fbbd764ef9b56fda465581f039dbc99b3361f",
+      "bytes": 3544
+    },
+    {
+      "path": "research/calibration/vibe-smoked-lcd-typography-v8.patch",
+      "sha256": "31852200022d8404988cb7366762918458f3f4050b8bcd4f4841039310b68c9f",
+      "bytes": 6535
+    },
+    {
+      "path": "research/calibration/vibe-spectral-control-quantum-config.patch",
+      "sha256": "2baa1d9b9e979ba0edc1c573131de516c4829e8d126e0183a7407d49a9175d58",
+      "bytes": 909
+    },
+    {
+      "path": "research/calibration/vibe-spectral-hop-config.patch",
+      "sha256": "f3bd0ab0dc6aca8fbf47b9b84674d3caa008f71d228151a122900050466cbfe9",
+      "bytes": 1067
+    },
+    {
+      "path": "research/calibration/vibe-spectral-ratio-range-config.patch",
+      "sha256": "93db03cb123510c2051f96507885e2a1cd0cae641b2452cfc625a24e4421e501",
+      "bytes": 1523
+    },
+    {
+      "path": "research/calibration/vibe-tdpsola-delivery-gain-config.patch",
+      "sha256": "ef4a78f2bd5b046a32ed113e61ac5b975edb63c0019d136f1f805e9caaf42d6a",
+      "bytes": 2509
+    },
+    {
+      "path": "research/calibration/vibe-tdpsola-host-ab-config.patch",
+      "sha256": "14e6d1281396467fb6779aff7fa0cd4a90b4afcd1d9dba05d0db94703b0e9d3a",
+      "bytes": 1288
+    },
+    {
+      "path": "research/calibration/vibe-tdpsola-planner-handoff-margin-config.patch",
+      "sha256": "0f78b110a881f53478003d87f2715f9109b368028363387697da7705bf672b94",
+      "bytes": 2179
+    },
+    {
+      "path": "research/calibration/vibe-tdpsola-quality-latency-config.patch",
+      "sha256": "112f44ca094183efc3d0c22cf29657dc603b52254b11d703c6808edff4d80f27",
+      "bytes": 2324
+    },
+    {
+      "path": "research/vibe-core-rebuild/CMakeLists.txt",
+      "sha256": "e17ddd7f96a5ac53802df06682c5f704b7ffab4013b2e4e18f8ece0c60b61c56",
+      "bytes": 3979
+    },
+    {
+      "path": "research/vibe-core-rebuild/DECISION.md",
+      "sha256": "f87ffa32b180ed6753d6ae7cac43c37f0a193da62c7e4388370b3217917c4466",
+      "bytes": 6545
+    },
+    {
+      "path": "research/vibe-core-rebuild/README.md",
+      "sha256": "4a343623cfc0cc3ec2ac100c01a2307abdbf1d4e9419df1801bb111d3f6452ff",
+      "bytes": 4927
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/AnalogHardwareButton.cpp",
+      "sha256": "91104db7720f785a587f5e8075f911dd8c4c98950daf7edc4057aa3f7bd3a3b4",
+      "bytes": 1855
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/AnalogHardwareButton.h",
+      "sha256": "8103fcde6d1e1aac3f210b66d0bce2f07e170aa4050ae9f6873819e6a84dc9bb",
+      "bytes": 1184
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/AnalogRotaryControl.cpp",
+      "sha256": "9bec7f1630124942cf17bcbd40cef3812591ecb863970b082cb9859a3c1d474a",
+      "bytes": 7839
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/AnalogRotaryControl.h",
+      "sha256": "7320118bd1989677e64abe3676ecd6cd54e431daa31671e2effc892522bc6928",
+      "bytes": 2184
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/Reference/LIVE_TUNE_TARGET_MASTER.png",
+      "sha256": "7b4a46f7522f501ad0875d1aaa2fdf2040eaecc1175b62f35700f3a83b3d86a8",
+      "bytes": 1849113
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_02_black_glass_frame_exact.png",
+      "sha256": "42d1e46dfa2678ecf8c1afee865c6be6c809be5867b3aacec425e00c7b9be63f",
+      "bytes": 43149
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_04_ribbon_wave_transparent.png",
+      "sha256": "1c3ce6ef63f9f574596082e1084c1d7970bd47bfd5a317f00d318d354f15a455",
+      "bytes": 131638
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_champagne_brushed_neutral_v1.png",
+      "sha256": "54c7e48270946599d74ddb65602c7c8b147d18e35a3b01e49bc8697129668963",
+      "bytes": 1659903
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_champagne_brushed_panel_sample.png",
+      "sha256": "37240730ecbdeb7c0932aef4cbe48928d05cbbe5675214e3f5f79725bf43ca00",
+      "bytes": 19342
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_dark_anodized_header_sample.png",
+      "sha256": "ff6f5e845c0acefa590f1de80bf2d37f867653c32d4e030c45b1d9cff87e604d",
+      "bytes": 16317
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_flex_tune_knob_circle_alpha.png",
+      "sha256": "89179f5fb9e3f1083af3f6886e3dd22b342e23f47bb3bce6bba0daba7347c0a6",
+      "bytes": 40494
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_humanize_knob_circle_alpha.png",
+      "sha256": "2b785f5b8876d376a5d11c39526b1cc856b5177af0375740649731346e63e09f",
+      "bytes": 37141
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_keyboard_complete_exact.png",
+      "sha256": "3536146aec5a610c353ba722bed7f9395d738611e16333563fca38fa85434a16",
+      "bytes": 282206
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_knob_assembly_neutral_v2.png",
+      "sha256": "68113a1dbc9dfee909bae5445553b8352f235e28d1d6382b7adfc44b706a6f89",
+      "bytes": 1889164
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_knob_face_neutral_v1-square.png",
+      "sha256": "8dec516141a3386e9c78e646ce2b1f64069aef60281d064f2173bfeb6c3172df",
+      "bytes": 1699626
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_knob_face_neutral_v1.png",
+      "sha256": "08a8199b6f8f06904d1e2f73228d9da82a217801095b419f7152b9c25d20341c",
+      "bytes": 1519941
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_natural_vibrato_knob_circle_alpha.png",
+      "sha256": "bb744b0b1e4f589ce0cdd2c3172059ea12005d76daa55b4ece34bd144f24fbde",
+      "bytes": 37592
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_reference_knob_circle_alpha.png",
+      "sha256": "7d9724d17dac3ba766c6b7bab209a0844992e83295912a5ecf0aea7e0a621bc2",
+      "bytes": 54510
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_retune_knob_face_circle_alpha.png",
+      "sha256": "ad28e76dfe6415117a4619394008c2fa76ef598eb49dbef4f5b58e0339a9a1f6",
+      "bytes": 188030
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_tracking_knob_circle_alpha.png",
+      "sha256": "7cc98237f605774374d218596bb1ae2dee91e2a264ff1f33acd51d589fdd3380",
+      "bytes": 50759
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_transpose_knob_circle_alpha.png",
+      "sha256": "633fbd91c0f2b78587a9f0daa0d98c7a6fdfe9d4fb74b2f2c650220f2fcafddc",
+      "bytes": 50358
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/Assets/ui_voiced_colour_knob_circle_alpha.png",
+      "sha256": "1f708ed89cdb3cd0c3ff27ae6d34cb538d1d1a5a0b2c27c58f2c19b62df27630",
+      "bytes": 54449
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/FrozenContract.cpp",
+      "sha256": "2e8fdcdeffe64ef5157c42c901816cbd96cbbf4e79e145fd98f77493b00df2d5",
+      "bytes": 23161
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/MusicalPolicy.h",
+      "sha256": "dfe4176da26b83d84350bf1946aaec0b7291d43f5ed2df7ca70fb1ecd99861e7",
+      "bytes": 2399
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/NotePolicy.h",
+      "sha256": "0180fda38758329475c7f29c07f5a104b86be3c42dec13c2d04e21146b2b43b0",
+      "bytes": 2873
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/PluginEditor.cpp",
+      "sha256": "87e02ff40d111788c469f2bfe8b81a40c0fec04e0867abfb2847c43fd2940df0",
+      "bytes": 94375
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/PluginEditor.h",
+      "sha256": "0b97cc39d9f1fce4a48972b91d6367364b5e7ba5f0f28a24f55c889f807ad61c",
+      "bytes": 6955
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/PluginProcessor.cpp",
+      "sha256": "71a4541f3f61123cf6baf5017ada8fe9f53f9964d149968310d6c01f46d92fe6",
+      "bytes": 6060
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/PluginProcessor.h",
+      "sha256": "485e6a1df56df9121116d62464363438e9963c49a691382ee1a24ff667b3978d",
+      "bytes": 5905
+    },
+    {
+      "path": "research/vibe-core-rebuild/VibeAutotune/SourceFilterCore.h",
+      "sha256": "13e15ac1b3f8dde1f54660dec6a95c85e1041f51a9f44b98601e306943ebb39b",
+      "bytes": 17553
+    },
+    {
+      "path": "research/vibe-core-rebuild/tests/ContractTests.cpp",
+      "sha256": "10652dfb36cd26a8528538c21b95724afda53f0da34a5d3f2c9e50ae32c3a442",
+      "bytes": 2533
+    },
+    {
+      "path": "research/vibe-core-rebuild/tests/CoreTests.cpp",
+      "sha256": "6564d253df884a979728c0d07781b9917d6eb661aaaafc68cbf551315560258b",
+      "bytes": 8445
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/ReferenceRunner.cpp",
+      "sha256": "a9dc82316decbe14278fd144dcb1f3c06306222bcb4e9dfa45fa0f5284d1a3fa",
+      "bytes": 3564
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/RenderTrace.cpp",
+      "sha256": "ad07a20c527b1b04bf177df8aa82039faf9c755374ba1cccbe62fe8d2d5e0f77",
+      "bytes": 3941
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/audit_provenance.py",
+      "sha256": "e6760eb58b3168eb4cf096298759a9f696fbb743ef349c9fb7334d5d45ab24d9",
+      "bytes": 2799
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/host/StudioForgeCalibrationRunner.cpp",
+      "sha256": "70bb87347961381c31b6a33637ba6766f6a9b74e550b1bdb35e5fe3a2b73cbad",
+      "bytes": 12150
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/import_frozen_contract.py",
+      "sha256": "cc1dacbbdc220776c4da5abd876cbe8f581672836a7d1cabfe62fd6f182cfee7",
+      "bytes": 2991
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/measure_candidate.py",
+      "sha256": "6d39a318a34fec74a60252fac78abf84df540af3f39d01fcb0035584ca24b8eb",
+      "bytes": 7324
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/measure_consonants.py",
+      "sha256": "418678de936842a25e435f6d5524335568450689036a406c26d61a4592d24db4",
+      "bytes": 1009
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/prepare_host_reference_runner.py",
+      "sha256": "af7095048279dbf57230673a8cdcba323eed6151d7de70a9e9009bf087877ed3",
+      "bytes": 1405
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/prepare_listening.py",
+      "sha256": "2ebd56c35949ce14232eb26387aeb973781b3f71f84332dfbcc025d97d30a5dd",
+      "bytes": 1595
+    },
+    {
+      "path": "research/vibe-core-rebuild/tools/run_independent.py",
+      "sha256": "f01c096d45a9bd1c07f82d244f17338688671393e85adf31ddd8c22ab5be92b2",
+      "bytes": 2501
+    },
+    {
+      "path": "router-link/CMakeLists.txt",
+      "sha256": "4a879b7dc655adbb26c410a815821d4adc99a8ff4c3c995aabe9cd6e4a56fad7",
+      "bytes": 8370
+    },
+    {
+      "path": "router-link/README.md",
+      "sha256": "8ab8eaf80c6620329729a19d9d2c54c4f671cc75bbd28e89b8a48cce57ec8c46",
+      "bytes": 4785
+    },
+    {
+      "path": "router-link/core/AudioFormat.cpp",
+      "sha256": "d9064d619bb67677092047ae56cd285723ca7b15a8cdbfe105f1931d3bbb895d",
+      "bytes": 201
+    },
+    {
+      "path": "router-link/core/AudioFormat.h",
+      "sha256": "ab5ae2bcbb584cca678b830da1ece9ee0472373ed92e160caa9e0029154ebc58",
+      "bytes": 351
+    },
+    {
+      "path": "router-link/core/RoutingCore.cpp",
+      "sha256": "ed80cc0f75b5c7fdb7d88b439159158f9c7aae595297674912081bae03431642",
+      "bytes": 9284
+    },
+    {
+      "path": "router-link/core/RoutingCore.h",
+      "sha256": "b52b372ece43fa8a84f8b6d9f335cb9cf573cac42e2ccb48da68c405b04bb16a",
+      "bytes": 2844
+    },
+    {
+      "path": "router-link/platform/README.md",
+      "sha256": "c4ac1ef772ab85af05a6a40f33ff7c066133cc92654beafd0a4d5e48fe17979d",
+      "bytes": 121
+    },
+    {
+      "path": "router-link/platform/macos/NativeAudio.cpp",
+      "sha256": "093023ba5b8c0e0dd3d3b71d85a8067276342c013a99f8677a8cd5ec17ad4dc2",
+      "bytes": 9455
+    },
+    {
+      "path": "router-link/platform/macos/NativeAudio.h",
+      "sha256": "7c3fc68f583477823a72c67d1192fb5a0e1f526d5b3fdb5d5fa97a616e83ce21",
+      "bytes": 1361
+    },
+    {
+      "path": "router-link/standalone/main.cpp",
+      "sha256": "a1db28309b11213a3ef00f4673c49a3e0160894030f919a5aceddddd8f91a6f6",
+      "bytes": 2060
+    },
+    {
+      "path": "router-link/studioforge/README.md",
+      "sha256": "446bf95268c20b9d5ee72be7d6480fbc19770682c977e721fe95202ce6d55eef",
+      "bytes": 2714
+    },
+    {
+      "path": "router-link/tests/AudioFormatSmokeTest.cpp",
+      "sha256": "f668a675ed52850ebe646db3a2dac77018ee84773663f6a989692cee307d6b76",
+      "bytes": 567
+    },
+    {
+      "path": "router-link/tests/CoreAudioEnvironmentProbe.cpp",
+      "sha256": "34db6e2585475cd4c1fbc94d9e474c102f75a40921bbe1716f66657e953dd8e9",
+      "bytes": 7822
+    },
+    {
+      "path": "router-link/tests/HalDuplexLoopbackTests.cpp",
+      "sha256": "facb3b5680b36a419cec59d5bd15c7f64d787bf363d7a17cf0f2f9ca988227c4",
+      "bytes": 7892
+    },
+    {
+      "path": "router-link/tests/HalFoundationTests.cpp",
+      "sha256": "e114f83497161996470a49fcb83305b5d5b51312e108bcfff8e98893a0612403",
+      "bytes": 7376
+    },
+    {
+      "path": "router-link/tests/HalNativeProbe.cpp",
+      "sha256": "0be89e00130143ecb7b33ebac171231cc1d73982e7348411398fa05154f603af",
+      "bytes": 9714
+    },
+    {
+      "path": "router-link/tests/RoutingCoreTests.cpp",
+      "sha256": "9c1565a67960f6db7d4da9b65e8c26256e7ac240535a7c613799e250860bee98",
+      "bytes": 4943
+    },
+    {
+      "path": "router-link/tests/StereoLoopbackRingTests.cpp",
+      "sha256": "a43eaf7331d81cbdf3592681f7aefcab177f7fb3993b0b5d51c74c4ec5a7d1fb",
+      "bytes": 1839
+    },
+    {
+      "path": "router-link/tests/VirtualInputFormatTests.cpp",
+      "sha256": "09bdd133c19972dacd500017f44d9e2ef4e06e02d56495a80a9b4b4e89d8f9c4",
+      "bytes": 751
+    },
+    {
+      "path": "router-link/virtual-device/README.md",
+      "sha256": "bbf1f0920486bbd5292e13028277af5609a7130f4716e34aab55b981b3471800",
+      "bytes": 2518
+    },
+    {
+      "path": "router-link/virtual-device/macos/HAL_AUDIT.md",
+      "sha256": "0034c797af0dce52880c044935b8b4fe0588aab232142f9b1797146f04547894",
+      "bytes": 2367
+    },
+    {
+      "path": "router-link/virtual-device/macos/HalDuplexLoopback.cpp",
+      "sha256": "3b70e13fe6373e01c391c30be05aa717b7c3ab14b1f527a9d443ddde57db2fc9",
+      "bytes": 6101
+    },
+    {
+      "path": "router-link/virtual-device/macos/HalDuplexLoopback.h",
+      "sha256": "22420c8b28715058f06e7d40b38492b6d2f4ed56e01f0111247aba483d65a684",
+      "bytes": 2358
+    },
+    {
+      "path": "router-link/virtual-device/macos/HalPreflight.cpp",
+      "sha256": "e93d08faa51bc3d498d4c3f907a0379bec9b4e6d68f6c74f0a9bef6c14e75e45",
+      "bytes": 2260
+    },
+    {
+      "path": "router-link/virtual-device/macos/LIVE_CONNECT_E2E_HOST_PROCEDURE.md",
+      "sha256": "184a1384026bbb8db5913167a8cd8767c2d98c20809e87f7090e5377440b4f6e",
+      "bytes": 4115
+    },
+    {
+      "path": "router-link/virtual-device/macos/NATIVE_TEST_PLAN.md",
+      "sha256": "a198815840144fc28b7987d669cf575bd0c37377d76bdc694fd9a85ac45bb9aa",
+      "bytes": 5049
+    },
+    {
+      "path": "router-link/virtual-device/macos/StereoLoopbackRing.cpp",
+      "sha256": "3617e957ae4520632fe8f448b4451ee2d43c8ea33faace3bcf72fcd0ef1d048b",
+      "bytes": 3303
+    },
+    {
+      "path": "router-link/virtual-device/macos/StereoLoopbackRing.h",
+      "sha256": "50a3b80fd181634418f1c7b667b51aac6c6caad707e4570d8422e566746c9268",
+      "bytes": 2024
+    },
+    {
+      "path": "router-link/virtual-device/macos/StudioForgeLinkHAL-Info.plist.in",
+      "sha256": "9f209e5bf10af19cb9adeb4a353eeba30ee6ac7f9079f895ee16f0127cab006d",
+      "bytes": 1090
+    },
+    {
+      "path": "router-link/virtual-device/macos/StudioForgeLinkHAL.cpp",
+      "sha256": "213f0e6a50f588e8c08208a39e7480db6192d6a961ba95214060fe8bd69bfb0c",
+      "bytes": 26855
+    },
+    {
+      "path": "router-link/virtual-device/macos/VirtualInputFormat.cpp",
+      "sha256": "09f0eb0006d25bcbb509e49d57f847434cc3718209aaf9ff6539aae62a998b42",
+      "bytes": 521
+    },
+    {
+      "path": "router-link/virtual-device/macos/VirtualInputFormat.h",
+      "sha256": "e2708bfa7af3ce455e3d7946eea6f0a7b875d76e504b1b9b7378996e79052fc8",
+      "bytes": 567
+    },
+    {
+      "path": "tune-AI/.gitignore",
+      "sha256": "94ed65c9be104bdce98e123a6d29d2bdea6febda720438071b4570e4140a57f3",
+      "bytes": 1970
+    },
+    {
+      "path": "tune-AI/CLAUDE.md",
+      "sha256": "c296497a3a54b64fd6343d439c4c39b611890c8a5600790e86066e86b55e22bd",
+      "bytes": 4688
+    },
+    {
+      "path": "tune-AI/CODEX_HANDOFF_2026-09-30.md",
+      "sha256": "400539fc2938aa4e594eda560a6244ee1e55533ed6a7dd9fd1cc22e5409ea1b9",
+      "bytes": 3648
+    },
+    {
+      "path": "tune-AI/DESIGN_UI_HANDOFF.md",
+      "sha256": "e5bf8303398a328ed0c809a6f988a883c97734996a1a46b6117e58e0035cc6bc",
+      "bytes": 3089
+    },
+    {
+      "path": "tune-AI/PROJECT_STATUS.md",
+      "sha256": "2a216e85fb88cc3cb2a3fa74adb0d7a647d12d971d7d7f98cf534ab1f6e31893",
+      "bytes": 40881
+    },
+    {
+      "path": "tune-AI/THM Vocal Panel.spec",
+      "sha256": "aa20f9c1c29725f209fbb9ac96f436a8f81b9a65230114ba6b2149ac71191d83",
+      "bytes": 2523
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_bottom_bar.png",
+      "sha256": "1a6361f63ada2ca69fbc9ac29b15b09389d91e0fbc96abb96b1b37eeee3815e9",
+      "bytes": 60863
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_full_left_app.png",
+      "sha256": "f34495f109bb26652f0541b7ed271960cb24cca9e424f57e9d9b31f1d2bf7386",
+      "bytes": 1110592
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_header_strip.png",
+      "sha256": "1953cb9463dccee17202574c7b51ac9678d37aa5b34bc11dd28e46e532951d4e",
+      "bytes": 33153
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_main_chassis.png",
+      "sha256": "24e5024202b2314131ca4eb29f81460ec66cd037d8b5728cb7acc80d948ba1bc",
+      "bytes": 164501
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_section_effect.png",
+      "sha256": "f9451ab39bd43e76641d32325d712ea8e6a6291108063b2e85c3fdb1b6224302",
+      "bytes": 18990
+    },
+    {
+      "path": "tune-AI/assets/analog/01_BACKGROUNDS/BG_section_volume.png",
+      "sha256": "0b504fbd42aec79d60f631f0f0fe9bf1e6c56ede4198d383828521637b7837e2",
+      "bytes": 26054
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_MAIN_blender_ref.png",
+      "sha256": "6648ffe968b9e6b8fee30e435d76b6bc7b4dc615fe1b83370524c5c055836467",
+      "bytes": 33816
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_MAIN_reference.png",
+      "sha256": "f3cca3add5b7823b98df8b5aa1101daede6a7f7819985fae204e5c81f1e1fab6",
+      "bytes": 35167
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_SMALL_blender_ref.png",
+      "sha256": "95ffaa07ddb073e7d0d82a833fd4f540e3efeb6160f550aa5e1b0670b9edae61",
+      "bytes": 26965
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_SMALL_reference.png",
+      "sha256": "6d5331d3964bfa5ebc705846cf2605a3047692843c3fe67198c886519a84279e",
+      "bytes": 27311
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_TUNE_blender_ref.png",
+      "sha256": "dcb8b1b64a1dc4f5d92191db17503e43039c8cee324e3d2bc18a978af1ae3b47",
+      "bytes": 27863
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/KNOB_TUNE_reference.png",
+      "sha256": "50fd87d70c9f428402788079283427045a5d629d3facdd9d725926117c51c616",
+      "bytes": 28712
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/frames/README.md",
+      "sha256": "89cf706c9d26df0febb84aed2af0a23c00790e70df0ef5b0a64d9a404d12475e",
+      "bytes": 1226
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/frames/main/00.png",
+      "sha256": "4f4a7f079ba5257d2ad716da6898e269f898dffb8b08b1601263b7f3190f3610",
+      "bytes": 44792
+    },
+    {
+      "path": "tune-AI/assets/analog/02_KNOBS/frames/small/00.png",
+      "sha256": "203b44e1988369428ee0928f42dbc332af24104721578bd753c62e782d479129",
+      "bytes": 59313
+    },
+    {
+      "path": "tune-AI/assets/analog/03_LCD_METERS/LCD_TONE.png",
+      "sha256": "48cdee194a9a5fc7625c0d2c5fd49b802d61e22d4f1bf9eb677afb9bc299b451",
+      "bytes": 14442
+    },
+    {
+      "path": "tune-AI/assets/analog/03_LCD_METERS/LCD_TONE_SHIFT.png",
+      "sha256": "d706f962c7a6850e8e100ee65691510a62d8f8955f44a4252dba910a544acd4c",
+      "bytes": 10334
+    },
+    {
+      "path": "tune-AI/assets/analog/03_LCD_METERS/LEVEL_METER.png",
+      "sha256": "b74f7c21e8d278f5a6608a28766320544721f22ad7b0b213dc0294f60da9a705",
+      "bytes": 20272
+    },
+    {
+      "path": "tune-AI/assets/analog/04_TOP_CONTROLS/BTN_AUTO.png",
+      "sha256": "ecac7a2e20334dfb6ca099dece7b540ebf4bd2fc05aa115bd76856cccd94ad60",
+      "bytes": 12307
+    },
+    {
+      "path": "tune-AI/assets/analog/04_TOP_CONTROLS/BTN_EDIT.png",
+      "sha256": "f67c7eff2dbf50889b403891c272f1fa60457dd2ebf03059479781b02fc99bc6",
+      "bytes": 10772
+    },
+    {
+      "path": "tune-AI/assets/analog/04_TOP_CONTROLS/BTN_FIX.png",
+      "sha256": "3f59d700a228a68cf6d9c140c421df6f94f0433eb4a6671d92e047a87cac6325",
+      "bytes": 10692
+    },
+    {
+      "path": "tune-AI/assets/analog/04_TOP_CONTROLS/BTN_MINUS.png",
+      "sha256": "9ab5a0fd49e8fa6bc7ed0097e052e4908ce446e12991bbba4eb1d8221fb9f725",
+      "bytes": 4806
+    },
+    {
+      "path": "tune-AI/assets/analog/04_TOP_CONTROLS/BTN_PLUS.png",
+      "sha256": "5032e3e75af20d2bb8d945070721d03dd5f2d25fcd742245b45a61f13147cb55",
+      "bytes": 6438
+    },
+    {
+      "path": "tune-AI/assets/analog/05_MODE_TILES/TILE_BOLERO.png",
+      "sha256": "954b1726650ce82fbc7dcbe13763770c5db82e8e783a113f589a2175ef7f7b25",
+      "bytes": 20863
+    },
+    {
+      "path": "tune-AI/assets/analog/05_MODE_TILES/TILE_LOFI.png",
+      "sha256": "11cc966690aefbf8c3063d9fc735a1059e09c6cbe0d2745e42c82f3b5fda66e3",
+      "bytes": 20915
+    },
+    {
+      "path": "tune-AI/assets/analog/05_MODE_TILES/nhac_tre_background.png",
+      "sha256": "e162e202eb892e7f984a016df2024590eba49d95a0732baaa77a0497c2cebb50",
+      "bytes": 1857725
+    },
+    {
+      "path": "tune-AI/assets/analog/05_MODE_TILES/remix_background.png",
+      "sha256": "fb28b7c024b0673e8a2a4f8ac882857cdbd5796f0d3d339b1e0c0a58a8b92e84",
+      "bytes": 1701685
+    },
+    {
+      "path": "tune-AI/assets/analog/05_MODE_TILES/remix_icon.png",
+      "sha256": "eae1699624d9a3d4add5d7e0abbf4dccc030f21e53503ef58011993637d52e9f",
+      "bytes": 6065
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_CONTACT_flat.png",
+      "sha256": "731a981fb830c40b4a7ced799a2054a90bb6a6d5a13ecc4f2108b5dc1436c0af",
+      "bytes": 13070
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_EXIT_flat.png",
+      "sha256": "060b123f1c0798ec63400f47968f0eee0e5182a1e52d669bae89ca2511b7d9da",
+      "bytes": 13221
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_KARAOKE_flat.png",
+      "sha256": "e47bfbcae15be5ff4f69729d0889f280934149bb30669e24555ebcdb7483c4b3",
+      "bytes": 14264
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_MIC_ON_flat.png",
+      "sha256": "f380e0d1b2c72cb8809030f35fb879d8bbf4b5a741ba2031fd09ceac162d86a4",
+      "bytes": 12874
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_PLAYLIST_flat.png",
+      "sha256": "8d5e8cd2969c4b05d4eb8802e3f5c6a059888b54747dc29ea14e0e20a631d7f4",
+      "bytes": 14291
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_SAVE_flat.png",
+      "sha256": "d0eeb3ae1fd8eb4f698bd974c0895d5804d65bdbab9ae8086db3548b3f3bb0d7",
+      "bytes": 14450
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_SETTINGS_flat.png",
+      "sha256": "65fec3a1a27b23735bf7df4ea9b442ab9d48b1b9027e6ec18d297feaaaa6a845",
+      "bytes": 13538
+    },
+    {
+      "path": "tune-AI/assets/analog/06_BOTTOM_BUTTONS/BTN_VANG_ON_flat.png",
+      "sha256": "cf1b990301f8deb22786da4649d8b5774538c38312406a11f8d30ab75c0d7a56",
+      "bytes": 14311
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_HEADPHONE.png",
+      "sha256": "37cdfded972c25d1ce9dd59a23c36d1efc2124edff2eaaffcb1f72c27e261bc9",
+      "bytes": 6463
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_LIST.png",
+      "sha256": "e79310e1fc0c4d1ffa64505aed678419d74a4c3b142043390a78cc1c9b03062c",
+      "bytes": 5670
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_MIC.png",
+      "sha256": "db47d4ad013f97351a5e41f7d4dfd0750f22f7c9f6b02368a73b1aeee86723c2",
+      "bytes": 6087
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_PHONE.png",
+      "sha256": "c799eba1962c910ca995d12ea7d04ba702d2b0553cef4552925709aa5f3f77d3",
+      "bytes": 6110
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_PLAY.png",
+      "sha256": "805a79b76f62547072333c1690517c65819de40c23990c5c3a9d4b3ce04e85a8",
+      "bytes": 5530
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_POWER.png",
+      "sha256": "0ae6a6a52c917b89a12c41855bfaf247a6a4cb977d4cbbf55c51b7c966880be4",
+      "bytes": 6334
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_SAVE.png",
+      "sha256": "77671c5bf5d91003254a26f3556dd735d00b2398b1c9ae80a40200d387c84d8c",
+      "bytes": 5835
+    },
+    {
+      "path": "tune-AI/assets/analog/07_ICONS/ICON_SETTING.png",
+      "sha256": "5211aa8da2143779252cbaa311e524e4def4bab5594376ae0db59edf8cbf8b79",
+      "bytes": 7008
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/GLASS_TEXTURE.png",
+      "sha256": "5bb377e328a95d7cab55877a3202668d8f184f27190d230a62b859058e15e522",
+      "bytes": 7408
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/KNOB_TEXTURE.png",
+      "sha256": "9b9d31729cc314de70a29324f20aa684d8dc05cb9fd883eef0febde73af5e378",
+      "bytes": 13470
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/METAL_TEXTURE.png",
+      "sha256": "e03cb3fb3868e0f81129ba047f3279f2780a3f1fa277501f0975cf1f7e835e80",
+      "bytes": 21141
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/PANEL_TEXTURE.png",
+      "sha256": "cf9bfdd6150f782be94cbfe925d1eead359939bb141c3a8ec0e3f821879afc89",
+      "bytes": 16019
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/PCB_BG.png",
+      "sha256": "9df3fc94214230daf682627a99a6bc128a210fb9ef5d3673e1cb0c0e592a314e",
+      "bytes": 18046
+    },
+    {
+      "path": "tune-AI/assets/analog/08_TEXTURES/SCREW_reference.png",
+      "sha256": "323f223e75b3ddb6c5f37a5be8cf090aefdf30185278877ea2559bb7bec5941d",
+      "bytes": 11332
+    },
+    {
+      "path": "tune-AI/assets/analog/BG_full_left_app.png",
+      "sha256": "f34495f109bb26652f0541b7ed271960cb24cca9e424f57e9d9b31f1d2bf7386",
+      "bytes": 1110592
+    },
+    {
+      "path": "tune-AI/assets/analog/THM_full_app_reference.png",
+      "sha256": "f34495f109bb26652f0541b7ed271960cb24cca9e424f57e9d9b31f1d2bf7386",
+      "bytes": 1110592
+    },
+    {
+      "path": "tune-AI/assets/analog/THM_full_app_reference_meter_clean.png",
+      "sha256": "10254fc31bbd140a8b0111e9ea92a74dc9e30ef59f55097c54b14bddbf85108f",
+      "bytes": 917082
+    },
+    {
+      "path": "tune-AI/assets/analog/blender_render/THM_hardware_components.blend",
+      "sha256": "aaa11daf3b17752ad78ecbf26bddf4532271ee45647f997ce06a8f35a9ca810b",
+      "bytes": 1795936
+    },
+    {
+      "path": "tune-AI/assets/analog/blender_render/THM_hardware_components.png",
+      "sha256": "422a9723376cdbf8316c171564322fccea0244f934e4fac2992b70c4eae31493",
+      "bytes": 1424860
+    },
+    {
+      "path": "tune-AI/assets/analog/design_tokens.json",
+      "sha256": "289eb4aa3f1e4f418f7eb295cc611d2352907b1dbd4c92dbb72f4cb061c894e6",
+      "bytes": 555
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/01_chassis_shell_EMPTY_no_runtime_data.png",
+      "sha256": "075d473fde50952c7a70c9007520f478efdb3de111ee8c806f1d168c9cc62a06",
+      "bytes": 314101
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/autokey_chassis_blender_clean@2x.blend",
+      "sha256": "f508e30ee426b9c08310ab720c5ae55847147be5fe451d29a1d32b6e6689d1b9",
+      "bytes": 3186296
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/autokey_chassis_blender_clean@2x.png",
+      "sha256": "ad2858d7ad6c704698b5d3fd2794a820dcb671b3aab868a16f7bee601c923d3c",
+      "bytes": 6882069
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/bezel@2x.png",
+      "sha256": "f63bd2319901deb1ffbdf70ec7ea4510904e5dde5fc6ecda0450b44df767dc10",
+      "bytes": 49775
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/eq_grid_EMPTY_1054x207@2x.png",
+      "sha256": "02a7d6ecf5693892ebbfb645ed63db06c2eba3fc15ff2b403214e22e897893ec",
+      "bytes": 10481
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/face_blank_NO_VALUE@2x.png",
+      "sha256": "d9b4b889e154e091025e19a8fc5a00535a61f67578c6232234405f347ce5285b",
+      "bytes": 38501
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/lcd_blank_270x104@2x.png",
+      "sha256": "6f23c5b3c2860ec2425d8693e29c965dc44a735c9b3bf167fa5ec0f9e198cec7",
+      "bytes": 5085
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/led_segment_amber@2x.png",
+      "sha256": "2c151a745c6045d9683aefa2c244d8d58bc317300d264a1f7c629939446c6e16",
+      "bytes": 294
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/led_segment_green@2x.png",
+      "sha256": "9d69aa2191b12ab676382b0de443e5430797c2c7d5be8149c7c1d54ddeedfc36",
+      "bytes": 290
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/led_segment_off@2x.png",
+      "sha256": "4503e3afa381b3780ad974afaadda4fe32fe9845e7e88544a8056e14a5065652",
+      "bytes": 281
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/led_segment_orange@2x.png",
+      "sha256": "e310aeb2ede43cb6eb1b2b6339af5985d3003bb045634e51556906ee55210931",
+      "bytes": 294
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/meter_two_channel_EMPTY_78x240@2x.png",
+      "sha256": "3e5b76a9d5c5b6340a6937c51756ea056d3e8b0638f916077e1f7c9067aa4c69",
+      "bytes": 5899
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/rounded_black_button@2x.png",
+      "sha256": "07174790669bd3fbf66953eef9eee53b4cc5e2d04ee933effaaa4af55fc0c540",
+      "bytes": 2787
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/rounded_black_button_active@2x.png",
+      "sha256": "ff6e1ac7df6a466c3ddfcb3131b9721bd18a81f2007face832746f3023d8ad4c",
+      "bytes": 3103
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/small_screw_brass@2x.png",
+      "sha256": "fd13940133deb790097c363c86d27b75b8104669aae64ce4bf1aa682868998a3",
+      "bytes": 4153
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/ticks_unlit@2x.png",
+      "sha256": "5afaa1bd78dd02cd979a3456eed144d82c05204459dc7a9427a8b922fa636e4f",
+      "bytes": 12370
+    },
+    {
+      "path": "tune-AI/assets/autokey_atomic/tone_step_button@2x.png",
+      "sha256": "5dd862935d8183a3efd474565686b53e47f09d55e00bdc264852c6c8151210bf",
+      "bytes": 9579
+    },
+    {
+      "path": "tune-AI/assets/icon/BOLERO.png",
+      "sha256": "8921d78ece6bef276956a7751a904153799f44a92ab730553c2fdee194a73613",
+      "bytes": 23283
+    },
+    {
+      "path": "tune-AI/assets/icon/C\u00c0I \u0110\u1eb6T.png",
+      "sha256": "91b1fd26fa2ad2aab0b907c9b55115406661c5ed93a9f8d505159488b368ff82",
+      "bytes": 19795
+    },
+    {
+      "path": "tune-AI/assets/icon/D.S B\u00c0I H\u00c1T.png",
+      "sha256": "a40a541cb46bdfa95358a6622e3f4471e33302f116e3c20e3f578bd694b487ab",
+      "bytes": 10924
+    },
+    {
+      "path": "tune-AI/assets/icon/FIX TONE.png",
+      "sha256": "b5780279857ec3cfb47ca29bd640f84f7bb1b7e55c2d2acd12291a01384350cc",
+      "bytes": 5414
+    },
+    {
+      "path": "tune-AI/assets/icon/HI\u1ec6U \u1ee8NG.png",
+      "sha256": "808720b90300fd3edf1bc21d82c629ecdb76dafeed13fce378576415ac8958aa",
+      "bytes": 18502
+    },
+    {
+      "path": "tune-AI/assets/icon/KARAOKE.png",
+      "sha256": "c16507904186e2a5e1d4cf3a38f18a58174fe21db443efc18a152041e46dfb30",
+      "bytes": 12100
+    },
+    {
+      "path": "tune-AI/assets/icon/LI\u00caN H\u1ec6.png",
+      "sha256": "3fcf9b6e80833290a1be48ae39b1f23c3c4431d2d6857e2ec06414c436932ec6",
+      "bytes": 18072
+    },
+    {
+      "path": "tune-AI/assets/icon/LOFI.png",
+      "sha256": "b7e1b09b62e259ac1c7ce90184e703697e087ba79d212160fb7fb038428a72e6",
+      "bytes": 22402
+    },
+    {
+      "path": "tune-AI/assets/icon/L\u01afU B\u00c0I H\u00c1T.png",
+      "sha256": "505bd289171c2a9b4cf55d08a2e010978c6d4994807a564ed739d90ba4e59b2a",
+      "bytes": 6805
+    },
+    {
+      "path": "tune-AI/assets/icon/MIC ON.png",
+      "sha256": "dba718cbe03489d156ddd2284c054bdb2f7b2bdd6ce5f5636dd465f551f506f8",
+      "bytes": 13506
+    },
+    {
+      "path": "tune-AI/assets/icon/MONITOR.png",
+      "sha256": "377f77c935fc67c276c2544755e446bf9225426ef137dbab8e1fdb2c4ca795dc",
+      "bytes": 16137
+    },
+    {
+      "path": "tune-AI/assets/icon/NH\u1ea0C TR\u1eba.png",
+      "sha256": "f6b598281814a199de9e5da7949205977af688530a927951870d72b14f16a173",
+      "bytes": 15514
+    },
+    {
+      "path": "tune-AI/assets/icon/REMIX.png",
+      "sha256": "5e4b51859cf8a6a27c08b039b15f123ffc2bac65a585b935848e87a8a1617d7c",
+      "bytes": 18840
+    },
+    {
+      "path": "tune-AI/assets/icon/THO\u00c1T.png",
+      "sha256": "ffde3b43967e72e6961523e3ce5c32e606aab21a7efacff032b33b0f9c1b9f2b",
+      "bytes": 18297
+    },
+    {
+      "path": "tune-AI/assets/icon/T\u1ef0 \u0110\u1ed8NG ON.png",
+      "sha256": "69fd1af3cce3883312c2641669b4026ad62fbf3e3ef0da7cf4e3195aa04ad6ce",
+      "bytes": 12073
+    },
+    {
+      "path": "tune-AI/assets/icon/VANG ON.png",
+      "sha256": "f93786989019e06ccc8ab758508ef9d0a94caf80bce8da2e97302361a3fcc6e2",
+      "bytes": 31383
+    },
+    {
+      "path": "tune-AI/assets/icon/VOLUME.png",
+      "sha256": "84da610bcf5f4faf140c002ca76e28a7e27e5bb119f3c8dba4a9acb5a09eea56",
+      "bytes": 12169
+    },
+    {
+      "path": "tune-AI/assets/logo.ico",
+      "sha256": "f4e5e711f24ae9684b9062e586388f515578fe377c952782fdcd52416bbd4f46",
+      "bytes": 29863
+    },
+    {
+      "path": "tune-AI/assets/logo.png",
+      "sha256": "bee075874ee23daffd5d2583fe0c79192354a07056e3bed808f606ff5c5b95e6",
+      "bytes": 12021
+    },
+    {
+      "path": "tune-AI/bang cc maping.png",
+      "sha256": "b55594f9b7aa0c32747f1b588ab12ba18617bef8150a252a9b28a332eb2c5731",
+      "bytes": 110847
+    },
+    {
+      "path": "tune-AI/core/app_controller.py",
+      "sha256": "bbd1e59072d4e5dfaa0a163f36a6d1c34861f0819a19cb5475349c16bbada708",
+      "bytes": 19433
+    },
+    {
+      "path": "tune-AI/core/audio_capture/__init__.py",
+      "sha256": "277654e3b3faadcfd2f6980f01e11cd7d96fcb029acc1eb5749480253f4a7c02",
+      "bytes": 536
+    },
+    {
+      "path": "tune-AI/core/audio_capture/audio_analysis.py",
+      "sha256": "539cdc125065d34880f59e94b8569b7ef65eaa9b416e927f3bb4b453bb15d1fa",
+      "bytes": 3421
+    },
+    {
+      "path": "tune-AI/core/audio_capture/audio_mixer.py",
+      "sha256": "e68415017aa3db4995504a2b6b9977301aa624ce2f5efb020df97591091c4be4",
+      "bytes": 1595
+    },
+    {
+      "path": "tune-AI/core/audio_capture/capture_coordinator.py",
+      "sha256": "cef9e4a350d77d3903d4f240a8883be582ed7916550756d8525f895cda575343",
+      "bytes": 4366
+    },
+    {
+      "path": "tune-AI/core/audio_capture/models.py",
+      "sha256": "e66785ea5f001b9d7855285986455d2762210ce07ef8cb1c68f84e31f79d1bf1",
+      "bytes": 1912
+    },
+    {
+      "path": "tune-AI/core/audio_capture/platform/__init__.py",
+      "sha256": "04ec2c4a3ba759acfc114ffe799ca453256d120295f82d24d190ac93529f6f75",
+      "bytes": 69
+    },
+    {
+      "path": "tune-AI/core/audio_capture/platform/base.py",
+      "sha256": "8c2605b47bb6b0fd6853a5acb7fe42207620829183456d55bb73bc001de7333b",
+      "bytes": 405
+    },
+    {
+      "path": "tune-AI/core/audio_capture/platform/macos_screencapturekit.py",
+      "sha256": "d578eeef22a3866af4f661e1e5ce8ede3f79a5b3181eb1a725360c42b0be89dd",
+      "bytes": 3872
+    },
+    {
+      "path": "tune-AI/core/audio_capture/platform/sounddevice_input.py",
+      "sha256": "e9c2078e148010c888c54b9905d3fac07e6859287c8935f72e6bd1650166df72",
+      "bytes": 2208
+    },
+    {
+      "path": "tune-AI/core/audio_capture/platform/windows_wasapi.py",
+      "sha256": "65d9ded28f3f54e2fa4f8fb4a5e88a4b63d775934271511110b2d7939ddfb511",
+      "bytes": 1897
+    },
+    {
+      "path": "tune-AI/core/constants.py",
+      "sha256": "70a54d6a8daafefcb22222f5e98d64fc9ea90ecf121b33fea60f6a1ce63f83a0",
+      "bytes": 2322
+    },
+    {
+      "path": "tune-AI/core/models.py",
+      "sha256": "f82edf7ca2615f5f8285cee894699e2f575491323767a5c55daf8539ad3bb06a",
+      "bytes": 209
+    },
+    {
+      "path": "tune-AI/core/services/autokey_service.py",
+      "sha256": "22c7b200b11b032cc197f49035e4392bdcff778e275251b689abb61edb911ace",
+      "bytes": 9500
+    },
+    {
+      "path": "tune-AI/core/services/browser_launcher_service.py",
+      "sha256": "2145b2d5d94a5c8d81c2a44a562f45acaa96b9246f46c888e79d173a9425f943",
+      "bytes": 7160
+    },
+    {
+      "path": "tune-AI/core/services/browser_monitor_service.py",
+      "sha256": "3781a7e829b5c786a34ac61de3a203614a76f239e69af346ecddce8b6bd901ef",
+      "bytes": 5508
+    },
+    {
+      "path": "tune-AI/core/services/control_surface_service.py",
+      "sha256": "d5367e73860b67f249dbf92d4cdc67cab3077fda8819692785dfc2b1ed53cab1",
+      "bytes": 3679
+    },
+    {
+      "path": "tune-AI/core/services/credentials_service.py",
+      "sha256": "93e9810cf0ee7a491838e3d89430fcc4d0ce45546678c54047b478be6aca81fc",
+      "bytes": 5006
+    },
+    {
+      "path": "tune-AI/core/services/data_transfer_service.py",
+      "sha256": "e31e8dac55cf3ffd1bf08fc388dca75151f7f951f89cad2b3fd8f7ef6b458797",
+      "bytes": 14065
+    },
+    {
+      "path": "tune-AI/core/services/end_modulation_service.py",
+      "sha256": "5c6aa5c7539ae4aa8cd755b8a8f039afc4f3e5e23cb4d7cc573a0db7aa1ef8af",
+      "bytes": 91575
+    },
+    {
+      "path": "tune-AI/core/services/end_modulation_workflow_service.py",
+      "sha256": "17b9d26b2050fe567b736e9d3ea5fea4ce7d49e5bb8da1acbed78e807a751a60",
+      "bytes": 5004
+    },
+    {
+      "path": "tune-AI/core/services/key_signature_service.py",
+      "sha256": "525fa0aa5d0952a81ebeb0913309f27f6781d9f9b8c4c8a8fe2576628bc62d46",
+      "bytes": 1938
+    },
+    {
+      "path": "tune-AI/core/services/license_service.py",
+      "sha256": "81a6f6c5b75c4be437e7c22ed64377b464c53ac381b177cb76ed04f7fe8ae823",
+      "bytes": 12922
+    },
+    {
+      "path": "tune-AI/core/services/midi_service.py",
+      "sha256": "cf8f5e562c5df721900cf0f1865a298376f0b645d5129bf2676ef201cb0c5c9d",
+      "bytes": 959
+    },
+    {
+      "path": "tune-AI/core/services/mode_settings_service.py",
+      "sha256": "35a7bb6c705a9029af603a22b08fafd1d42b19bd97a0ef8435e098bd3c5a4fa2",
+      "bytes": 5272
+    },
+    {
+      "path": "tune-AI/core/services/performance_surface_service.py",
+      "sha256": "f69cccfbc45f1e7a2bc0cc40ed7c6c464dafd87992c77d2638aec2d26367f356",
+      "bytes": 15055
+    },
+    {
+      "path": "tune-AI/core/services/preset_service.py",
+      "sha256": "28cba98b64aa7ce7898d0da8965cabb4fa69ac12b41652ea030ff8601bacde50",
+      "bytes": 1199
+    },
+    {
+      "path": "tune-AI/core/services/realtime_tone_service.py",
+      "sha256": "b7890240889d0f00cc41f435501690ab0647e462a13d97f5c5248702f91caba2",
+      "bytes": 11492
+    },
+    {
+      "path": "tune-AI/core/services/settings_service.py",
+      "sha256": "d579ebdb7469bec00ae137cb8d2f8ee1bb445ad62f9a1b0fa05ac88f08d337fb",
+      "bytes": 1513
+    },
+    {
+      "path": "tune-AI/core/services/song_service.py",
+      "sha256": "a73f6ad10944193e20bd5b2cd4ee4463d46a58d0eaae7a5390b445b7d4e9ec38",
+      "bytes": 3211
+    },
+    {
+      "path": "tune-AI/core/services/tone_application_service.py",
+      "sha256": "ede6532fa82f66ffc3189a582b28cc1576214189d0f12d3e0b7c9f3314f308c6",
+      "bytes": 2636
+    },
+    {
+      "path": "tune-AI/core/services/tone_cache_service.py",
+      "sha256": "3c247fe0a74ff83d40b78a6196d6f0d2178cba260083abfc73d17ac2a8d5e4cd",
+      "bytes": 20486
+    },
+    {
+      "path": "tune-AI/core/services/tone_service.py",
+      "sha256": "202257754547e62874fa63f1c84f4b02565cea3864097789b96cf17680711b24",
+      "bytes": 50653
+    },
+    {
+      "path": "tune-AI/core/services/tone_source_coordinator.py",
+      "sha256": "c1658ec222ae2861f95f2b4cbd890434903cb8a71d43f0e6641d97866556d49c",
+      "bytes": 1427
+    },
+    {
+      "path": "tune-AI/core/services/tone_workflow_service.py",
+      "sha256": "1981e5b7e77f76df1f1e0a74d84a9cdd35710e614dc2e8500ca84c804f3601c2",
+      "bytes": 10997
+    },
+    {
+      "path": "tune-AI/core/services/youtube_playback_service.py",
+      "sha256": "d627d8a5d244e9dbd5c8c10bb776aed183ae35e45d598e44ee4110235628f5a1",
+      "bytes": 4051
+    },
+    {
+      "path": "tune-AI/core/services/ytdlp_maintenance_service.py",
+      "sha256": "ed7cb1d5b4974372d178e3241f6276efc4edc277f65f2946f9b1a11272638437",
+      "bytes": 4324
+    },
+    {
+      "path": "tune-AI/data/mode_presets.json",
+      "sha256": "2321bb8efd0769afefde2f1e702dded2e343a30b31e2871f94e3d217185c4416",
+      "bytes": 389
+    },
+    {
+      "path": "tune-AI/daw_bridge.py",
+      "sha256": "268bf8b423e3650cbde930eacfb1526c64b7e2cbaf7d5dc77950169aa15e697c",
+      "bytes": 1795
+    },
+    {
+      "path": "tune-AI/debug_auto.py",
+      "sha256": "0ccbfc1e2448ff3821a0bab08ed0f1c310ab920ca25f90d729941b324e8236d9",
+      "bytes": 1830
+    },
+    {
+      "path": "tune-AI/debug_tone.py",
+      "sha256": "f40a57020b2ee2cc8bccd7b0690d2ed254fb570bfbd7e52189db581341ad167e",
+      "bytes": 7529
+    },
+    {
+      "path": "tune-AI/encrypt_credentials.py",
+      "sha256": "957532e512b6018c576cc20c6f93f7a43cdbbafe08e42f45621848a35a725c6e",
+      "bytes": 2436
+    },
+    {
+      "path": "tune-AI/main.py",
+      "sha256": "8c40e9aac217d028e865c3083ad56a21159359dc61f3c040ec668ecba4924c7e",
+      "bytes": 3959
+    },
+    {
+      "path": "tune-AI/native/macos/SystemAudioCapture.swift",
+      "sha256": "5b76ee9043d510853445e144885ac5e847e862dde87971efddb7d8beec9ea7d9",
+      "bytes": 5311
+    },
+    {
+      "path": "tune-AI/native/macos/build_system_audio_capture.sh",
+      "sha256": "27857483a698f5256f207e96d04b1786a17f33f2556818a1a8b06a2666ccf9d9",
+      "bytes": 166
+    },
+    {
+      "path": "tune-AI/pyproject.toml",
+      "sha256": "4ea660c5d061aab1f87bb88bcf573cc769a14e8abd2b42af9bbe1c14a2f3840a",
+      "bytes": 318
+    },
+    {
+      "path": "tune-AI/requirements.txt.txt",
+      "sha256": "bce3f5aa059ccc6ec80ee3d43f52804f9547e69a71add4f244eac9fe5aa7f3bd",
+      "bytes": 167
+    },
+    {
+      "path": "tune-AI/test_end_modulation_ui.py",
+      "sha256": "2deb6ce9fc4afef57265be614c5cc9624e2d8066bba0dd5987372189ecef1c4d",
+      "bytes": 24981
+    },
+    {
+      "path": "tune-AI/tests/audio_capture/test_audio_pipeline.py",
+      "sha256": "b841428737e74327a6de1345c3f0d1978d35f8eaa1eb09056936750455d10d97",
+      "bytes": 2387
+    },
+    {
+      "path": "tune-AI/tests/test_atomic_surface.py",
+      "sha256": "4b5c503ef82633c833d79b0afb8d6c9d481ee4c1f3ce7bd5367fd711277352ea",
+      "bytes": 15123
+    },
+    {
+      "path": "tune-AI/tests/test_browser_monitor.py",
+      "sha256": "79d5f69d6c6c79a91c7c1d6dda8028ee9afba42b2c82e27f6343e217d3b8f48e",
+      "bytes": 1557
+    },
+    {
+      "path": "tune-AI/tests/test_eq_parameter_dialog.py",
+      "sha256": "251ba322322bb94c72b4ff34c526775a252f3d6af5d5f5cbb9d16913d8f0ecee",
+      "bytes": 1966
+    },
+    {
+      "path": "tune-AI/tests/test_macro_surface_state.py",
+      "sha256": "d100dd1a490aa1b645b270ae62c7f1e601fe83ab1da82c4f27a485dbb0409bf3",
+      "bytes": 947
+    },
+    {
+      "path": "tune-AI/tests/test_mode_presets.py",
+      "sha256": "a775b60194b8e86ba38e7f4f98bd5f9bc71c387c970dc7b68df16eb6e51396e2",
+      "bytes": 2290
+    },
+    {
+      "path": "tune-AI/tests/test_parameter_pagination.py",
+      "sha256": "050dd208eb8e62268330737947ccfdd074e9f2ae61098ddfc1c1144d1dff5a69",
+      "bytes": 6432
+    },
+    {
+      "path": "tune-AI/tests/test_tone_source_coordinator.py",
+      "sha256": "f1b63c87fbf98e2c6b15348dab6d513582ff999447a924720236b9ee30f9a92c",
+      "bytes": 1319
+    },
+    {
+      "path": "tune-AI/tests/test_tone_value_utils.py",
+      "sha256": "1a6ac242dfe63940dc0dd587d6ac3e74ea011f64f95f448bc21d623a34b73f60",
+      "bytes": 1159
+    },
+    {
+      "path": "tune-AI/tests/test_workflows.py",
+      "sha256": "80228897d064c72449a6104b09bb90e2b69f3ab19d6dcf75538b0ee701712b47",
+      "bytes": 6615
+    },
+    {
+      "path": "tune-AI/tools/build_autokey_chassis_blender.py",
+      "sha256": "20702dea216cb9aea19ecb24b34e31e92397bf9e26a7617cfca216c5f398f20d",
+      "bytes": 19246
+    },
+    {
+      "path": "tune-AI/tools/compare_atomic_surface.py",
+      "sha256": "7a43636602e814205df1de32e2d616814b87c5161639517a760231aeb8e2203b",
+      "bytes": 1541
+    },
+    {
+      "path": "tune-AI/tools/render_atomic_surface.py",
+      "sha256": "03a828dfec50fb07a2a23cc58362120f96e4b39150a985c2ba11fedc44e5ba79",
+      "bytes": 3454
+    },
+    {
+      "path": "tune-AI/tools/render_knob_frames.py",
+      "sha256": "4344f9fd02aebb2bf446048a1ecd30de8627841f4a23321b42ef8dcb844a9cb9",
+      "bytes": 5353
+    },
+    {
+      "path": "tune-AI/ui/analog_components.py",
+      "sha256": "dc4d63ea9d6156f8d9ad5b5eae15ca8e90754d84ed3dea54a09b1e3860c882d5",
+      "bytes": 41862
+    },
+    {
+      "path": "tune-AI/ui/analog_dialog_theme.py",
+      "sha256": "cf290819a482ba4b168c8cdab93d5eb9ea69e467a98f980eaba074eaa96b30c1",
+      "bytes": 7704
+    },
+    {
+      "path": "tune-AI/ui/analog_theme.py",
+      "sha256": "effe4fd60f5aeb814eb467f8ce88bf59fb01a4416cf05f113bd9aab27284a27d",
+      "bytes": 3364
+    },
+    {
+      "path": "tune-AI/ui/atomic_surface.py",
+      "sha256": "7341a5caed523a9c131ae118dc5877341934a94cbe4c789d10be32ff8108d325",
+      "bytes": 110338
+    },
+    {
+      "path": "tune-AI/ui/audio_permissions_dialog.py",
+      "sha256": "93af43fe1bb11a29fc2baa1639b5c9aa4cc82fc20298e629594d21cc48bed049",
+      "bytes": 1756
+    },
+    {
+      "path": "tune-AI/ui/autokey_visual_tokens.py",
+      "sha256": "7171363005967fd3e89856320233bdc058260915b4a0032ed468a0244b98822b",
+      "bytes": 2182
+    },
+    {
+      "path": "tune-AI/ui/eq_parameter_dialog.py",
+      "sha256": "544100aed6b978e47fe593e8283f5c7876866bbcec0ad55c424e34a576846b37",
+      "bytes": 5806
+    },
+    {
+      "path": "tune-AI/ui/macro_surface_state.py",
+      "sha256": "e571d452c9ec613aa2bd225d80e408143d085449f7f276c7623217c15c4306f4",
+      "bytes": 975
+    },
+    {
+      "path": "tune-AI/ui/main_window.py",
+      "sha256": "aa09bfa15792d8075b13d8caed3c971b23ebb3b8035722f6be525489865735a9",
+      "bytes": 189234
+    },
+    {
+      "path": "tune-AI/ui/mode_profile_dialog.py",
+      "sha256": "fc0110785881d227928677b48f924416edc8db83c9ec988640c01a91f977bb0f",
+      "bytes": 5081
+    },
+    {
+      "path": "tune-AI/ui/performance_macro_dialog.py",
+      "sha256": "142a1ab5a83c682beac72ed77a35dafa9f7e8359ec65e8a9e90b037af9b72289",
+      "bytes": 23919
+    },
+    {
+      "path": "tune-AI/ui/premium_widgets.py",
+      "sha256": "d84e38e2e271fddb03694e4bbfd752ba274fb45ff24538bdfdfa0a13e4e47e60",
+      "bytes": 41788
+    },
+    {
+      "path": "tune-AI/ui/settings_dialog.py",
+      "sha256": "746f14970542ee907a738548f84904231318a9f4d276a7f9f573f9dfc76c9e77",
+      "bytes": 22935
+    },
+    {
+      "path": "tune-AI/ui/song_manager_dialog.py",
+      "sha256": "4465fa558ec2760bb6cd0da4a9d834df5e0d94710395a0cc2d4f98c4b5aec3c6",
+      "bytes": 16317
+    },
+    {
+      "path": "tune-AI/ui/test_browser_monitor.py",
+      "sha256": "eb958df0c715bd1508546c72bcc7275757524a75e2d630cf4f60b08c8e4de202",
+      "bytes": 533
+    },
+    {
+      "path": "tune-AI/ui/theme.qss",
+      "sha256": "5c5f57c8e48544aef0ee690c16b54ca2472899a25c59b2158c663f7fe1a06afd",
+      "bytes": 4579
+    },
+    {
+      "path": "tune-AI/ui/tone_value_utils.py",
+      "sha256": "c392062e273f46f23dd0ca77fea44d18d2b4d171783d19541a4c484141e86fe8",
+      "bytes": 1601
+    },
+    {
+      "path": "tune-AI/ui/window_chrome.py",
+      "sha256": "3e57ef1cbf22c2636c096dce4a4083e7054ff317c4f664e71f53bc1a8f451f2d",
+      "bytes": 3820
+    },
+    {
+      "path": "tune-AI/ui/youtube_panel.py",
+      "sha256": "b16092a7f3c35893be620bcba44eae9963c8c38f09aaddca47b2b79b45f5b210",
+      "bytes": 13871
+    }
+  ],
+  "excluded_files": [
+    "Source/Services/StudioForgeCalibrationRunner.cpp.pre-gtsinger-key-aware",
+    "autotune/.third_party/signalsmith_stretch-src/web/demo/loop.mp3",
+    "tune-AI/.DS_Store",
+    "tune-AI/StudioForgeVst3Catalog.xml",
+    "tune-AI/data/app_settings.json",
+    "tune-AI/data/autokey_config.json",
+    "tune-AI/data/correction_history.json",
+    "tune-AI/data/mode_settings.json",
+    "tune-AI/data/songs.json",
+    "tune-AI/data/tone_cache.json",
+    "tune-AI/assets/autokey_atomic/autokey_chassis_blender_clean@2x.blend1",
+    "calibration-build.log",
+    ".DS_Store",
+    "StudioForgeVst3Catalog.xml",
+    "THM_Lofi_Bolero_Reference_Tiles.zip",
+    "THM_NhacTre_Remix_Current_Components.zip",
+    "StudioForge-Source-External-Audio-Review.zip",
+    "research/vibe-core-rebuild/artist-verified.log",
+    "research/vibe-core-rebuild/build-final.log",
+    "research/vibe-core-rebuild/final-host.log",
+    "research/vibe-core-rebuild/host-holdout-v1.log",
+    "research/vibe-core-rebuild/host-v1.log",
+    "research/vibe-core-rebuild/host-v2.log",
+    "research/vibe-core-rebuild/tests-final.log",
+    "research/calibration/.tmp_monitor_PluginEditor.h",
+    "research/calibration/.tmp_PluginEditor.cpp",
+    "research/calibration/.tmp_notegrid_PluginEditor.h",
+    "research/calibration/.DS_Store",
+    "research/calibration/.tmp_PluginProcessor.cpp",
+    "research/calibration/StudioForgeVst3Catalog.xml",
+    "research/calibration/.tmp_monitor_PluginEditor.cpp",
+    "research/calibration/.tmp_final_layout_PluginEditor.h",
+    "research/calibration/.tmp_notegrid_PluginEditor.cpp",
+    "research/calibration/.tmp_final_layout_PluginEditor.cpp",
+    "research/calibration/.tmp_NotePolicyTest.cpp",
+    "research/calibration/.tmp_chassis_PluginEditor.cpp",
+    "research/calibration/.tmp_CorrectionTrajectory.h",
+    "research/calibration/.tmp_NotePolicy.h"
+  ],
+  "secret_scan_findings": [],
+  "handoff_only_edits": [
+    "README.md",
+    ".gitignore"
+  ],
+  "excluded_directory_categories": [
+    "build/dist/release",
+    "artifacts/results",
+    "virtualenv/node_modules/cache",
+    "git history",
+    "local settings/private data"
+  ]
+}

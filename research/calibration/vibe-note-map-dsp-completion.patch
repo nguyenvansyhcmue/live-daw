@@ -1,0 +1,189 @@
+--- a/VibeAutotune/NotePolicy.h
++++ b/VibeAutotune/NotePolicy.h
+@@ -20,6 +20,27 @@
+     return rule == NoteRule::Legal || rule == NoteRule::BypassLegal;
+ }
+ 
++struct VocalTargetRange
++{
++    int firstMidi = 0;
++    int lastMidi = 127;
++};
++
++// This is a target-selection restriction, not a substitute for the separate
++// F0-analysis bandwidth.  The values intentionally match the four input
++// profiles used by the editor and pitch detector.
++constexpr VocalTargetRange vocalTargetRangeForInputType (int inputType) noexcept
++{
++    switch (inputType)
++    {
++        case 0:  return { 54, 83 }; // Soprano: F#3–B5
++        case 1:  return { 45, 77 }; // Alto:    A2–F5
++        case 2:  return { 40, 71 }; // Tenor:   E2–B4
++        case 3:  return { 33, 62 }; // Low:     A1–D4
++        default: return { 0, 127 };
++    }
++}
++
+ // Presentation is deliberately a one-way mapping from the DSP state.  The
+ // glyph is never parsed by the processor or used to choose a target note.
+ constexpr const char* noteRuleGlyph (NoteRule rule) noexcept
+@@ -44,6 +65,7 @@
+     std::array<NoteRule, 128> midiNoteOverrides {};
+     std::array<bool, 128> hasMidiNoteOverride {};
+     bool groupOctaves = true;
++    VocalTargetRange targetRange {};
+ 
+     NoteRule ruleForMidi (int midiNote) const noexcept
+     {
+@@ -53,4 +75,10 @@
+              ? midiNoteOverrides[static_cast<size_t> (midiNote)]
+              : pitchClassDefaults[static_cast<size_t> (midiNote % 12)];
+     }
++
++    bool isLegalTarget (int midiNote) const noexcept
++    {
++        return midiNote >= targetRange.firstMidi && midiNote <= targetRange.lastMidi
++            && isLegalNoteRule (ruleForMidi (midiNote));
++    }
+ };
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -319,6 +319,10 @@
+ {
+     NotePolicySnapshot snapshot;
+     snapshot.groupOctaves = groupOctaves.load (std::memory_order_relaxed);
++    // Voice is both an analyser profile and a musical target range. The
++    // immutable snapshot keeps this UI-to-audio handoff realtime-safe.
++    snapshot.targetRange = vocalTargetRangeForInputType (static_cast<int> (
++        parameters.getRawParameterValue ("inputType")->load (std::memory_order_relaxed)));
+     for (int pitchClass = 0; pitchClass < 12; ++pitchClass)
+         snapshot.pitchClassDefaults[static_cast<size_t> (pitchClass)] = noteRuleFromValue (
+             pitchClassDefaultPolicy[static_cast<size_t> (pitchClass)].load (std::memory_order_relaxed));
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -619,7 +619,12 @@
+         const auto sourceRule = notePolicy.ruleForMidi (sourceMidi);
+         const auto rawCandidate = selectPolicyTarget (desiredMidi, sourceRule, notePolicy, currentTargetNote);
+         if (rawCandidate < 0)
++        {
++            // Empty eligible set, an exhausted vocal range, or a directional
++            // boundary means unity/dry correction. Never retain a stale
++            // target or redirect to the opposite direction.
+             return output;
++        }
+ 
+         updateTrajectoryPreview (desiredMidi, signedInputDeltaCents, notePolicy, hardLockPreset);
+ 
+@@ -723,7 +728,7 @@
+         const auto inputJump = std::isfinite (previousInputPitchCents)
+                              ? std::abs (inputCents - previousInputPitchCents) : 0.0;
+         const auto currentTargetIsValid = currentTargetNote >= 0
+-                                       && isLegalNoteRule (notePolicy.ruleForMidi (currentTargetNote));
++                                       && notePolicy.isLegalTarget (currentTargetNote);
+         const auto targetBeforeSelection = currentTargetNote;
+         auto targetDecisionMidpointCents = std::numeric_limits<double>::quiet_NaN();
+         auto targetDecisionExcessCents = 0.0;
+@@ -2326,7 +2331,7 @@
+         auto bestDistance = std::numeric_limits<double>::infinity();
+         for (int note = 0; note <= 127; ++note)
+         {
+-            if (! isLegalNoteRule (policy.ruleForMidi (note)))
++            if (! policy.isLegalTarget (note))
+                 continue;
+ 
+             const auto distance = std::abs (static_cast<double> (note) - desiredMidi);
+@@ -2347,7 +2352,7 @@
+         const auto initial = upward ? static_cast<int> (std::floor (desiredMidi)) + 1
+                                     : static_cast<int> (std::ceil (desiredMidi)) - 1;
+         for (int note = initial; note >= 0 && note <= 127; note += upward ? 1 : -1)
+-            if (isLegalNoteRule (policy.ruleForMidi (note)))
++            if (policy.isLegalTarget (note))
+                 return note;
+         return -1;
+     }
+@@ -2356,7 +2361,7 @@
+                                   int direction) noexcept
+     {
+         for (int note = currentNote + direction; note >= 0 && note <= 127; note += direction)
+-            if (isLegalNoteRule (policy.ruleForMidi (note)))
++            if (policy.isLegalTarget (note))
+                 return note;
+         return -1;
+     }
+@@ -2364,6 +2369,8 @@
+     static int selectPolicyTarget (double desiredMidi, NoteRule sourceRule,
+                                    const NotePolicySnapshot& policy, int currentTarget) noexcept
+     {
++        // Directional policies deliberately do not fall back to a nearest
++        // note on the other side. A missing target returns -1 (unity/dry).
+         if (sourceRule == NoteRule::IllegalUp)
+             return directedLegalNote (desiredMidi, policy, true);
+         if (sourceRule == NoteRule::IllegalDown)
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -866,17 +866,11 @@
+ 
+ bool VibeAutotuneEditor::isNoteInSelectedVoiceRange (int midiNote) const noexcept
+ {
+-    // Display range only; audio tracking limits remain wholly DSP-owned.
+-    static constexpr std::array<std::pair<int, int>, 4> ranges {{
+-        { 52, 84 }, // Soprano: E3–C6
+-        { 55, 77 }, // Alto:    G3–F5
+-        { 48, 72 }, // Tenor:   C3–C5
+-        { 40, 64 }  // Low:     E2–E4
+-    }};
++    // Match the target-range table used by CorrectionTrajectory exactly.
+     const auto* parameter = processor.parameters.getRawParameterValue ("inputType");
+     const auto voice = parameter != nullptr ? juce::jlimit (0, 3, juce::roundToInt (parameter->load (std::memory_order_relaxed))) : 1;
+-    const auto [lowest, highest] = ranges[(size_t) voice];
+-    return midiNote >= lowest && midiNote <= highest;
++    const auto range = vocalTargetRangeForInputType (voice);
++    return midiNote >= range.firstMidi && midiNote <= range.lastMidi;
+ }
+ 
+ void VibeAutotuneEditor::applyNoteRule (int midiNote, NoteRule rule)
+--- a/tests/NotePolicyTest.cpp
++++ b/tests/NotePolicyTest.cpp
+@@ -200,5 +200,40 @@
+     require (result.targetNote == 64 && std::abs (result.correctionCents) > 1.0,
+              "BypassLegal was not usable as a legal landing target");
+ 
+-    std::cout << "note_policy | C_major=pass G_major=pass nearest=pass up=pass down=pass bypass=pass overrides=pass persistence=pass\n";
++    // Range eligibility is part of policy resolution, not merely a dimming
++    // effect in the editor. An excluded B must be able to redirect across an
++    // octave to C, provided that C remains in the selected voice range.
++    auto ranged = cMajor();
++    ranged.targetRange = { 60, 72 };
++    ranged.pitchClassDefaults[11] = NoteRule::IllegalUp;
++    trajectory.reset();
++    result = settle (trajectory, 71, ranged);
++    require (result.targetNote == 72,
++             "IllegalUp did not find its legal target across an octave within range");
++
++    // Directional rules at a range boundary fail closed: they never wrap,
++    // retain a previous target, or reverse direction.
++    ranged.pitchClassDefaults[0] = NoteRule::IllegalDown;
++    trajectory.reset();
++    result = settle (trajectory, 60, ranged);
++    require (result.targetNote < 0 && ! result.hasValidCorrection,
++             "Range-boundary IllegalDown did not resolve to unity/dry");
++
++    // A completely empty legal set has the same deterministic safe fallback.
++    NotePolicySnapshot emptyPolicy;
++    emptyPolicy.targetRange = { 0, 127 };
++    for (auto& rule : emptyPolicy.pitchClassDefaults)
++        rule = NoteRule::IllegalNearest;
++    trajectory.reset();
++    result = settle (trajectory, 60, emptyPolicy);
++    require (result.targetNote < 0 && ! result.hasValidCorrection,
++             "Empty legal set did not resolve to unity/dry");
++
++    require (vocalTargetRangeForInputType (0).firstMidi == 54
++             && vocalTargetRangeForInputType (0).lastMidi == 83
++             && vocalTargetRangeForInputType (3).firstMidi == 33
++             && vocalTargetRangeForInputType (3).lastMidi == 62,
++             "Vocal target range mapping changed unexpectedly");
++
++    std::cout << "note_policy | C_major=pass G_major=pass nearest=pass up=pass down=pass bypass=pass overrides=pass persistence=pass range=pass empty=pass\n";
+ }

@@ -1,0 +1,25 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -112,5 +112,11 @@
+ #endif
+ 
++// Offline Hook-2 A/B switch: permit the already-certified trajectory
++// predictor to lead a hard-tune target by one analysis decision.
++#ifndef VIBE_HARD_TUNE_TRAJECTORY_PREVIEW
++ #define VIBE_HARD_TUNE_TRAJECTORY_PREVIEW 0
++#endif
++
+ // This policy is deliberately independent of formant preservation. Formant
+ // is a renderer property; Classic changes only target/Flex/transition policy.
+ enum class TuningPolicy : uint8_t { Standard = 0, Classic = 1 };
+@@ -712,8 +718,8 @@ public:
+         // before the raw candidate confirmed it, then force a return one
+         // frame later (for example C# -> D -> C# on a stable vowel).
+         // Keep the preview telemetry, but do not let it become an audible
+         // target until it has a separately validated renderer use.
+-        constexpr bool enableHardTuneTrajectoryPreview = false;
++        constexpr bool enableHardTuneTrajectoryPreview = VIBE_HARD_TUNE_TRAJECTORY_PREVIEW != 0;
+         const auto canUseHardTunePreview = enableHardTuneTrajectoryPreview && trajectoryPreviewNote >= 0;
+         const auto hardTuneCandidate = canUseHardTunePreview ? trajectoryPreviewNote
+                                                               : rawCandidate;

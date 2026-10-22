@@ -1,0 +1,134 @@
+diff --git a/Source/UI/InspectorComponents.h b/Source/UI/InspectorComponents.h
+--- a/Source/UI/InspectorComponents.h
++++ b/Source/UI/InspectorComponents.h
+@@ -2,4 +2,5 @@
+ 
+ #include <array>
++#include <functional>
+ #include <memory>
+ #include <vector>
+@@ -57,4 +58,20 @@ private:
+     juce::Label monitorStatus;
+ };
+ 
++class AudioFxSlotButton final : public juce::TextButton
++{
++public:
++    std::function<void()> onContextMenu;
++
++    void mouseUp(const juce::MouseEvent& event) override
++    {
++        if (event.mods.isPopupMenu())
++        {
++            if (onContextMenu != nullptr) onContextMenu();
++            return;
++        }
++        juce::TextButton::mouseUp(event);
++    }
++};
++
+ enum class ChannelRole { selectedTrack, stereoOutput };
+@@ -98,7 +113,7 @@ private:
+     juce::Rectangle<int> sceneBounds;
+     juce::Rectangle<int> sendsBounds;
+     juce::Rectangle<int> routingBounds;
+-    std::array<juce::TextButton, TrackDataModel::maxFxSlots> audioFxSlots;
++    std::array<AudioFxSlotButton, TrackDataModel::maxFxSlots> audioFxSlots;
+     juce::Label heading;
+     juce::Label fxHeading { {}, "AUDIO FX" };
+     juce::TextButton addAudioFx { "+ Add Audio FX" };
+diff --git a/Source/UI/InspectorComponents.cpp b/Source/UI/InspectorComponents.cpp
+--- a/Source/UI/InspectorComponents.cpp
++++ b/Source/UI/InspectorComponents.cpp
+@@ -318,18 +318,32 @@ ChannelStripComponent::ChannelStripComponent(ChannelRole role, TrackDataModel& m
+         button.setTooltip("Click to add or manage an audio effect");
+         button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff303b42));
+         button.setColour(juce::TextButton::textColourOffId, StudioForgeTheme::primaryText.withAlpha(0.88f));
++        button.onContextMenu = [this, slot]
++        {
++            const auto rack = isSelectedTrackStrip()
++                                ? (selectedTrack >= 0 ? trackModel.getFxRackSnapshot(static_cast<size_t>(selectedTrack)) : nullptr)
++                                : audioEngine.getMasterFxRackSnapshot();
++            if (rack != nullptr && rack->processors[slot] != nullptr)
++                showAudioFxMenu(slot);
++            else
++                showPluginBrowser(slot);
++        };
+         button.onClick = [this, slot]
+         {
+             const auto rack = isSelectedTrackStrip()
+                                 ? (selectedTrack >= 0 ? trackModel.getFxRackSnapshot(static_cast<size_t>(selectedTrack)) : nullptr)
+                                 : audioEngine.getMasterFxRackSnapshot();
+             const auto processor = rack != nullptr ? rack->processors[slot] : nullptr;
+             if (processor == nullptr)
++            {
+                 showPluginBrowser(slot);
+-            else if (processor->hasEditor())
+-                showPluginEditor(slot);
++                return;
++            }
++            if (isSelectedTrackStrip())
++                audioEngine.setFxBypassed(static_cast<size_t>(selectedTrack), slot, ! rack->bypass[slot]);
+             else
+-                showAudioFxMenu(slot);
++                audioEngine.setMasterFxBypassed(slot, ! rack->bypass[slot]);
++            refresh();
+         };
+         addAndMakeVisible(button);
+     }
+@@ -529,13 +543,23 @@ void ChannelStripComponent::refreshAudioFx()
+     for (size_t slot = 0; slot < audioFxSlots.size(); ++slot)
+     {
+         const auto processor = rack != nullptr ? rack->processors[slot] : nullptr;
+-        audioFxSlots[slot].setVisible(slot < visibleSlots);
+-        audioFxSlots[slot].setButtonText(processor != nullptr
+-                                             ? processor->getName() + (rack->bypass[slot] ? "  [BYP]" : "")
+-                                             : juce::String {});
+-        audioFxSlots[slot].setTooltip(processor == nullptr ? "Insert audio effect"
+-            : rack->bypass[slot] ? "Bypassed — click to open editor; use context actions to enable or replace"
+-                                  : "Click to open plug-in editor");
++        auto& button = audioFxSlots[slot];
++        const auto bypassed = processor != nullptr && rack->bypass[slot];
++        button.setVisible(slot < visibleSlots);
++        button.setButtonText(processor == nullptr ? juce::String {}
++                            : (bypassed ? juce::String::fromUTF8("○  ") : juce::String::fromUTF8("●  "))
++                                + processor->getName());
++        button.setColour(juce::TextButton::buttonColourId,
++                         processor == nullptr ? juce::Colour(0xff303b42)
++                                              : bypassed ? juce::Colour(0xff252a2e)
++                                                         : juce::Colour(0xff276776));
++        button.setColour(juce::TextButton::textColourOffId,
++                         processor == nullptr ? StudioForgeTheme::primaryText.withAlpha(0.45f)
++                                              : bypassed ? StudioForgeTheme::primaryText.withAlpha(0.48f)
++                                                         : juce::Colour(0xffeffcff));
++        button.setTooltip(processor == nullptr ? "Click to insert a plug-in"
++            : bypassed ? "OFF — click to enable; right-click for Replace or Remove"
++                       : "ON — click to bypass; right-click for Replace, Remove or Editor");
+     }
+     addAudioFx.setVisible(visibleSlots < audioFxSlots.size());
+     resized();
+@@ -762,10 +786,20 @@ void ChannelStripComponent::showAudioFxMenu(size_t slot)
+ {
+     if (isSelectedTrackStrip() && selectedTrack < 0) return;
++    const auto rack = isSelectedTrackStrip() ? trackModel.getFxRackSnapshot(static_cast<size_t>(selectedTrack))
++                                              : audioEngine.getMasterFxRackSnapshot();
++    const auto occupied = rack != nullptr && rack->processors[slot] != nullptr;
++    const auto bypassed = occupied && rack->bypass[slot];
+     juce::PopupMenu menu;
+-    menu.addItem(1, "Remove Audio FX"); menu.addItem(2, "Add Gain Utility"); menu.addItem(3, "Bypass");
+-    menu.addItem(4, "Browse Audio Units & VST3..."); menu.addItem(5, "Scan VST3 Plug-in File..."); menu.addItem(6, "Open Plug-in Editor");
++    menu.addItem(3, bypassed ? "Enable Plug-in" : "Bypass Plug-in", occupied);
++    menu.addItem(6, "Open Plug-in Editor", occupied && rack->processors[slot]->hasEditor());
++    menu.addSeparator();
++    menu.addItem(4, occupied ? "Replace Plug-in..." : "Choose Plug-in...");
++    menu.addItem(1, "Remove Plug-in", occupied);
++    menu.addSeparator();
++    menu.addItem(2, "Replace with Gain Utility");
++    menu.addItem(5, "Scan VST3 Plug-in File...");
+     const auto canAddMidiFx = isSelectedTrackStrip() && selectedTrack >= 0
+         && trackModel.getTrack(static_cast<size_t>(selectedTrack)).type != TrackType::audio;
+-    menu.addItem(7, "Add MIDI Transpose (+12)", canAddMidiFx);
+-    menu.showMenuAsync(juce::PopupMenu::Options {}, [this, slot] (int choice)
++    menu.addItem(7, "Replace with MIDI Transpose (+12)", canAddMidiFx);
++    menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&audioFxSlots[slot]), [this, slot] (int choice)
+     {

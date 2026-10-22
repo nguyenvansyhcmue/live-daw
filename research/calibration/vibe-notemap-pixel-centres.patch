@@ -1,0 +1,92 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -812,23 +812,24 @@ void VibeAutotuneEditor::drawRuleMarker (juce::Graphics& g, juce::Rectangle<flo
+                                          NoteRule rule, float opacity) const
+ {
+-    // Purple is a legal target; magenta with a white dash is excluded.
+-    // Expert rules use vector marks so they cannot suffer font-glyph fallback.
++    // A restrained graphite/smoke palette belongs to the champagne hardware
++    // surface.  State remains explicit through the vector mark and a subtle
++    // tonal shift, without the old purple/neon ruler dominating the keyboard.
+     g.saveState();
+     g.setOpacity (juce::jlimit (0.0f, 1.0f, opacity));
+     b = b.reduced (0.75f);
+-    const auto fill = rule == NoteRule::Legal          ? juce::Colour (0xff3b1c50)
+-                    : rule == NoteRule::IllegalNearest ? juce::Colour (0xffff00ff)
+-                    : rule == NoteRule::IllegalUp      ? juce::Colour (0xff8d43ac)
+-                    : rule == NoteRule::IllegalDown    ? juce::Colour (0xff73359a)
+-                                                        : juce::Colour (0xff6c4a73);
++    const auto fill = rule == NoteRule::Legal          ? juce::Colour (0xff292b2a)
++                    : rule == NoteRule::IllegalNearest ? juce::Colour (0xff65434d)
++                    : rule == NoteRule::IllegalUp      ? juce::Colour (0xff515b5e)
++                    : rule == NoteRule::IllegalDown    ? juce::Colour (0xff5c545c)
++                                                        : juce::Colour (0xff464947);
+     g.setColour (juce::Colours::black.withAlpha (.62f));
+     g.fillRoundedRectangle (b.translated (0.0f, 1.0f), 2.2f);
+     g.setColour (fill); g.fillRoundedRectangle (b, 2.2f);
+-    g.setColour (juce::Colours::white.withAlpha (.18f));
++    g.setColour (champagne.withAlpha (.28f));
+     g.drawRoundedRectangle (b.reduced (.35f), 1.9f, .65f);
+ 
+     const auto midX = b.getCentreX(), midY = b.getCentreY();
+-    const auto white = juce::Colours::white.withAlpha (.94f);
++    const auto white = ivory.withAlpha (.92f);
+     if (rule == NoteRule::Legal || rule == NoteRule::IllegalNearest)
+     {
+         // Every ordinary slot has the same centred machined dash.  Colour and
+@@ -987,37 +988,47 @@ void VibeAutotuneEditor::resized()
+     // A dedicated gap separates context, per-note states and physical keys.
+     const auto keyboard = D (57, 790, 1334, 154).toFloat();
+     const auto statusStrip = D (57, 770, 1334, 16).toFloat();
+     const auto whiteWidth = keyboard.getWidth() / 35.0f;
++    // Quantise both visual layers through one coordinate pipeline.  A key and
++    // its rule marker now own the same physical half-pixel centre, preventing
++    // the alternating one-pixel drift that appeared at scaled host sizes.
++    const auto snapHalfPixel = [] (float value)
++    {
++        return std::round (value * 2.0f) * 0.5f;
++    };
+     int whiteIndex = 0;
+     for (int note = firstKey; note <= lastKey; ++note)
+         if (! blackKey (note))
+         {
+-            const auto x0 = keyboard.getX() + (float) whiteIndex * whiteWidth;
+-            const auto x1 = keyboard.getX() + (float) (++whiteIndex) * whiteWidth;
++            const auto x0 = snapHalfPixel (keyboard.getX() + (float) whiteIndex * whiteWidth);
++            const auto x1 = snapHalfPixel (keyboard.getX() + (float) (++whiteIndex) * whiteWidth);
+             auto& slot = noteMapSlots[(size_t) (note - firstKey)];
+             slot.midiNote = note;
+             slot.isBlack = false;
+             slot.keyBounds = { x0, keyboard.getY(), x1 - x0, keyboard.getHeight() };
+         }
+-    const auto blackWidth = juce::jmax (7.0f * layout.scale, whiteWidth * .61f);
++    const auto blackWidth = snapHalfPixel (juce::jmax (7.0f * layout.scale, whiteWidth * .61f));
+     for (int note = firstKey; note <= lastKey; ++note)
+         if (blackKey (note))
+         {
+             const auto& left = noteMapSlots[(size_t) (note - 1 - firstKey)].keyBounds;
+             auto& slot = noteMapSlots[(size_t) (note - firstKey)];
+             slot.midiNote = note;
+             slot.isBlack = true;
+-            slot.keyBounds = { left.getRight() - blackWidth * .5f, left.getY(),
++            const auto centreX = snapHalfPixel (left.getRight());
++            slot.keyBounds = { centreX - blackWidth * .5f, left.getY(),
+                                blackWidth, keyboard.getHeight() * .66f };
+         }
+     for (int note = firstKey; note <= lastKey; ++note)
+     {
+         auto& slot = noteMapSlots[(size_t) (note - firstKey)];
+         const auto nominalWidth = (slot.isBlack ? 15.0f : 18.0f) * layout.scale;
+-        const auto markerWidth = juce::jlimit (8.0f * layout.scale, nominalWidth,
+-                                               slot.keyBounds.getWidth() - 2.0f * layout.scale);
++        const auto markerWidth = snapHalfPixel (juce::jlimit (8.0f * layout.scale, nominalWidth,
++                                                              slot.keyBounds.getWidth() - 2.0f * layout.scale));
++        const auto centreX = snapHalfPixel (slot.keyBounds.getCentreX());
++        slot.keyBounds.setCentre (centreX, slot.keyBounds.getCentreY());
+         slot.indicatorBounds = juce::Rectangle<float> (markerWidth, statusStrip.getHeight())
+-                                   .withCentre ({ slot.keyBounds.getCentreX(), statusStrip.getCentreY() });
++                                   .withCentre ({ centreX, statusStrip.getCentreY() });
+         noteRuleHitTargets[(size_t) (note - firstKey)].setBounds (
+             slot.indicatorBounds.expanded (2.0f * layout.scale, 1.0f * layout.scale).getSmallestIntegerContainer());
+     }

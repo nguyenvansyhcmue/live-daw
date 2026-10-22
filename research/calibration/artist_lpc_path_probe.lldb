@@ -1,0 +1,22 @@
+# Offline-only: the calibration runner stops under LLDB. Never attach to live audio.
+command script import /Users/hiimdrdey/autotune/artist_lpc_path_probe.py
+script artist_lpc_path_probe.initialize(lldb.debugger)
+target modules add '/Library/Audio/Plug-Ins/Components/Auto-Tune Artist.component/Contents/MacOS/Auto-Tune Artist'
+breakpoint set --name 'AutoTunePluginAudioProcessor::parameterChanged' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.parameter_changed 1
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.dt_process 2
+breakpoint set --name 'ATLiveDSP::AT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.at_process 3
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::LPC_inv_fir' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.lpc_entry 4
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::LPC_fwd_iir' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.lpc_entry 5
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::LPC_design' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.lpc_entry 6
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::LPC_model_glottal' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.lpc_entry 7
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::LPC_remove_glottal' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_lpc_path_probe.lpc_entry 8
+run
+process kill

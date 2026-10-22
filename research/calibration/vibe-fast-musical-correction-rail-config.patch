@@ -1,0 +1,39 @@
+diff --git a/VibeAutotune/CorrectionTrajectory.h b/VibeAutotune/CorrectionTrajectory.h
+--- a/VibeAutotune/CorrectionTrajectory.h
++++ b/VibeAutotune/CorrectionTrajectory.h
+@@ -91,6 +91,9 @@
+ #ifndef VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS
+  #define VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS VIBE_MAXIMUM_LIVE_CORRECTION_CENTS
+ #endif
++#ifndef VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
++ #define VIBE_MUSICAL_RAIL_MAX_RETUNE_MS 50.0
++#endif
+ 
+ // This policy is deliberately independent of formant preservation. Formant
+ // is a renderer property; Classic changes only target/Flex/transition policy.
+@@ -1384,7 +1387,7 @@
+         // active for hard-lock, so removing this amplitude rail does not
+         // create a rectangular ratio jump.
+         const auto descentRailGuardActive = descentRailGuardSamples > 0 && ! hardLockPreset;
+-        const auto correctionRailCents = correctionRailForControls (hardLockPreset,
++        const auto correctionRailCents = correctionRailForControls (retuneSpeedMs, hardLockPreset,
+                                                                       naturalVibratoPercent);
+         const auto desiredCorrectionCents = descentRailGuardActive
+                                           ? softRailLimit (rawDesiredCorrectionCents)
+@@ -2070,12 +2073,14 @@
+     static constexpr double musicalMaximumLiveCorrectionCents = VIBE_MUSICAL_MAXIMUM_LIVE_CORRECTION_CENTS;
+     static constexpr double hardLockZeroTolerance = 0.05;
+ 
+-    static constexpr double correctionRailForControls (bool hardLockPreset,
++    static constexpr double correctionRailForControls (double retuneSpeedMs,
++                                                        bool hardLockPreset,
+                                                         double naturalVibratoPercent) noexcept
+     {
+         const auto usesNaturalVibrato = naturalVibratoPercent > hardLockZeroTolerance
+                                       || naturalVibratoPercent < -hardLockZeroTolerance;
+-        return ! hardLockPreset && ! usesNaturalVibrato
++        return retuneSpeedMs <= VIBE_MUSICAL_RAIL_MAX_RETUNE_MS
++            && ! hardLockPreset && ! usesNaturalVibrato
+              ? musicalMaximumLiveCorrectionCents
+              : maximumLiveCorrectionCents;
+     }

@@ -1,0 +1,24 @@
+diff --git a/VibeAutotune/PluginProcessor.cpp b/VibeAutotune/PluginProcessor.cpp
+--- a/VibeAutotune/PluginProcessor.cpp
++++ b/VibeAutotune/PluginProcessor.cpp
+@@ -18,5 +18,12 @@ namespace
+ #endif
+ constexpr int rendererControlIntervalSamples = VIBE_RENDERER_CONTROL_INTERVAL_SAMPLES;
++// Candidate-only hook.  The shipped value remains two control ticks; an
++// offline build may measure whether a single certified hard-tune tick closes
++// short-note misses without changing the selector or any public control.
++#ifndef VIBE_HARD_TUNE_ENGAGE_CONTROL_FRAMES
++ #define VIBE_HARD_TUNE_ENGAGE_CONTROL_FRAMES 2
++#endif
++
+ constexpr double rendererControlDezipperFastSeconds = 0.006;
+ constexpr double rendererControlDezipperSlowSeconds = 0.032;
+ // Measured against the Artist F#4 control fixture. The spectral renderer
+@@ -1873,6 +1880,6 @@ void VibeAutotuneProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
+             // Two ticks (5.3 ms at 48 kHz) are sufficient to reject a
+             // one-frame false F0 while retaining a smooth 0 ms hard-tune.
+-            const auto requiredEngageFrames = hardTune ? 2 : 3;
++            const auto requiredEngageFrames = hardTune ? VIBE_HARD_TUNE_ENGAGE_CONTROL_FRAMES : 3;
+             rendererCorrectionEngaged = rendererEngageControlFrames >= requiredEngageFrames;
+             rendererReleaseControlFrames = 0;
+             if (rendererCorrectionEngaged)

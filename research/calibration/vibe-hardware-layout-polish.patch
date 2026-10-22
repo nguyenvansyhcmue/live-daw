@@ -1,0 +1,41 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -314,10 +314,9 @@
+-        const auto pointerEndY = c.y - cap.getHeight() * .42f;
+-        g.setColour (brass.withAlpha (.22f)); g.drawLine ({ c + juce::Point<float> (0, -cap.getHeight() * .08f), { c.x, pointerEndY } }, large ? 7.0f : 4.0f);
+-        g.setColour (juce::Colour (0xffffdda0)); g.drawLine ({ c + juce::Point<float> (0, -cap.getHeight() * .08f), { c.x, pointerEndY } }, large ? 2.4f : 1.7f);
+-        const auto lampSize = large ? 5.0f : 3.4f;
+-        g.setColour (brass.withAlpha (.85f)); g.fillEllipse (c.x - lampSize * .5f, pointerEndY - lampSize * .5f, lampSize, lampSize);
++        // A short inlaid paint mark at the rim reads as a real hardware cap;
++        // it deliberately does not run from the centre like a clock hand.
++        const auto pointerBaseY = c.y - cap.getHeight() * .245f;
++        const auto pointerEndY = c.y - cap.getHeight() * .435f;
++        g.setColour (juce::Colours::black.withAlpha (.52f)); g.drawLine ({ { c.x, pointerBaseY + 1.2f }, { c.x, pointerEndY + 1.2f } }, large ? 5.2f : 3.5f);
++        g.setColour (brass.withAlpha (.92f)); g.drawLine ({ { c.x, pointerBaseY }, { c.x, pointerEndY } }, large ? 2.45f : 1.55f);
+         g.restoreState();
+@@ -676,9 +675,9 @@ void VibeAutotuneEditor::resized()
+     headerBounds = D (38, 43, 1373, 80);
+-    correctionBounds = D (20, 125, 508, 583);
+-    monitorBounds = D (535, 125, 447, 583);
+-    setupBounds = D (989, 125, 435, 583);
+-    pianoBounds = D (17, 718, 1374, 263);
++    correctionBounds = D (20, 139, 508, 569);
++    monitorBounds = D (535, 139, 447, 569);
++    setupBounds = D (989, 139, 435, 569);
++    pianoBounds = D (17, 722, 1374, 259);
+@@ -682,8 +681,10 @@ void VibeAutotuneEditor::resized()
+ 
+-    bypassButton.setBounds (D (1265, 50, 63, 63));
+-    settingsButton.setBounds (D (1347, 61, 43, 43));
++    // Small, deliberate hardware controls; the previous oversized power
++    // glyph competed with the header instead of reading as a switch.
++    bypassButton.setBounds (D (1273, 56, 52, 52));
++    settingsButton.setBounds (D (1348, 62, 40, 40));
+
+@@ -714,8 +715,8 @@ void VibeAutotuneEditor::resized()
+-    auto keyboard = D (43, 778, 1326, 160);
+-    const auto statusStrip = D (43, 758, 1326, 20);
++    // Equal left/right inset keeps the keyboard mechanically centred in its tray.
++    auto keyboard = D (39, 782, 1330, 156);
++    const auto statusStrip = D (39, 762, 1330, 20);

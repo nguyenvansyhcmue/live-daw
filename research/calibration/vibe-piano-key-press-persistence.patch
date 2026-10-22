@@ -1,0 +1,71 @@
+--- a/autotune/VibeAutotune/PluginEditor.h	2026-10-10 13:15:11
++++ b/autotune/VibeAutotune/PluginEditor.h	2026-10-11 19:45:56
+@@ -131,6 +131,10 @@
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     int uiPressedPianoNote = -1;
++    // Mouse selection is an explicit UI target and must not be erased by an
++    // absent tracker frame. Live tracking remains represented separately by
++    // activePianoNote/targetPianoNote.
++    int uiSelectedPianoNote = -1;
+     int uiPressFramesRemaining = 0;
+     float displayedAppliedCorrectionCents = 0.0f;
+     float displayedPitchConfidence = 0.0f;
+--- a/autotune/VibeAutotune/PluginEditor.cpp	2026-10-11 17:47:58
++++ b/autotune/VibeAutotune/PluginEditor.cpp	2026-10-11 19:45:56
+@@ -958,14 +958,19 @@
+     // The keyboard reads like hardware: visible range is selected by VOICE,
+     // and the live detected note visibly depresses instead of drawing a dot.
+     const auto isActive = [&] (int note) { return note == activePianoNote; };
+-    const auto isTargetOnly = [&] (int note) { return note == targetPianoNote && note != activePianoNote; };
++    const auto isManualSelection = [&] (int note) { return note == uiSelectedPianoNote; };
++    const auto isTargetOnly = [&] (int note)
++    {
++        return (note == targetPianoNote || isManualSelection (note)) && note != activePianoNote;
++    };
+     for (int note = firstKey; note <= lastKey; ++note)
+     {
+         if (blackKey (note)) continue;
+         const auto keyFrame = noteMapSlots[(size_t) (note-firstKey)].keyBounds.reduced (.55f);
+         auto b = keyFrame;
+         const auto inRange = isNoteInSelectedVoiceRange (note);
+-        const auto pressed = isActive (note) || (note == uiPressedPianoNote && uiPressFramesRemaining > 0);
++        const auto pressed = isActive (note) || isManualSelection (note)
++            || (note == uiPressedPianoNote && uiPressFramesRemaining > 0);
+         // A real key press exposes a small top gap and a deeper lower shadow;
+         // six design pixels remains readable at host-scaled editor sizes.
+         // Keep the pressed face inside the physical key frame.  Translating
+@@ -1004,7 +1009,8 @@
+         const auto keyFrame = noteMapSlots[(size_t) (note-firstKey)].keyBounds;
+         auto b = keyFrame;
+         const auto inRange = isNoteInSelectedVoiceRange (note);
+-        const auto pressed = isActive (note) || (note == uiPressedPianoNote && uiPressFramesRemaining > 0);
++        const auto pressed = isActive (note) || isManualSelection (note)
++            || (note == uiPressedPianoNote && uiPressFramesRemaining > 0);
+         // The black-key face is inset and pressed within its own frame; never
+         // let the active treatment float outside or cover neighbouring keys.
+         if (pressed) b = keyFrame.withTrimmedTop (2.0f).withTrimmedBottom (2.0f).translated (0.0f, 1.0f);
+@@ -1344,9 +1350,10 @@
+     // Normal piano interaction selects an explicit target.  Rule editing is
+     // intentionally kept behind the Edit Note toggle so the two workflows do
+     // not mutate each other's state.
+-    const auto selectedTarget = processor.getMidiTargetNote();
+-    processor.setMidiTargetNoteFromUi (selectedTarget == midiNote ? -1 : midiNote);
+-    targetPianoNote = selectedTarget == midiNote ? -1 : midiNote;
++    const auto selectedTarget = uiSelectedPianoNote;
++    uiSelectedPianoNote = selectedTarget == midiNote ? -1 : midiNote;
++    processor.setMidiTargetNoteFromUi (uiSelectedPianoNote);
++    targetPianoNote = uiSelectedPianoNote;
+     repaint (pianoBounds);
+ }
+ 
+@@ -1410,7 +1417,7 @@
+     const auto inputNote = processor.getLatestDetectedMidiNote();
+     const auto targetNote = processor.getLatestTargetMidiNote();
+     activePianoNote = monitorHasValidPitch && inputNote >= 0 ? inputNote : -1;
+-    targetPianoNote = monitorHasValidPitch && targetNote >= 0 ? targetNote : -1;
++    targetPianoNote = monitorHasValidPitch && targetNote >= 0 ? targetNote : uiSelectedPianoNote;
+     groupOctavesButton.setToggleState (processor.getGroupOctaves(), juce::dontSendNotification);
+     const auto caption = processor.hasCustomNotePolicy() ? "SCALE *" : "SCALE";
+     if (scaleLabel.getText() != caption) scaleLabel.setText (caption, juce::dontSendNotification);
+

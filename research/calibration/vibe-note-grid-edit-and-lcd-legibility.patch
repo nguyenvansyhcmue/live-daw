@@ -1,0 +1,124 @@
+--- a/VibeAutotune/PluginEditor.h
++++ b/VibeAutotune/PluginEditor.h
+@@ -105,7 +105,6 @@
+     // UI-only visibility state: an edit marker appears only after the user
+     // changes that note, rather than filling the keyboard with default rules.
+     std::array<bool, 60> noteRuleIndicatorVisible {};
+-    std::array<juce::Rectangle<int>, 5> editRuleBounds;
+     int activePianoNote = -1;
+     int targetPianoNote = -1;
+     float displayedAppliedCorrectionCents = 0.0f;
+@@ -116,7 +115,6 @@
+     float displayedRibbonMotion = 0.0f;
+     bool monitorHasValidPitch = false;
+     bool editNotesEnabled = false;
+-    NoteRule selectedEditRule = NoteRule::Legal;
+     std::array<VibeAutotuneProcessor::WaveformScopeFrame, VibeAutotuneProcessor::waveformScopeCapacity> monitorScopeFrames {};
+     int monitorScopeFrameCount = 0;
+ 
+--- a/VibeAutotune/PluginEditor.cpp
++++ b/VibeAutotune/PluginEditor.cpp
+@@ -485,28 +485,6 @@
+     g.setColour(graphite);g.fillRoundedRectangle(pianoBounds.toFloat(),10);g.setColour(champagne.withAlpha(.45f));g.drawRoundedRectangle(pianoBounds.toFloat().reduced(.5f),10,1);
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+     g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,728,130,24).toNearestInt(),juce::Justification::centredLeft);
+-    if (editNotesEnabled)
+-    {
+-        const std::array<juce::String, 5> labels {{ "ALLOW", "BLOCK", "UP", "DOWN", "BYPASS" }};
+-        for (size_t i = 0; i < editRuleBounds.size(); ++i)
+-        {
+-            const auto rule = static_cast<NoteRule> (i);
+-            auto b = editRuleBounds[i].toFloat().reduced (.5f);
+-            const auto active = rule == selectedEditRule;
+-            const auto ruleColour = rule == NoteRule::Legal         ? brass
+-                                 : rule == NoteRule::IllegalNearest ? juce::Colour (0xffdc655e)
+-                                 : rule == NoteRule::IllegalUp      ? ice
+-                                 : rule == NoteRule::IllegalDown    ? juce::Colour (0xffb68ae3)
+-                                                                      : muted;
+-            g.setColour (active ? ruleColour.withAlpha (.25f) : juce::Colours::black.withAlpha (.36f));
+-            g.fillRoundedRectangle (b, 4.0f);
+-            g.setColour ((active ? ruleColour : champagne).withAlpha (active ? .96f : .56f));
+-            g.drawRoundedRectangle (b, 4.0f, active ? 1.5f : .8f);
+-            drawRuleMarker (g, b.withSizeKeepingCentre (18.0f, 18.0f).withX (b.getX() + 7.0f), rule);
+-            g.setColour (active ? ivory : ivory.withAlpha (.72f)); g.setFont (juce::FontOptions (9.0f * layout.scale, juce::Font::bold));
+-            g.drawText (labels[i], b.toNearestInt().withTrimmedLeft (28), juce::Justification::centred);
+-        }
+-    }
+     drawPitchMonitor(g); drawPianoKeyboard(g);
+ }
+ 
+@@ -650,9 +628,20 @@
+     g.setColour (ice.withAlpha (.62f)); g.strokePath (lowerArc, juce::PathStrokeType (1.2f));
+     for (int i = 0; i < 17; ++i) { const auto a=juce::degreesToRadians(132.0f+i*6.0f); const auto v=juce::Point<float>(std::cos(a),std::sin(a)); g.setColour(brass.withAlpha(.84f)); g.drawLine({c+v*radius*.72f,c+v*radius*.79f},1.0f); }
+     g.setColour (brass.withAlpha (.74f)); g.drawLine (c.x, c.y + radius * .70f, c.x, c.y + radius * .94f, 2.0f);
+-    g.setColour (ice.withAlpha (.90f)); g.setFont (juce::FontOptions (13.0f * layout.scale));
+-    g.drawText ("-50", juce::Rectangle<float> (c.x-radius*.85f,c.y+radius*.45f,42,18).toNearestInt(), juce::Justification::centred);
+-    g.drawText ("+50", juce::Rectangle<float> (c.x+radius*.58f,c.y+radius*.45f,42,18).toNearestInt(), juce::Justification::centred);
++    // Keep cents values outside the radial tick field: they must be legible
++    // labels, never read as extra ticks or collide with the lower arc.
++    const auto drawCentsLegend = [&] (const juce::String& text, float x)
++    {
++        auto legend = juce::Rectangle<float> (40.0f * layout.scale, 18.0f * layout.scale)
++                          .withCentre ({ x, c.y + radius * .60f });
++        g.setColour (juce::Colour (0xff020504).withAlpha (.76f));
++        g.fillRoundedRectangle (legend, 3.0f * layout.scale);
++        g.setColour (ice.withAlpha (.88f));
++        g.setFont (juce::FontOptions (12.0f * layout.scale, juce::Font::bold));
++        g.drawText (text, legend.toNearestInt(), juce::Justification::centred);
++    };
++    drawCentsLegend ("-50", c.x - radius * .72f);
++    drawCentsLegend ("+50", c.x + radius * .72f);
+     // Keep the target readout optically separate from the live filaments.
+     // The narrow smoked plate prevents digits from visually colliding with
+     // bright strands while leaving the original centre-display hierarchy.
+@@ -725,12 +714,11 @@
+         g.setColour (pressed ? brass : champagne.withAlpha (inRange ? .22f : .07f)); g.drawRoundedRectangle (b, 2.0f, pressed ? 1.6f : .7f);
+         if (isTargetOnly (note)) { g.setColour (brass.withAlpha (.82f)); g.drawRoundedRectangle (b.reduced (1.6f), 1.0f, 1.2f); }
+     }
+-    // Keep edit mode quiet: only intentional overrides receive a marker.
+-    // The Key/Scale selectors already describe all untouched notes.
++    // Entering edit mode reveals every status directly above its key. The
++    // keyboard grid is the sole rule selector; no floating tool palette.
+     if (editNotesEnabled)
+         for (int note = firstKey; note <= lastKey; ++note)
+-            if (noteRuleIndicatorVisible[(size_t) (note - firstKey)])
+-                drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
++            drawRuleMarker (g, noteStatusBounds[(size_t) (note-firstKey)].toFloat(), processor.getNoteRuleForMidiNote (note));
+ }
+ 
+ void VibeAutotuneEditor::resized()
+@@ -806,9 +794,6 @@
+     // look detached from both the Note Map and the keys it edits.
+     editNotesButton.setBounds (D (566, 739, 34, 34));
+     groupOctavesButton.setBounds (D (1100, 727, 267, 49));
+-    for (size_t i = 0; i < editRuleBounds.size(); ++i)
+-        editRuleBounds[i] = D (614.0f + static_cast<float> (i) * 88.0f, 727, 82, 34);
+-
+     // Equal left/right inset keeps the keyboard mechanically centred in its tray.
+     auto keyboard = D (57, 782, 1334, 156);
+     const auto statusStrip = D (57, 762, 1334, 20);
+@@ -992,14 +978,6 @@
+     if (! editNotesEnabled)
+         return;
+ 
+-    for (size_t i = 0; i < editRuleBounds.size(); ++i)
+-        if (editRuleBounds[i].contains (event.getPosition()))
+-        {
+-            selectedEditRule = static_cast<NoteRule> (i);
+-            repaint (pianoBounds);
+-            return;
+-        }
+-
+     const auto midiNote = pianoNoteAt (event.getPosition());
+     if (midiNote < 0)
+         return;
+@@ -1009,7 +987,10 @@
+         return;
+ 
+-    applyNoteRule (midiNote, selectedEditRule);
++    const auto current = processor.getGroupOctaves()
++                       ? processor.getNoteRuleForPitchClass (midiNote % 12)
++                       : processor.getNoteRuleForMidiNote (midiNote);
++    applyNoteRule (midiNote, static_cast<NoteRule> ((static_cast<int> (current) + 1) % 5));
+ }
+ void VibeAutotuneEditor::timerCallback()

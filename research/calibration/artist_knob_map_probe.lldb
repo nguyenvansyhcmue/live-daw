@@ -1,0 +1,12 @@
+# OFFLINE calibration runner only. Breakpoints stop the runner briefly;
+# these commands must never be used on a live performance audio thread.
+command script import /Users/hiimdrdey/autotune/artist_knob_map_probe.py
+script artist_knob_map_probe.initialize(lldb.debugger)
+target modules add '/Library/Audio/Plug-Ins/Components/Auto-Tune Artist.component/Contents/MacOS/Auto-Tune Artist'
+breakpoint set --name 'AutoTunePluginAudioProcessor::parameterChanged' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_knob_map_probe.parameter_changed 1
+breakpoint set --name 'ATLiveDSP::DT_DSPObject::process' --shlib 'Auto-Tune Artist'
+breakpoint command add -F artist_knob_map_probe.process_entry 2
+breakpoint disable 2
+run
+process kill

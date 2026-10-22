@@ -1,0 +1,41 @@
+diff --git a/tests/SignalChainDiagnostic.cpp b/tests/SignalChainDiagnostic.cpp
+--- a/tests/SignalChainDiagnostic.cpp
++++ b/tests/SignalChainDiagnostic.cpp
+@@ -632,10 +632,16 @@
+               << ",trajectory\nGroup Octaves,state/state,state,note policy\nNote Map Rules,state/state,state,target selector\n";
+ 
+     juce::AudioBuffer<float> source (static_cast<int> (reader->numChannels), blockSize);
+-    // Production AU now exposes a mono vocal path. Feeding a two-channel
+-    // buffer here bypasses the host's mono layout negotiation and can leave
+-    // the renderer grain-starved, producing a misleading dry benchmark.
+-    juce::AudioBuffer<float> output (1, blockSize);
++    // The direct diagnostic normally uses the mono vocal path. A StudioForge
++    // VST3 insert, however, is hosted in a canonical stereo track buffer even
++    // when its source WAV is mono. Make that topology selectable so that a
++    // selector/renderer trace can be compared to the actual host without
++    // changing the production processor or its signal path.
++    const auto* stereoHostValue = std::getenv ("VIBE_DIAGNOSTIC_STEREO_HOST");
++    const auto emulateStereoHost = stereoHostValue != nullptr
++                                && std::atoi (stereoHostValue) != 0;
++    const auto renderChannels = emulateStereoHost ? 2 : 1;
++    juce::AudioBuffer<float> output (renderChannels, blockSize);
+     // The production WAV is written as a stream. Retaining a second full
+     // stereo copy is useful only for the short sample-level forensic trace;
+     // on a long raw vocal it needlessly exhausts memory before the actual
+@@ -666,9 +672,14 @@
+         // the preallocated capacity here zero-pads EOS and can conceal a
+         // retained 1..63 sample source-stage tail.
+         source.setSize (static_cast<int> (reader->numChannels), count, false, false, true);
+-        output.setSize (1, count, false, false, true);
++        output.setSize (renderChannels, count, false, false, true);
+         source.clear(); output.clear();
+         reader->read (&source, 0, count, position, true, true);
+         for (int sample = 0; sample < count; ++sample)
+-            output.setSample (0, sample, source.getSample (0, sample));
++        {
++            const auto input = source.getSample (0, sample);
++            output.setSample (0, sample, input);
++            if (renderChannels == 2)
++                output.setSample (1, sample, input);
++        }
+         processor.processBlock (output, midi);

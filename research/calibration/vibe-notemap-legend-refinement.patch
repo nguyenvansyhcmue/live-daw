@@ -1,0 +1,80 @@
+diff --git a/autotune/VibeAutotune/PluginEditor.cpp b/autotune/VibeAutotune/PluginEditor.cpp
+index 1111111..2222222 100644
+--- a/autotune/VibeAutotune/PluginEditor.cpp
++++ b/autotune/VibeAutotune/PluginEditor.cpp
+@@ -272,25 +272,39 @@ public:
+         }
+ 
+         // Endpoint legends live outside the rotating assembly, matching the
+-        // engraved scale on the reference and remaining readable at any value.
++        // engraved scale on the reference and remaining readable at any value.
++        // A medium-weight humanist sans survives Logic's scaled AU window far
++        // better than the former thin default face. The warm lower highlight
++        // is intentionally restrained: it reads as shallow faceplate engraving
++        // rather than a drop shadow or a second line of text.
++        const auto drawScaleLegend = [&] (const juce::String& text, juce::Rectangle<float> bounds, float height)
++        {
++            auto font = juce::Font (juce::FontOptions ("Avenir Next", "Medium", height))
++                            .withHorizontalScale (.94f).withExtraKerningFactor (.015f);
++            g.setFont (font);
++            g.setColour (champagne.withAlpha (.24f));
++            g.drawText (text, bounds.translated (0.0f, 1.0f).toNearestInt(), juce::Justification::centred, false);
++            g.setColour (juce::Colour (0xff35322d).withAlpha (.96f));
++            g.drawText (text, bounds.toNearestInt(), juce::Justification::centred, false);
++        };
+         if (slider.getName() == "RETUNE")
+         {
+-            g.setColour (graphite.withAlpha (.92f)); g.setFont (juce::FontOptions (juce::jmax (10.0f, d * .044f), juce::Font::plain));
+-            g.drawText ("0", juce::Rectangle<float> (r.getX() - 4, r.getBottom() + 3, 22, 14).toNearestInt(), juce::Justification::centred);
+-            g.drawText ("400", juce::Rectangle<float> (r.getRight() - 22, r.getBottom() + 3, 32, 14).toNearestInt(), juce::Justification::centred);
++            const auto legendHeight = juce::jmax (10.5f, d * .046f);
++            drawScaleLegend ("0", { r.getX() - 4, r.getBottom() + 3, 22, 15 }, legendHeight);
++            drawScaleLegend ("400", { r.getRight() - 22, r.getBottom() + 3, 32, 15 }, legendHeight);
+         }
+         else if (slider.getName() == "TRANSPOSE")
+         {
+-            g.setColour (graphite.withAlpha (.88f)); g.setFont (juce::FontOptions (juce::jmax (8.5f, d * .074f), juce::Font::plain));
+-            g.drawText ("-12", juce::Rectangle<float> (r.getX() - 10, r.getBottom() + 2, 25, 12).toNearestInt(), juce::Justification::centred);
+-            g.drawText ("+12", juce::Rectangle<float> (r.getRight() - 15, r.getBottom() + 2, 28, 12).toNearestInt(), juce::Justification::centred);
++            const auto legendHeight = juce::jmax (9.25f, d * .078f);
++            drawScaleLegend ("-12", { r.getX() - 10, r.getBottom() + 2, 25, 13 }, legendHeight);
++            drawScaleLegend ("+12", { r.getRight() - 15, r.getBottom() + 2, 28, 13 }, legendHeight);
+         }
+         else if (slider.getName() == "REFERENCE" || slider.getName() == "TRACKING" || slider.getName() == "VOICED COLOUR")
+         {
+             const auto reference = slider.getName() == "REFERENCE";
+-            g.setColour (graphite.withAlpha (.88f)); g.setFont (juce::FontOptions (juce::jmax (8.5f, d * .074f), juce::Font::plain));
+-            g.drawText (reference ? "400" : "0", juce::Rectangle<float> (r.getX() - 10, r.getBottom() + 2, 28, 12).toNearestInt(), juce::Justification::centred);
+-            g.drawText (reference ? "480" : "100", juce::Rectangle<float> (r.getRight() - 18, r.getBottom() + 2, 32, 12).toNearestInt(), juce::Justification::centred);
++            const auto legendHeight = juce::jmax (9.25f, d * .078f);
++            drawScaleLegend (reference ? "400" : "0", { r.getX() - 10, r.getBottom() + 2, 28, 13 }, legendHeight);
++            drawScaleLegend (reference ? "480" : "100", { r.getRight() - 18, r.getBottom() + 2, 32, 13 }, legendHeight);
+         }
+ 
+         // The socket and scale remain fixed, while the complete mechanical
+@@ -640,6 +654,9 @@ void VibeAutotuneEditor::paint (juce::Graphics& g)
+     g.setColour(graphite);g.fillRoundedRectangle(pianoBounds.toFloat(),10);g.setColour(champagne.withAlpha(.45f));g.drawRoundedRectangle(pianoBounds.toFloat().reduced(.5f),10,1);
+     const auto N = [&] (float x, float y, float w, float h) { return layout.rect (x, y, w, h).toFloat(); };
+-    g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));g.drawText("NOTE MAP",N(65,723,130,24).toNearestInt(),juce::Justification::centredLeft);
++    // Share the selector row's optical centre. The old y=723 caption floated
++    // above the controls and made the Note Map header look disconnected.
++    g.setColour(champagne);g.setFont(juce::FontOptions(16.0f*layout.scale,juce::Font::bold));
++    g.drawText("NOTE MAP",N(65,728,105,30).toNearestInt(),juce::Justification::centredLeft);
+     drawPitchMonitor(g); drawPianoKeyboard(g);
+ }
+ 
+@@ -978,10 +988,10 @@ void VibeAutotuneEditor::resized()
+ 
+     // The context controls occupy their own row.  The old y=739..773 row
+     // overlapped the note ruler at y=762 and visually merged both systems.
+-    noteMapVoiceSelector.setBounds (D (200, 728, 116, 30));
+-    noteMapKeySelector.setBounds (D (328, 728, 74, 30));
+-    noteMapScaleSelector.setBounds (D (414, 728, 154, 30));
+-    editNotesButton.setBounds (D (580, 728, 30, 30));
++    noteMapVoiceSelector.setBounds (D (178, 728, 116, 30));
++    noteMapKeySelector.setBounds (D (306, 728, 74, 30));
++    noteMapScaleSelector.setBounds (D (392, 728, 154, 30));
++    editNotesButton.setBounds (D (558, 728, 30, 30));
+     groupOctavesButton.setBounds (D (1120, 724, 247, 38));
+     // A dedicated gap separates context, per-note states and physical keys.
+     const auto keyboard = D (57, 790, 1334, 154).toFloat();

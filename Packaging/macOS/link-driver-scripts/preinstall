@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+target="/Library/Audio/Plug-Ins/HAL/StudioForgeLinkHAL.driver"
+expected="com.studioforge.link.hal"
+
+if [ -e "$target" ]; then
+    installed_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$target/Contents/Info.plist" 2>/dev/null || true)"
+    if [ "$installed_id" != "$expected" ]; then
+        echo "Refusing to replace an unrelated HAL bundle at $target" >&2
+        exit 1
+    fi
+fi
+
+exit 0
